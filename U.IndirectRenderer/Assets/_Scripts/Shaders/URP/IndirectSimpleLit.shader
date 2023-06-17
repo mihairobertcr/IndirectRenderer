@@ -142,14 +142,6 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
             // (note, BaseMap, BumpMap and EmissionMap is being defined by the SurfaceInput.hlsl include)
             TEXTURE2D(_SpecGlossMap);
             SAMPLER(sampler_SpecGlossMap);
-
-            float4x4 _ObjectToWorld;
-            float4x4 _WorldToObject;
-            
-            RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows01;
-            RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows23;
-            RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows45;
-
             
             // Indirect rendering setup
             #if defined(UNITY_PROCEDURAL_INSTANCING_ENABLED)
@@ -157,9 +149,9 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
             
             // uniform uint _ArgsOffset;
             // StructuredBuffer<uint> _ArgsBuffer;
-            // RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows01;
-            // RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows23;
-            // RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows45;
+            RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows01;
+            RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows23;
+            RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows45;
             
             void IndirectSetup()
             {
@@ -169,12 +161,12 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
                 //     uint index = unity_InstanceID + _ArgsBuffer[_ArgsOffset];
                 // #endif
                 
-                // Indirect2x2Matrix rows01 = _InstanceMatrixRows01[unity_InstanceID];
-                // Indirect2x2Matrix rows23 = _InstanceMatrixRows23[unity_InstanceID];
-                // Indirect2x2Matrix rows45 = _InstanceMatrixRows45[unity_InstanceID];
-                //
-                // unity_ObjectToWorld = float4x4(rows01.FirstRow, rows01.SecondRow, rows23.FirstRow, float4(0, 0, 0, 1));
-                // unity_WorldToObject = float4x4(rows23.SecondRow, rows45.FirstRow, rows45.SecondRow, float4(0, 0, 0, 1));
+                Indirect2x2Matrix rows01 = _InstanceMatrixRows01[unity_InstanceID];
+                Indirect2x2Matrix rows23 = _InstanceMatrixRows23[unity_InstanceID];
+                Indirect2x2Matrix rows45 = _InstanceMatrixRows45[unity_InstanceID];
+                
+                unity_ObjectToWorld = float4x4(rows01.FirstRow, rows01.SecondRow, rows23.FirstRow, float4(0, 0, 0, 1));
+                unity_WorldToObject = float4x4(rows23.SecondRow, rows45.FirstRow, rows45.SecondRow, float4(0, 0, 0, 1));
             }
             #endif
 
@@ -287,24 +279,7 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
                 UNITY_TRANSFER_INSTANCE_ID(IN, OUT);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
 
-                Indirect2x2Matrix rows01 = _InstanceMatrixRows01[instanceID];
-                Indirect2x2Matrix rows23 = _InstanceMatrixRows23[instanceID];
-                // Indirect2x2Matrix rows45 = _InstanceMatrixRows45[instanceID];
-                //
-                // _ObjectToWorld = float4x4(rows01.FirstRow, rows01.SecondRow, rows23.FirstRow, float4(0, 0, 0, 1));
-                // _WorldToObject = float4x4(rows23.SecondRow, rows45.FirstRow, rows45.SecondRow, float4(0, 0, 0, 1));
-
-                float3 pos = IN.positionOS.xyz;
-                float3 posOffset = float3(rows01.FirstRow.w, rows01.SecondRow.w, rows23.FirstRow.w);
-                pos += posOffset;
-                VertexPositionInputs positionInputs = GetVertexPositionInputs(pos);
-
-                // VertexPositionInputs positionInputs = GetVertexPositionInputs(IN.positionOS.xyz);
-
-                //TODO: Properly implement
-                // positionInputs.positionWS = mul(_ObjectToWorld, float4(IN.positionOS.xyz, 1.0)).xyz;
-                // positionInputs.positionVS = TransformWorldToView(positionInputs.positionWS);
-                // positionInputs.positionCS = TransformWorldToHClip(positionInputs.positionWS);
+                VertexPositionInputs positionInputs = GetVertexPositionInputs(IN.positionOS.xyz);
                 
                 #ifdef _NORMALMAP
                     VertexNormalInputs normalInputs = GetVertexNormalInputs(IN.normalOS.xyz, IN.tangentOS);
@@ -393,7 +368,7 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
             ZTest LEqual
 
             HLSLPROGRAM
-            // #pragma vertex ShadowPassVertex
+            #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
 
             // Material Keywords
@@ -412,36 +387,35 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/ShadowCasterPass.hlsl"
 
-            float4x4 _ObjectToWorld;
-            float4x4 _WorldToObject;
+            // Indirect rendering setup
+            #pragma multi_compile _ PROCEDURAL_INSTANCING_ON //???
+
+            #if defined(UNITY_PROCEDURAL_INSTANCING_ENABLED)
+            #pragma instancing_options procedural:IndirectSetup
             
+            // uniform uint _ArgsOffset;
+            // StructuredBuffer<uint> _ArgsBuffer;
             RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows01;
             RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows23;
             RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows45;
-
-            // Note if we do any vertex displacement, we'll need to change the vertex function. e.g. :
-            #pragma vertex DisplacedShadowPassVertex (instead of ShadowPassVertex above)
             
-            Varyings DisplacedShadowPassVertex(Attributes input, uint instanceID: SV_InstanceID) {
-                Varyings output = (Varyings)0;
-                UNITY_SETUP_INSTANCE_ID(input);
-
-                Indirect2x2Matrix rows01 = _InstanceMatrixRows01[instanceID];
-                Indirect2x2Matrix rows23 = _InstanceMatrixRows23[instanceID];
-                // Indirect2x2Matrix rows45 = _InstanceMatrixRows45[instanceID];
-                //
-                // _ObjectToWorld = float4x4(rows01.FirstRow, rows01.SecondRow, rows23.FirstRow, float4(0, 0, 0, 1));
-                // _WorldToObject = float4x4(rows23.SecondRow, rows45.FirstRow, rows45.SecondRow, float4(0, 0, 0, 1));
-
-                float3 posOffset = float3(rows01.FirstRow.w, rows01.SecondRow.w, rows23.FirstRow.w);
+            void IndirectSetup()
+            {
+                // #if defined(SHADER_API_METAL)
+                //     uint index = unity_InstanceID;
+                // #else
+                //     uint index = unity_InstanceID + _ArgsBuffer[_ArgsOffset];
+                // #endif
                 
-                // Example Displacement
-                input.positionOS.xyz += posOffset;
+                Indirect2x2Matrix rows01 = _InstanceMatrixRows01[unity_InstanceID];
+                Indirect2x2Matrix rows23 = _InstanceMatrixRows23[unity_InstanceID];
+                Indirect2x2Matrix rows45 = _InstanceMatrixRows45[unity_InstanceID];
                 
-                output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
-                output.positionCS = GetShadowPositionHClip(input);
-                return output;
+                unity_ObjectToWorld = float4x4(rows01.FirstRow, rows01.SecondRow, rows23.FirstRow, float4(0, 0, 0, 1));
+                unity_WorldToObject = float4x4(rows23.SecondRow, rows45.FirstRow, rows45.SecondRow, float4(0, 0, 0, 1));
             }
+            #endif
+            
             ENDHLSL
         }
 
@@ -459,7 +433,7 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
             ZTest LEqual
 
             HLSLPROGRAM
-            // #pragma vertex DepthOnlyVertex
+            #pragma vertex DepthOnlyVertex
             #pragma fragment DepthOnlyFragment
 
             // Material Keywords
@@ -474,37 +448,35 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
 
-                        float4x4 _ObjectToWorld;
-            float4x4 _WorldToObject;
+            // Indirect rendering setup
+            #pragma multi_compile _ PROCEDURAL_INSTANCING_ON //???
+
+            #if defined(UNITY_PROCEDURAL_INSTANCING_ENABLED)
+            #pragma instancing_options procedural:IndirectSetup
             
+            // uniform uint _ArgsOffset;
+            // StructuredBuffer<uint> _ArgsBuffer;
             RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows01;
             RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows23;
             RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows45;
-
-            // Note if we do any vertex displacement, we'll need to change the vertex function. e.g. :
-            #pragma vertex DisplacedDepthOnlyVertex (instead of DepthOnlyVertex above)
             
-            Varyings DisplacedDepthOnlyVertex(Attributes input, uint instanceID: SV_InstanceID) {
-                Varyings output = (Varyings)0;
-                UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+            void IndirectSetup()
+            {
+                // #if defined(SHADER_API_METAL)
+                //     uint index = unity_InstanceID;
+                // #else
+                //     uint index = unity_InstanceID + _ArgsBuffer[_ArgsOffset];
+                // #endif
                 
-                Indirect2x2Matrix rows01 = _InstanceMatrixRows01[instanceID];
-                Indirect2x2Matrix rows23 = _InstanceMatrixRows23[instanceID];
-                // Indirect2x2Matrix rows45 = _InstanceMatrixRows45[instanceID];
-                //
-                // _ObjectToWorld = float4x4(rows01.FirstRow, rows01.SecondRow, rows23.FirstRow, float4(0, 0, 0, 1));
-                // _WorldToObject = float4x4(rows23.SecondRow, rows45.FirstRow, rows45.SecondRow, float4(0, 0, 0, 1));
-
-                float3 posOffset = float3(rows01.FirstRow.w, rows01.SecondRow.w, rows23.FirstRow.w);
+                Indirect2x2Matrix rows01 = _InstanceMatrixRows01[unity_InstanceID];
+                Indirect2x2Matrix rows23 = _InstanceMatrixRows23[unity_InstanceID];
+                Indirect2x2Matrix rows45 = _InstanceMatrixRows45[unity_InstanceID];
                 
-                // Example Displacement
-                input.position.xyz += posOffset;
-                
-                output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
-                output.positionCS = TransformObjectToHClip(input.position.xyz);
-                return output;
+                unity_ObjectToWorld = float4x4(rows01.FirstRow, rows01.SecondRow, rows23.FirstRow, float4(0, 0, 0, 1));
+                unity_WorldToObject = float4x4(rows23.SecondRow, rows45.FirstRow, rows45.SecondRow, float4(0, 0, 0, 1));
             }
+            #endif
+            
             ENDHLSL
         }
 
@@ -521,7 +493,7 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
             ZTest LEqual
 
             HLSLPROGRAM
-            // #pragma vertex DepthNormalsVertex
+            #pragma vertex DepthNormalsVertex
             #pragma fragment DepthNormalsFragment
 
             // Material Keywords
@@ -537,40 +509,35 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthNormalsPass.hlsl"
 
-                                    float4x4 _ObjectToWorld;
-            float4x4 _WorldToObject;
+            // Indirect rendering setup
+            #pragma multi_compile _ PROCEDURAL_INSTANCING_ON //???
+
+            #if defined(UNITY_PROCEDURAL_INSTANCING_ENABLED)
+            #pragma instancing_options procedural:IndirectSetup
             
+            // uniform uint _ArgsOffset;
+            // StructuredBuffer<uint> _ArgsBuffer;
             RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows01;
             RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows23;
             RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows45;
-
-            // Note if we do any vertex displacement, we'll need to change the vertex function. e.g. :
-            #pragma vertex DisplacedDepthNormalsVertex //(instead of DepthNormalsVertex above)
-
-            Varyings DisplacedDepthNormalsVertex(Attributes input, uint instanceID: SV_InstanceID) {
-                Varyings output = (Varyings)0;
-                UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-
-                Indirect2x2Matrix rows01 = _InstanceMatrixRows01[instanceID];
-                Indirect2x2Matrix rows23 = _InstanceMatrixRows23[instanceID];
-                // Indirect2x2Matrix rows45 = _InstanceMatrixRows45[instanceID];
-                //
-                // _ObjectToWorld = float4x4(rows01.FirstRow, rows01.SecondRow, rows23.FirstRow, float4(0, 0, 0, 1));
-                // _WorldToObject = float4x4(rows23.SecondRow, rows45.FirstRow, rows45.SecondRow, float4(0, 0, 0, 1));
-
-                float3 posOffset = float3(rows01.FirstRow.w, rows01.SecondRow.w, rows23.FirstRow.w);
+            
+            void IndirectSetup()
+            {
+                // #if defined(SHADER_API_METAL)
+                //     uint index = unity_InstanceID;
+                // #else
+                //     uint index = unity_InstanceID + _ArgsBuffer[_ArgsOffset];
+                // #endif
                 
-                // Example Displacement
-                input.positionOS.xyz += posOffset;
+                Indirect2x2Matrix rows01 = _InstanceMatrixRows01[unity_InstanceID];
+                Indirect2x2Matrix rows23 = _InstanceMatrixRows23[unity_InstanceID];
+                Indirect2x2Matrix rows45 = _InstanceMatrixRows45[unity_InstanceID];
                 
-                output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
-                output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
-                
-                VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal, input.tangentOS);
-                output.normalWS = NormalizeNormalPerVertex(normalInput.normalWS);
-                return output;
+                unity_ObjectToWorld = float4x4(rows01.FirstRow, rows01.SecondRow, rows23.FirstRow, float4(0, 0, 0, 1));
+                unity_WorldToObject = float4x4(rows23.SecondRow, rows45.FirstRow, rows45.SecondRow, float4(0, 0, 0, 1));
             }
+            #endif
+            
             ENDHLSL
         }
     }
