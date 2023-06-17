@@ -483,10 +483,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b688fdeb87bdc4de58d3eac42850d3ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
-  _material: {fileID: 2100000, guid: a8248d39566b4478591457de205c621e, type: 2}
-  _matricesInitializer: {fileID: 7200000, guid: 08d7ec0392f7748948199728f40cbc7f,
-    type: 3}
+  _config:
+    _mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+    _material: {fileID: 2100000, guid: a8248d39566b4478591457de205c621e, type: 2}
+    _matricesInitializer: {fileID: 7200000, guid: 08d7ec0392f7748948199728f40cbc7f,
+      type: 3}
+    _lodBitonicSorter: {fileID: 7200000, guid: 6f7afd63860da43238b81f2a660befc9, type: 3}
 --- !u!4 &1014861749
 Transform:
   m_ObjectHideFlags: 0
