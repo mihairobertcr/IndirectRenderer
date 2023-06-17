@@ -1,0 +1,73 @@
+#include "../IndirectData.hlsl"
+
+#pragma kernel BitonicSort
+#pragma kernel MatrixTranspose
+
+#define BITONIC_BLOCK_SIZE   256
+#define TRANSPOSE_BLOCK_SIZE   8
+
+cbuffer CB
+{
+    uint _Level;
+    uint _LevelMask;
+    uint _Width;
+    uint _Height;
+};
+
+StructuredBuffer<SortingData> _Input;
+RWStructuredBuffer<SortingData> _Data;
+
+groupshared SortingData _SharedData[BITONIC_BLOCK_SIZE];
+
+[numthreads(BITONIC_BLOCK_SIZE, 1, 1)]
+void BitonicSort(
+    in uint3 dispatchThreadID : SV_DispatchThreadID, // DispatchThreadID  = dot(GroupID, numthreads) + GroupThreadId;
+    in uint  groupIndex       : SV_GroupIndex,       // GroupIndex = unique index of a thread inside a group
+    in uint3 groupID          : SV_GroupID,          // GroupID = index for each dimension inside a ThreadGroupCount 
+    in uint3 groupThreadID    : SV_GroupThreadID)    // GroupThreadId = indices for each dimension inside a group of the current thread
+{
+    uint threadID = dispatchThreadID.x;
+    _SharedData[groupIndex] = _Data[threadID];
+    
+    GroupMemoryBarrierWithGroupSync();
+
+    // Sort the shared data
+    for (uint j = _Level >> 1; j > 0; j >>= 1)
+    {
+        SortingData result = _SharedData[groupIndex];
+        SortingData first  = _SharedData[groupIndex & ~j];
+        SortingData second = _SharedData[groupIndex | j];
+        
+        float firstDistance  = (first.DrawCallInstanceIndex >> 16) * 5000 + first.DistanceToCamera;
+        float secondDistance = (second.DrawCallInstanceIndex >> 16) * 5000 + second.DistanceToCamera;
+        
+        if ((firstDistance <= secondDistance) == ((bool)(_LevelMask & threadID)))
+        {
+            result = _SharedData[groupIndex ^ j];
+        }
+        
+        GroupMemoryBarrierWithGroupSync();
+
+        _SharedData[groupIndex] = result;
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    // Store shared data
+    _Data[threadID] = _SharedData[groupIndex];
+}
+
+groupshared SortingData _SharedTransposeData[TRANSPOSE_BLOCK_SIZE * TRANSPOSE_BLOCK_SIZE];
+
+[numthreads(TRANSPOSE_BLOCK_SIZE, TRANSPOSE_BLOCK_SIZE, 1)]
+void MatrixTranspose(
+    uint3 DTid : SV_DispatchThreadID, 
+    uint  GI   : SV_GroupIndex,
+    uint3 Gid  : SV_GroupID, 
+    uint3 GTid : SV_GroupThreadID)
+{
+    _SharedTransposeData[GI] = _Input[DTid.y * _Width + DTid.x];
+    GroupMemoryBarrierWithGroupSync();
+
+    uint2 XY = DTid.yx - GTid.yx + GTid.xy;
+    _Data[XY.y * _Height + XY.x] = _SharedTransposeData[GTid.x * TRANSPOSE_BLOCK_SIZE + GTid.y];
+}

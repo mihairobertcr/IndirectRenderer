@@ -149,6 +149,8 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
             
             // uniform uint _ArgsOffset;
             // StructuredBuffer<uint> _ArgsBuffer;
+
+            //TODO: Consider removing RW
             RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows01;
             RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows23;
             RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows45;
