@@ -34,7 +34,7 @@ public class IndirectRendererComponent : MonoBehaviour
     private static readonly int _InstanceMatrixRows23 = Shader.PropertyToID("_InstanceMatrixRows23");
     private static readonly int _InstanceMatrixRows45 = Shader.PropertyToID("_InstanceMatrixRows45");
     
-    private int _numberOfInstances = 100;
+    private int _numberOfInstances = 16384;
     private int _numberOfInstanceTypes;
     
     ComputeBuffer debug;
@@ -47,9 +47,9 @@ public class IndirectRendererComponent : MonoBehaviour
         var rotations = new List<Vector3>();
         
         //TODO: Look into thread allocation
-        for (var i = 0; i < 10; i++)
+        for (var i = 0; i < 128; i++)
         {
-            for (var j = 0; j < 10; j++)
+            for (var j = 0; j < 128; j++)
             {
                 positions.Add(new Vector3
                 {
