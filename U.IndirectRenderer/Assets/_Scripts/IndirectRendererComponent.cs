@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Serialization;
 
 [Serializable]
 public class IndirectRendererConfig
@@ -21,6 +22,17 @@ public class IndirectRendererConfig
     [Header("Compute Shaders")]
     public ComputeShader MatricesInitializer;
     public ComputeShader LodBitonicSorter;
+
+    [Header("Settings")]
+    public bool RunCompute = true;
+    public bool DrawInstances = true;
+    public bool DrawShadows = true;
+    public bool ComputeAsync = true;
+
+    [Header("Debug")]
+    public bool LogMatrices;
+    public bool LogArgumentsBuferAfterReset;
+    public bool LogSortingData;
 }
 
 [Serializable]
@@ -51,13 +63,13 @@ public class IndirectRendererComponent : MonoBehaviour
     [SerializeField] private IndirectRendererConfig _config;
 
     private IndirectRenderer _renderer;
+    
+    List<Vector3> positions = new List<Vector3>();
+    List<Vector3> scales = new List<Vector3>();
+    List<Vector3> rotations = new List<Vector3>();
 
     private void Start()
     {
-        var positions = new List<Vector3>();
-        var scales = new List<Vector3>();
-        var rotations = new List<Vector3>();
-
         for (var i = 0; i < 128; i++)
         {
             for (var j = 0; j < 128; j++)
@@ -88,23 +100,24 @@ public class IndirectRendererComponent : MonoBehaviour
         _renderer = new IndirectRenderer(_config, positions, rotations, scales);
     }
 
-    // private void Update()
-    // {
-    //     Graphics.DrawMeshInstancedIndirect(
-    //         mesh: _meshProperties.Mesh,
-    //         submeshIndex: 0,
-    //         material: _meshProperties.Material,
-    //         bounds: new Bounds(Vector3.zero, Vector3.one * 1000),
-    //         bufferWithArgs: ShaderBuffers.InstancesArgsBuffer,
-    //         argsOffset: 0, //ARGS_BYTE_SIZE_PER_DRAW_CALL,
-    //         properties: _meshProperties.Lod2PropertyBlock,
-    //         castShadows: ShadowCastingMode.On,
-    //         receiveShadows: true);
-    //     // camera: Camera.main);   
-    // }
+    private void Update()
+    {
+        // _renderer.Update(positions, rotations, scales);
+        // Graphics.DrawMeshInstancedIndirect(
+        //     mesh: _meshProperties.Mesh,
+        //     submeshIndex: 0,
+        //     material: _meshProperties.Material,
+        //     bounds: new Bounds(Vector3.zero, Vector3.one * 1000),
+        //     bufferWithArgs: ShaderBuffers.InstancesArgsBuffer,
+        //     argsOffset: 0, //ARGS_BYTE_SIZE_PER_DRAW_CALL,
+        //     properties: _meshProperties.Lod2PropertyBlock,
+        //     castShadows: ShadowCastingMode.On,
+        //     receiveShadows: true);
+        // // camera: Camera.main);   
+    }
 
     private void OnDestroy()
     {
-        // ShaderBuffers.Dispose();
+        _renderer.Dispose();
     }
 }

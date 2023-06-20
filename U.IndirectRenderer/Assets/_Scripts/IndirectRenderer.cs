@@ -1,7 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
+using UnityEngine.Profiling;
+using UnityEngine.Rendering;
 
 public class IndirectRenderer : IDisposable
 {
@@ -20,6 +23,10 @@ public class IndirectRenderer : IDisposable
 
     private int _numberOfInstances = 16384;
     private int _numberOfInstanceTypes = 1;
+    
+    private List<Vector3> _positions;
+    private List<Vector3> _scales;
+    private List<Vector3> _rotations;
     private Vector3 _cameraPosition = Vector3.zero;
 
     public IndirectRenderer(IndirectRendererConfig config, 
@@ -39,29 +46,136 @@ public class IndirectRenderer : IDisposable
         // it should preserve the sorting functionality
         var count = NUMBER_OF_ARGS_PER_INSTANCE_TYPE; // * _numberOfInstanceTypes
         ShaderBuffers.InstancesArgsBuffer = new ComputeBuffer(count, sizeof(uint), ComputeBufferType.IndirectArguments);
+        ShaderBuffers.ShadowsArgsBuffer = new ComputeBuffer(count, sizeof(uint), ComputeBufferType.IndirectArguments);
         ShaderBuffers.InstancesArgsBuffer.SetData(_args);
-        
+        ShaderBuffers.ShadowsArgsBuffer.SetData(_args);
+
         _matricesInitializer = new MatricesInitializer(_config.MatricesInitializer, _meshProperties, _numberOfInstances);
-        _matricesInitializer.Initialize(positions, rotations, scales);
-        _matricesInitializer.Dispatch();
-
-        _cameraPosition = _config.RenderCamera.transform.position;
-
         _lodBitonicSorter = new LodBitonicSorter(_config.LodBitonicSorter, _numberOfInstances);
-        _lodBitonicSorter.Initialize(positions, _cameraPosition);
 
-        _matricesInitializer.LogInstanceDrawMatrices();
+        Initialize(positions, rotations, scales);
+        RenderPipelineManager.beginFrameRendering += OnBeginFrameRendering;
         
-        // TODO: OnPreCull
-        _cameraPosition = _config.RenderCamera.transform.position;
-        _lodBitonicSorter.Dispatch();
-
-        _lodBitonicSorter.LogSortingData();
+        // _matricesInitializer.Initialize(positions, rotations, scales);
+        // _matricesInitializer.Dispatch();
     }
+
+    // ???
+    // public void Update(List<Vector3> positions, 
+    //     List<Vector3> rotations, 
+    //     List<Vector3> scales)
+    // {
+    //     // Global data ???
+    //     _cameraPosition = _config.RenderCamera.transform.position;
+    //     
+    //     _matricesInitializer.Initialize(positions, rotations, scales);
+    //     _matricesInitializer.Dispatch();
+    // }
 
     public void Dispose()
     {
         ShaderBuffers.Dispose();
+        RenderPipelineManager.beginFrameRendering -= OnBeginFrameRendering;
+    }
+
+    private void Initialize(List<Vector3> positions, List<Vector3> rotations, List<Vector3> scales)
+    {
+        _matricesInitializer.Initialize(positions, rotations, scales);
+        _matricesInitializer.Dispatch();
+        
+        _cameraPosition = _config.RenderCamera.transform.position;
+        _lodBitonicSorter.Initialize(positions, _cameraPosition);
+        _lodBitonicSorter.ComputeAsync = _config.ComputeAsync;
+    }
+
+    private void OnBeginFrameRendering(ScriptableRenderContext context, Camera[] cameras)
+    {
+        if (_config.RunCompute)
+        {
+            Profiler.BeginSample("CalculateVisibleInstances");
+            CalculateVisibleInstances();
+            Profiler.EndSample();
+        }
+        
+        if (_config.DrawInstances)
+        {
+            Profiler.BeginSample("DrawInstances");
+            DrawInstances();
+            Profiler.EndSample();
+        }
+        
+        if (_config.DrawShadows)
+        {
+            Profiler.BeginSample("DrawInstanceShadows");
+            DrawShadows();
+            Profiler.EndSample();
+        }
+        
+        // if (debugDrawHiZ)
+        // {
+        //     Vector3 pos = transform.position;
+        //     pos.y = debugCamera.transform.position.y;
+        //     debugCamera.transform.position = pos;
+        //     debugCamera.Render();
+        // }
+    }
+
+    private void CalculateVisibleInstances()
+    {
+        // Global data
+        _cameraPosition = _config.RenderCamera.transform.position;
+        
+        if (_config.LogMatrices)
+        {
+            _config.LogMatrices = false;
+            _matricesInitializer.LogInstanceDrawMatrices("LogInstanceDrawMatrices");
+        }
+        
+        Profiler.BeginSample("Resetting args buffer");
+        {
+            ShaderBuffers.InstancesArgsBuffer.SetData(_args);
+            ShaderBuffers.ShadowsArgsBuffer.SetData(_args);
+            
+            if (_config.LogArgumentsBuferAfterReset)
+            {
+                _config.LogArgumentsBuferAfterReset = false;
+                // LogArgsBuffers("LogArgsBuffers - Instances After Reset", "LogArgsBuffers - Shadows After Reset");
+            }
+        }
+        Profiler.EndSample();
+        
+        Profiler.BeginSample("LOD Sorting");
+        {
+            // m_lastCamPosition = m_camPosition;
+            _lodBitonicSorter.Dispatch();
+        }
+        Profiler.EndSample();
+        
+        if (_config.LogSortingData)
+        {
+            _config.LogSortingData = false;
+            _lodBitonicSorter.LogSortingData("LogSortingData");
+        }
+    }
+
+    private void DrawInstances()
+    {
+        Graphics.DrawMeshInstancedIndirect(
+            mesh: _meshProperties.Mesh,
+            submeshIndex: 0,
+            material: _meshProperties.Material,
+            bounds: new Bounds(Vector3.zero, Vector3.one * 1000),
+            bufferWithArgs: ShaderBuffers.InstancesArgsBuffer,
+            argsOffset: 0, //ARGS_BYTE_SIZE_PER_DRAW_CALL,
+            properties: _meshProperties.Lod2PropertyBlock,
+            castShadows: ShadowCastingMode.On,
+            receiveShadows: true);
+        // camera: Camera.main); 
+    }
+    
+    private void DrawShadows()
+    {
+        
     }
 
     private MeshProperties CreateMeshProperties()
@@ -126,19 +240,71 @@ public class IndirectRenderer : IDisposable
         args[4] = 0;                           // 4 - start instance location
         
         // Lod 1
-        args[5] = _meshProperties.Lod1Indices; // 0 - index count per instance, 
-        args[6] = 1;                           // 1 - instance count
-        args[7] = args[0] + args[2];    // 2 - start index location
-        args[8] = 0;                    // 3 - base vertex location
-        args[9] = 0;                    // 4 - start instance location
+        args[5] = _meshProperties.Lod1Indices;  // 0 - index count per instance, 
+        args[6] = 1;                            // 1 - instance count
+        args[7] = args[0] + args[2];            // 2 - start index location
+        args[8] = 0;                            // 3 - base vertex location
+        args[9] = 0;                            // 4 - start instance location
         
         // Lod 2
-        args[10] = _meshProperties.Lod2Indices;     // 0 - index count per instance, 
-        args[11] = 1;                   // 1 - instance count
-        args[12] = args[5] + args[7];   // 2 - start index location
-        args[13] = 0;                   // 3 - base vertex location
-        args[14] = 0;                   // 4 - start instance location
+        args[10] = _meshProperties.Lod2Indices; // 0 - index count per instance, 
+        args[11] = 1;                           // 1 - instance count
+        args[12] = args[5] + args[7];           // 2 - start index location
+        args[13] = 0;                           // 3 - base vertex location
+        args[14] = 0;                           // 4 - start instance location
 
         return args;
     }
+    
+    // TODO: Implement for multiple Meshes
+    // private void LogArgsBuffers(string instancePrefix = "", string shadowPrefix = "")
+    // {
+    //     var instancesArgs = new uint[_numberOfInstanceTypes * NUMBER_OF_ARGS_PER_INSTANCE_TYPE];
+    //     uint[] shadowArgs = new uint[_numberOfInstanceTypes * NUMBER_OF_ARGS_PER_INSTANCE_TYPE];
+    //     ShaderBuffers.InstancesArgsBuffer.GetData(instancesArgs);
+    //     ShaderBuffers.ShadowsArgsBuffer.GetData(shadowArgs);
+    //     
+    //     var instancesSB = new StringBuilder();
+    //     var shadowsSB = new StringBuilder();
+    //     
+    //     if (!string.IsNullOrEmpty(instancePrefix)) instancesSB.AppendLine(instancePrefix);
+    //     if (!string.IsNullOrEmpty(shadowPrefix)) shadowsSB.AppendLine(shadowPrefix);
+    //     
+    //     instancesSB.AppendLine("");
+    //     shadowsSB.AppendLine("");
+    //     
+    //     instancesSB.AppendLine("IndexCountPerInstance InstanceCount StartIndexLocation BaseVertexLocation StartInstanceLocation");
+    //     shadowsSB.AppendLine("IndexCountPerInstance InstanceCount StartIndexLocation BaseVertexLocation StartInstanceLocation");
+    //
+    //     int counter = 0;
+    //     instancesSB.AppendLine(_meshProperties.Mesh.name);
+    //     shadowsSB.AppendLine(_meshProperties.Mesh.name);
+    //     for (int i = 0; i < instancesArgs.Length; i++)
+    //     {
+    //         instancesSB.Append(instancesArgs[i] + " ");
+    //         shadowsSB.Append(shadowArgs[i] + " ");
+    //
+    //         if ((i + 1) % 5 == 0)
+    //         {
+    //             instancesSB.AppendLine("");
+    //             shadowsSB.AppendLine("");
+    //
+    //             if ((i + 1) < instancesArgs.Length
+    //                 && (i + 1) % NUMBER_OF_ARGS_PER_INSTANCE_TYPE == 0)
+    //             {
+    //                 instancesSB.AppendLine("");
+    //                 shadowsSB.AppendLine("");
+    //
+    //                 counter++;
+    //                 var irm = _meshProperties;
+    //                 Mesh m = _meshProperties.Mesh;
+    //                 instancesSB.AppendLine(m.name);
+    //                 shadowsSB.AppendLine(m.name);
+    //             }
+    //         }
+    //     }
+    //     
+    //     Debug.Log(instancesSB.ToString());
+    //     Debug.Log(shadowsSB.ToString());
+    // }
 }

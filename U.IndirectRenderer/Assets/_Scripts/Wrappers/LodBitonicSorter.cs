@@ -8,6 +8,8 @@ public class LodBitonicSorter
     private const uint BITONIC_BLOCK_SIZE = 256;
     private const uint TRANSPOSE_BLOCK_SIZE = 8;
 
+    public bool ComputeAsync { get; set; }
+    
     private readonly ComputeShader _computeShader;
     private readonly int _numberOfInstances;
 
@@ -29,11 +31,14 @@ public class LodBitonicSorter
 
     public void Dispatch()
     {
-        var AsyncCompute = true;
-        if (AsyncCompute)
+        if (ComputeAsync)
+        {
             Graphics.ExecuteCommandBufferAsync(ShaderBuffers.SortingCommandBuffer, ComputeQueueType.Background);
+        }
         else
+        {
             Graphics.ExecuteCommandBuffer(ShaderBuffers.SortingCommandBuffer);
+        }
     }
     
     // TODO: #EDITOR

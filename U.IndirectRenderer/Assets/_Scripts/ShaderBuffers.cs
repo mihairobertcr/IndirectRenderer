@@ -5,7 +5,8 @@ using UnityEngine.Rendering;
 public static class ShaderBuffers
 {
     public static ComputeBuffer InstancesArgsBuffer;
-    
+    public static ComputeBuffer ShadowsArgsBuffer;
+
     public static ComputeBuffer InstanceMatrixRows01;
     public static ComputeBuffer InstanceMatrixRows23;
     public static ComputeBuffer InstanceMatrixRows45;
