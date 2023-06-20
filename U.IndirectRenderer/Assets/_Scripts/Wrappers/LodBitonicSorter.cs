@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -34,6 +35,40 @@ public class LodBitonicSorter
         else
             Graphics.ExecuteCommandBuffer(ShaderBuffers.SortingCommandBuffer);
     }
+    
+    // TODO: #EDITOR
+    public void LogSortingData(string prefix = "")
+    {
+        var sortingData = new SortingData[_numberOfInstances];
+        ShaderBuffers.InstancesSortingData.GetData(sortingData);
+        
+        var stringBuilder = new StringBuilder();
+        if (!string.IsNullOrEmpty(prefix))
+        {
+            stringBuilder.AppendLine(prefix);
+        }
+        
+        uint lastDrawCallIndex = 0;
+        for (var i = 0; i < sortingData.Length; i++)
+        {
+            var drawCallIndex = (sortingData[i].DrawCallInstanceIndex >> 16);
+            var instanceIndex = (sortingData[i].DrawCallInstanceIndex) & 0xFFFF;
+            if (i == 0)
+            {
+                lastDrawCallIndex = drawCallIndex;
+            }
+            
+            stringBuilder.AppendLine($"({drawCallIndex}) --> {sortingData[i].DistanceToCamera} instanceIndex:{instanceIndex}");
+
+            if (lastDrawCallIndex == drawCallIndex) continue;
+            
+            Debug.Log(stringBuilder.ToString());
+            stringBuilder = new StringBuilder();
+            lastDrawCallIndex = drawCallIndex;
+        }
+
+        Debug.Log(stringBuilder.ToString());
+    }
 
     private void InitializeSorterBuffers(List<Vector3> positions, Vector3 cameraPosition)
     {
@@ -42,7 +77,7 @@ public class LodBitonicSorter
         {
             sortingData.Add(new SortingData
             {
-                DrawCallInstanceIndex = (((uint)0 * IndirectRendererComponent.NUMBER_OF_ARGS_PER_INSTANCE_TYPE) << 16) + ((uint)i), // 0 might be the index of the type in this case
+                DrawCallInstanceIndex = (((uint)0 * IndirectRenderer.NUMBER_OF_ARGS_PER_INSTANCE_TYPE) << 16) + ((uint)i), // 0 might be the index of the type in this case
                 DistanceToCamera = Vector3.Distance(positions[i], cameraPosition)
             });
         }

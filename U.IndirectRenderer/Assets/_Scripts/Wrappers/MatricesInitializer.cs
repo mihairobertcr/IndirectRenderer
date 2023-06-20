@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Text;
 using UnityEngine;
 
 public class MatricesInitializer
@@ -42,6 +43,41 @@ public class MatricesInitializer
         _rotationsBuffer?.Release();
         _scalesBuffer?.Release();
     }
+    
+    // TODO: #EDITOR
+    public void LogInstanceDrawMatrices(string prefix = "")
+    {
+        var matrix1 = new Indirect2x2Matrix[_numberOfInstances];
+        var matrix2 = new Indirect2x2Matrix[_numberOfInstances];
+        var matrix3 = new Indirect2x2Matrix[_numberOfInstances];
+        
+        ShaderBuffers.InstanceMatrixRows01.GetData(matrix1);
+        ShaderBuffers.InstanceMatrixRows23.GetData(matrix2);
+        ShaderBuffers.InstanceMatrixRows45.GetData(matrix3);
+        
+        var stringBuilder = new StringBuilder();
+        if (!string.IsNullOrEmpty(prefix))
+        {
+            stringBuilder.AppendLine(prefix);
+        }
+        
+        for (var i = 0; i < matrix1.Length; i++)
+        {
+            stringBuilder.AppendLine(
+                i + "\n" 
+                  + matrix1[i].FirstRow + "\n"
+                  + matrix1[i].SecondRow + "\n"
+                  + matrix2[i].FirstRow + "\n"
+                  + "\n\n"
+                  + matrix2[i].SecondRow + "\n"
+                  + matrix3[i].FirstRow + "\n"
+                  + matrix3[i].SecondRow + "\n"
+                  + "\n"
+            );
+        }
+    
+        Debug.Log(stringBuilder.ToString());
+    }
 
     private void InitializeMatricesBuffers()
     {
@@ -69,15 +105,7 @@ public class MatricesInitializer
 
     private void InitializeMaterialProperties()
     {
-        // TODO: Consider moving this to MeshProperty ctor
-        _meshProperties.Lod0PropertyBlock = new MaterialPropertyBlock();
-        _meshProperties.Lod1PropertyBlock = new MaterialPropertyBlock();
-        _meshProperties.Lod2PropertyBlock = new MaterialPropertyBlock();
-        // irm.shadowLod00MatPropBlock = new MaterialPropertyBlock();
-        // irm.shadowLod01MatPropBlock = new MaterialPropertyBlock();
-        // irm.shadowLod02MatPropBlock = new MaterialPropertyBlock();
-        
-        //TODO: Change to culled buffers
+        //TODO: Change with culled buffers
         _meshProperties.Lod0PropertyBlock.SetBuffer(ShaderProperties.InstanceMatrixRows01, ShaderBuffers.InstanceMatrixRows01);
         _meshProperties.Lod1PropertyBlock.SetBuffer(ShaderProperties.InstanceMatrixRows01, ShaderBuffers.InstanceMatrixRows01);
         _meshProperties.Lod2PropertyBlock.SetBuffer(ShaderProperties.InstanceMatrixRows01, ShaderBuffers.InstanceMatrixRows01);
