@@ -24,18 +24,10 @@ public class IndirectRendererConfig
 }
 
 [Serializable]
-public class IndirectRenderingMesh
+public class MeshProperties
 {
     public Mesh Mesh;
-    // public Material Material;
-    
-    // public MaterialPropertyBlock Lod0PropertyBlock;
-    // public MaterialPropertyBlock Lod1PropertyBlock;
-    // public MaterialPropertyBlock Lod2PropertyBlock;
-    //
-    // public MaterialPropertyBlock ShadowLod0PropertyBlock;
-    // public MaterialPropertyBlock ShadowLod1PropertyBlock;
-    // public MaterialPropertyBlock ShadowLod2PropertyBlock;
+    public Material Material;
     
     public uint Lod0Vertices;
     public uint Lod1Vertices;
@@ -44,35 +36,46 @@ public class IndirectRenderingMesh
     public uint Lod0Indices;
     public uint Lod1Indices;
     public uint Lod2Indices;
+    
+    public MaterialPropertyBlock Lod0PropertyBlock;
+    public MaterialPropertyBlock Lod1PropertyBlock;
+    public MaterialPropertyBlock Lod2PropertyBlock;
+    
+    public MaterialPropertyBlock ShadowLod0PropertyBlock;
+    public MaterialPropertyBlock ShadowLod1PropertyBlock;
+    public MaterialPropertyBlock ShadowLod2PropertyBlock;
 }
 
 public class IndirectRendererComponent : MonoBehaviour
 {
+    public const int NUMBER_OF_ARGS_PER_INSTANCE_TYPE = NUMBER_OF_DRAW_CALLS * NUMBER_OF_ARGS_PER_DRAW;  // 3draws * 5args = 15args
+    
     private const int NUMBER_OF_DRAW_CALLS = 3;                                                           // (LOD00 + LOD01 + LOD02)
     private const int NUMBER_OF_ARGS_PER_DRAW = 5;                                                        // (indexCount, instanceCount, startIndex, baseVertex, startInstance)
-    private const int NUMBER_OF_ARGS_PER_INSTANCE_TYPE = NUMBER_OF_DRAW_CALLS * NUMBER_OF_ARGS_PER_DRAW;  // 3draws * 5args = 15args
-
-    private const uint BITONIC_BLOCK_SIZE     = 256;
-    private const uint TRANSPOSE_BLOCK_SIZE   = 8;
+    private const int ARGS_BYTE_SIZE_PER_DRAW_CALL = NUMBER_OF_ARGS_PER_DRAW * sizeof(uint); // 5args * 4bytes = 20 bytes
+    
+    // private const uint BITONIC_BLOCK_SIZE     = 256;
+    // private const uint TRANSPOSE_BLOCK_SIZE   = 8;
     
  
     [SerializeField] private IndirectRendererConfig _config;
 
     private MatricesInitializer _matricesInitializer;
+    private LodBitonicSorter _lodBitonicSorter;
 
     private int _numberOfInstances = 16384;
     private int _numberOfInstanceTypes = 1;
     
     private Vector3 _cameraPosition = Vector3.zero;
     
-    IndirectRenderingMesh irm = new IndirectRenderingMesh();
+    private MeshProperties _meshProperties = new();
 
     private void Start()
     {
         var positions = new List<Vector3>();
         var scales = new List<Vector3>();
         var rotations = new List<Vector3>();
-        var sortingData = new List<SortingData>();
+        // var sortingData = new List<SortingData>();
 
         //TODO: Look into thread allocation
         for (var i = 0; i < 128; i++)
@@ -102,33 +105,32 @@ public class IndirectRendererComponent : MonoBehaviour
             }
         }
         
-        // // Argument buffer used by DrawMeshInstancedIndirect.
+        // Argument buffer used by DrawMeshInstancedIndirect.
         // var args = new uint[5] { 0, 0, 0, 0, 0 };
-        //
-        // // Arguments for drawing Mesh.
-        // // 0 == number of triangle indices, 1 == population,
-        // // others are only relevant if drawing submeshes.
-        // args[0] = _config.Mesh.GetIndexCount(0);
+        
+        // Arguments for drawing Mesh.
+        // 0 == number of triangle indices, 1 == population,
+         // others are only relevant if drawing submeshes.
+        // args[0] = _config.Lod0Mesh.GetIndexCount(0);
         // args[1] = (uint)_numberOfInstances;
-        // args[2] = _config.Mesh.GetIndexStart(0);
-        // args[3] = _config.Mesh.GetBaseVertex(0);
-        //
+        // args[2] = _config.Lod0Mesh.GetIndexStart(0);
+        // args[3] = _config.Lod0Mesh.GetBaseVertex(0);
         // var size = args.Length * sizeof(uint);
         
         var args = new uint[NUMBER_OF_ARGS_PER_INSTANCE_TYPE]; //new uint[_numberOfInstanceTypes * NUMBER_OF_ARGS_PER_INSTANCE_TYPE]
-
+        
         // Initialize Mesh
-        irm.Lod0Vertices = (uint)_config.Lod0Mesh.vertexCount;
-        irm.Lod1Vertices = (uint)_config.Lod1Mesh.vertexCount;
-        irm.Lod2Vertices = (uint)_config.Lod2Mesh.vertexCount;
+        _meshProperties.Lod0Vertices = (uint)_config.Lod0Mesh.vertexCount;
+        _meshProperties.Lod1Vertices = (uint)_config.Lod1Mesh.vertexCount;
+        _meshProperties.Lod2Vertices = (uint)_config.Lod2Mesh.vertexCount;
         
-        irm.Lod0Indices = _config.Lod0Mesh.GetIndexCount(0);
-        irm.Lod1Indices = _config.Lod1Mesh.GetIndexCount(0);
-        irm.Lod2Indices = _config.Lod2Mesh.GetIndexCount(0);
+        _meshProperties.Lod0Indices = _config.Lod0Mesh.GetIndexCount(0);
+        _meshProperties.Lod1Indices = _config.Lod1Mesh.GetIndexCount(0);
+        _meshProperties.Lod2Indices = _config.Lod2Mesh.GetIndexCount(0);
         
-        irm.Mesh = new Mesh();
-        irm.Mesh.name = "Mesh"; // TODO: name it
-        irm.Mesh.CombineMeshes(new CombineInstance[] 
+        _meshProperties.Mesh = new Mesh();
+        _meshProperties.Mesh.name = "Mesh"; // TODO: name it
+        _meshProperties.Mesh.CombineMeshes(new CombineInstance[] 
         {
             new() { mesh = _config.Lod0Mesh},
             new() { mesh = _config.Lod1Mesh},
@@ -141,28 +143,28 @@ public class IndirectRendererComponent : MonoBehaviour
         // Arguments
         // Buffer with arguments has to have five integer numbers
         // Lod 0
-        args[0] = irm.Lod0Indices;      // 0 - index count per instance, 
-        args[1] = 0;                    // 1 - instance count
+        args[0] = _meshProperties.Lod0Indices;      // 0 - index count per instance, 
+        args[1] = 1;                    // 1 - instance count
         args[2] = 0;                    // 2 - start index location
         args[3] = 0;                    // 3 - base vertex location
         args[4] = 0;                    // 4 - start instance location
         
         // Lod 1
-        args[5] = irm.Lod1Indices;      // 0 - index count per instance, 
-        args[6] = 0;                    // 1 - instance count
+        args[5] = _meshProperties.Lod1Indices;      // 0 - index count per instance, 
+        args[6] = 1;                    // 1 - instance count
         args[7] = args[0] + args[2];    // 2 - start index location
         args[8] = 0;                    // 3 - base vertex location
         args[9] = 0;                    // 4 - start instance location
         
         // Lod 2
-        args[10] = irm.Lod2Indices;     // 0 - index count per instance, 
-        args[11] = 0;                   // 1 - instance count
+        args[10] = _meshProperties.Lod2Indices;     // 0 - index count per instance, 
+        args[11] = 1;                   // 1 - instance count
         args[12] = args[5] + args[7];   // 2 - start index location
         args[13] = 0;                   // 3 - base vertex location
         args[14] = 0;                   // 4 - start instance location
         
         // Materials
-        // irm.Material = _config.Material;
+        _meshProperties.Material = _config.Material;
 
         // Note: Considering we have multiple types of meshes
         // I don't know how this is working right now but
@@ -172,39 +174,21 @@ public class IndirectRendererComponent : MonoBehaviour
         ShaderBuffers.InstancesArgsBuffer.SetData(args);
         
         ShaderKernels.Initialize(_config);
-        _matricesInitializer = new MatricesInitializer(_config.Material, _config.MatricesInitializer, _numberOfInstances);
+        
+        _matricesInitializer = new MatricesInitializer(_config.MatricesInitializer, _meshProperties, _numberOfInstances);
         _matricesInitializer.Initialize(positions, rotations, scales);
         _matricesInitializer.Dispatch();
 
         _cameraPosition = _config.RenderCamera.transform.position;
-        
-        ShaderBuffers.InstancesSortingData            = new ComputeBuffer(_numberOfInstances, SortingData.Size, ComputeBufferType.Default);
-        ShaderBuffers.InstancesSortingDataTemp        = new ComputeBuffer(_numberOfInstances, SortingData.Size, ComputeBufferType.Default);
 
-        for (var i = 0; i < _numberOfInstances; i++)
-        {
-            sortingData.Add(new SortingData
-            {
-                DrawCallInstanceIndex = ((((uint)0 * NUMBER_OF_ARGS_PER_INSTANCE_TYPE) << 16) + ((uint) i)), // 0 might be the index of the type in this case
-                DistanceToCamera = Vector3.Distance(positions[i], _cameraPosition)
-            });
-        }
-
-        ShaderBuffers.InstancesSortingData.SetData(sortingData);
-        ShaderBuffers.InstancesSortingDataTemp.SetData(sortingData);
-
-        CreateSortingCommandBuffer();
+        _lodBitonicSorter = new LodBitonicSorter(_config.LodBitonicSorter, _numberOfInstances);
+        _lodBitonicSorter.Initialize(positions, _cameraPosition);
 
         LogInstanceDrawMatrices();
         
         // TODO: OnPreCull
-        // m_lastCamPosition = m_camPosition;
-        var AsyncCompute = true;
-        if (AsyncCompute)
-            Graphics.ExecuteCommandBufferAsync(ShaderBuffers.SortingCommandBuffer, ComputeQueueType.Background);
-        else
-            Graphics.ExecuteCommandBuffer(ShaderBuffers.SortingCommandBuffer);
-        
+        _lodBitonicSorter.Dispatch();
+
         LogSortingData();
     }
 
@@ -214,11 +198,13 @@ public class IndirectRendererComponent : MonoBehaviour
         _cameraPosition = _config.RenderCamera.transform.position;
 
         Graphics.DrawMeshInstancedIndirect(
-            mesh: irm.Mesh,
+            mesh: _meshProperties.Mesh,
             submeshIndex: 0,
-            material: _config.Material,
+            material: _meshProperties.Material,
             bounds: new Bounds(Vector3.zero, Vector3.one * 1000),
             bufferWithArgs: ShaderBuffers.InstancesArgsBuffer,
+            argsOffset: 0, //ARGS_BYTE_SIZE_PER_DRAW_CALL,
+            properties: _meshProperties.Lod2PropertyBlock,
             castShadows: ShadowCastingMode.On,
             receiveShadows: true);
         // camera: Camera.main);   
@@ -227,64 +213,6 @@ public class IndirectRendererComponent : MonoBehaviour
     private void OnDestroy()
     {
         ShaderBuffers.Dispose();
-    }
-
-    private void CreateSortingCommandBuffer()
-    {
-        // Parameters.
-        var elements = (uint)_numberOfInstances;
-        var width    = BITONIC_BLOCK_SIZE;
-        var height   = elements / BITONIC_BLOCK_SIZE;
-
-        ShaderBuffers.SortingCommandBuffer = new CommandBuffer {name = "AsyncGPUSorting"};
-        ShaderBuffers.SortingCommandBuffer.SetExecutionFlags(CommandBufferExecutionFlags.AsyncCompute);
-
-        // Sort the data
-        // First sort the rows for the levels <= to the block size
-        for (uint level = 2; level <= BITONIC_BLOCK_SIZE; level <<= 1)
-        {
-            SetGpuSortConstants(level, level, height, width);
-
-            // Sort the row data
-            ShaderBuffers.SortingCommandBuffer.SetComputeBufferParam(_config.LodBitonicSorter, ShaderKernels.LodSorter, ShaderProperties.Data, ShaderBuffers.InstancesSortingData);
-            ShaderBuffers.SortingCommandBuffer.DispatchCompute(_config.LodBitonicSorter, ShaderKernels.LodSorter, (int)(elements / BITONIC_BLOCK_SIZE), 1, 1);
-        }
-
-        // Then sort the rows and columns for the levels > than the block size
-        // Transpose. Sort the Columns. Transpose. Sort the Rows.
-        for (uint l = (BITONIC_BLOCK_SIZE << 1); l <= elements; l <<= 1)
-        {
-            // Transpose the data from buffer 1 into buffer 2
-            var level = (l / BITONIC_BLOCK_SIZE);
-            var mask = (l & ~elements) / BITONIC_BLOCK_SIZE;
-            SetGpuSortConstants(level, mask, width, height);
-            
-            ShaderBuffers.SortingCommandBuffer.SetComputeBufferParam(_config.LodBitonicSorter, ShaderKernels.LodTransposedSorter, ShaderProperties.Input, ShaderBuffers.InstancesSortingData);
-            ShaderBuffers.SortingCommandBuffer.SetComputeBufferParam(_config.LodBitonicSorter, ShaderKernels.LodTransposedSorter, ShaderProperties.Data, ShaderBuffers.InstancesSortingDataTemp);
-            ShaderBuffers.SortingCommandBuffer.DispatchCompute(_config.LodBitonicSorter, ShaderKernels.LodTransposedSorter, (int)(width / TRANSPOSE_BLOCK_SIZE), (int)(height / TRANSPOSE_BLOCK_SIZE), 1);
-
-            // Sort the transposed column data
-            ShaderBuffers.SortingCommandBuffer.SetComputeBufferParam(_config.LodBitonicSorter, ShaderKernels.LodSorter, ShaderProperties.Data, ShaderBuffers.InstancesSortingDataTemp);
-            ShaderBuffers.SortingCommandBuffer.DispatchCompute(_config.LodBitonicSorter, ShaderKernels.LodSorter, (int)(elements / BITONIC_BLOCK_SIZE), 1, 1);
-
-            // Transpose the data from buffer 2 back into buffer 1
-            SetGpuSortConstants(BITONIC_BLOCK_SIZE, l, height, width);
-            ShaderBuffers.SortingCommandBuffer.SetComputeBufferParam(_config.LodBitonicSorter, ShaderKernels.LodTransposedSorter, ShaderProperties.Input, ShaderBuffers.InstancesSortingDataTemp);
-            ShaderBuffers.SortingCommandBuffer.SetComputeBufferParam(_config.LodBitonicSorter, ShaderKernels.LodTransposedSorter, ShaderProperties.Data, ShaderBuffers.InstancesSortingData);
-            ShaderBuffers.SortingCommandBuffer.DispatchCompute(_config.LodBitonicSorter, ShaderKernels.LodTransposedSorter, (int)(height / TRANSPOSE_BLOCK_SIZE), (int)(width / TRANSPOSE_BLOCK_SIZE), 1);
-
-            // Sort the row data
-            ShaderBuffers.SortingCommandBuffer.SetComputeBufferParam(_config.LodBitonicSorter, ShaderKernels.LodSorter, ShaderProperties.Data, ShaderBuffers.InstancesSortingData);
-            ShaderBuffers.SortingCommandBuffer.DispatchCompute(_config.LodBitonicSorter, ShaderKernels.LodSorter, (int)(elements / BITONIC_BLOCK_SIZE), 1, 1);
-        }
-    }
-    
-    private void SetGpuSortConstants(uint level, uint levelMask, uint width, uint height)
-    {
-        ShaderBuffers.SortingCommandBuffer.SetComputeIntParam(_config.LodBitonicSorter, ShaderProperties.Level,     (int)level);
-        ShaderBuffers.SortingCommandBuffer.SetComputeIntParam(_config.LodBitonicSorter, ShaderProperties.LevelMask, (int)levelMask);
-        ShaderBuffers.SortingCommandBuffer.SetComputeIntParam(_config.LodBitonicSorter, ShaderProperties.Width,     (int)width);
-        ShaderBuffers.SortingCommandBuffer.SetComputeIntParam(_config.LodBitonicSorter, ShaderProperties.Height,    (int)height);
     }
 
     #region Logging
