@@ -21,12 +21,12 @@ groupshared SortingData _SharedData[BITONIC_BLOCK_SIZE];
 
 [numthreads(BITONIC_BLOCK_SIZE, 1, 1)]
 void BitonicSort(
-    in uint3 dispatchThreadID : SV_DispatchThreadID, // DispatchThreadID  = dot(GroupID, numthreads) + GroupThreadId;
+    in uint3 dispatchThreadId : SV_DispatchThreadID, // DispatchThreadID  = dot(GroupID, numthreads) + GroupThreadId;
     in uint  groupIndex       : SV_GroupIndex,       // GroupIndex = unique index of a thread inside a group
-    in uint3 groupID          : SV_GroupID,          // GroupID = index for each dimension inside a ThreadGroupCount 
-    in uint3 groupThreadID    : SV_GroupThreadID)    // GroupThreadId = indices for each dimension inside a group of the current thread
+    in uint3 groupId          : SV_GroupID,          // GroupID = index for each dimension inside a ThreadGroupCount 
+    in uint3 groupThreadId    : SV_GroupThreadID)    // GroupThreadId = indices for each dimension inside a group of the current thread
 {
-    uint threadID = dispatchThreadID.x;
+    uint threadID = dispatchThreadId.x;
     _SharedData[groupIndex] = _Data[threadID];
     
     GroupMemoryBarrierWithGroupSync();
@@ -60,14 +60,14 @@ groupshared SortingData _SharedTransposeData[TRANSPOSE_BLOCK_SIZE * TRANSPOSE_BL
 
 [numthreads(TRANSPOSE_BLOCK_SIZE, TRANSPOSE_BLOCK_SIZE, 1)]
 void MatrixTranspose(
-    uint3 DTid : SV_DispatchThreadID, 
-    uint  GI   : SV_GroupIndex,
-    uint3 Gid  : SV_GroupID, 
-    uint3 GTid : SV_GroupThreadID)
+    uint3 dispatchThreadId : SV_DispatchThreadID, 
+    uint  groupIndex       : SV_GroupIndex,
+    uint3 groupId          : SV_GroupID, 
+    uint3 groupThreadId    : SV_GroupThreadID)
 {
-    _SharedTransposeData[GI] = _Input[DTid.y * _Width + DTid.x];
+    _SharedTransposeData[groupIndex] = _Input[dispatchThreadId.y * _Width + dispatchThreadId.x];
     GroupMemoryBarrierWithGroupSync();
 
-    uint2 XY = DTid.yx - GTid.yx + GTid.xy;
-    _Data[XY.y * _Height + XY.x] = _SharedTransposeData[GTid.x * TRANSPOSE_BLOCK_SIZE + GTid.y];
+    uint2 XY = dispatchThreadId.yx - groupThreadId.yx + groupThreadId.xy;
+    _Data[XY.y * _Height + XY.x] = _SharedTransposeData[groupThreadId.x * TRANSPOSE_BLOCK_SIZE + groupThreadId.y];
 }

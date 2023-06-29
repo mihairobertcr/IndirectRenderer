@@ -3,19 +3,20 @@ using System.Runtime.InteropServices;
 using System.Text;
 using UnityEngine;
 
-public class MatricesInitializer
+public class MatricesHandler
 {
     private const int  SCAN_THREAD_GROUP_SIZE = 64;
 
     private readonly ComputeShader _computeShader;
-    private readonly MeshProperties _meshProperties;
     private readonly int _numberOfInstances;
+    
+    private readonly MeshProperties _meshProperties;
 
     private ComputeBuffer _positionsBuffer;
     private ComputeBuffer _rotationsBuffer;
     private ComputeBuffer _scalesBuffer;
 
-    public MatricesInitializer(ComputeShader computeShader, MeshProperties meshProperties, int numberOfInstances)
+    public MatricesHandler(ComputeShader computeShader, int numberOfInstances, MeshProperties meshProperties)
     {
         _computeShader = computeShader;
         _meshProperties = meshProperties;

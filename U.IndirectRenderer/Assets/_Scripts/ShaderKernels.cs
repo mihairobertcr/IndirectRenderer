@@ -5,16 +5,19 @@ public static class ShaderKernels
     public static int MatricesInitializer => _matricesInitializer;
     public static int LodSorter => _lodSorter;
     public static int LodTransposedSorter => _lodTransposedSorter;
+    public static int Culler => _culler;
 
     private static int _matricesInitializer = -1;
     private static int _lodSorter = -1;
     private static int _lodTransposedSorter = -1;
+    private static int _culler = -1;
 
     public static void Initialize(IndirectRendererConfig config)
     {
         TryGetKernel("CSMain", config.MatricesInitializer, out _matricesInitializer);
         TryGetKernel("BitonicSort", config.LodBitonicSorter,    out _lodSorter);
         TryGetKernel("MatrixTranspose", config.LodBitonicSorter,    out _lodTransposedSorter);
+        TryGetKernel("CSMain", config.Culler,    out _culler);
     }
     
     private static bool TryGetKernel(string kernelName, ComputeShader computeShader, out int kernelId)

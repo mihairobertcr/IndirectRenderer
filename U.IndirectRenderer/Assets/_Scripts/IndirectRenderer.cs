@@ -8,18 +8,21 @@ using UnityEngine.Rendering;
 
 public class IndirectRenderer : IDisposable
 {
-    public const int NUMBER_OF_ARGS_PER_INSTANCE_TYPE = NUMBER_OF_DRAW_CALLS * NUMBER_OF_ARGS_PER_DRAW;  // 3draws * 5args = 15args
+    public const int NUMBER_OF_ARGS_PER_INSTANCE_TYPE = NUMBER_OF_DRAW_CALLS * NUMBER_OF_ARGS_PER_DRAW; // 3draws * 5args = 15args
 
-    private const int NUMBER_OF_DRAW_CALLS = 3;                                                           // (LOD00 + LOD01 + LOD02)
-    private const int NUMBER_OF_ARGS_PER_DRAW = 5;                                                        // (indexCount, instanceCount, startIndex, baseVertex, startInstance)
-    private const int ARGS_BYTE_SIZE_PER_DRAW_CALL = NUMBER_OF_ARGS_PER_DRAW * sizeof(uint);              // 5args * 4bytes = 20 bytes
+    private const int NUMBER_OF_DRAW_CALLS = 3;                                                         // (LOD00 + LOD01 + LOD02)
+    private const int NUMBER_OF_ARGS_PER_DRAW = 5;                                                      // (indexCount, instanceCount, startIndex, baseVertex, startInstance)
+    private const int ARGS_BYTE_SIZE_PER_DRAW_CALL = NUMBER_OF_ARGS_PER_DRAW * sizeof(uint);            // 5args * 4bytes = 20 bytes
 
     private readonly IndirectRendererConfig _config;
+    private readonly IndirectRendererSettings _settings;
+    private readonly HiZBufferConfig _hiZBufferConfig;
     private readonly MeshProperties _meshProperties;
     private readonly uint[] _args;
     
-    private MatricesInitializer _matricesInitializer;
-    private LodBitonicSorter _lodBitonicSorter;
+    private readonly MatricesHandler _matricesHandler;
+    private readonly LodBitonicSorter _lodBitonicSorter;
+    private readonly Culler _culler;
 
     private int _numberOfInstances = 16384;
     private int _numberOfInstanceTypes = 1;
@@ -27,14 +30,20 @@ public class IndirectRenderer : IDisposable
     private List<Vector3> _positions;
     private List<Vector3> _scales;
     private List<Vector3> _rotations;
+    
     private Vector3 _cameraPosition = Vector3.zero;
+    private Bounds _bounds;
 
     public IndirectRenderer(IndirectRendererConfig config, 
+        IndirectRendererSettings settings, 
+        HiZBufferConfig hiZBufferConfig,
         List<Vector3> positions, 
         List<Vector3> rotations, 
         List<Vector3> scales)
     {
         _config = config;
+        _settings = settings;
+        _hiZBufferConfig = hiZBufferConfig;
         
         _meshProperties = CreateMeshProperties();
         _args = InitializeArgumentsBuffer();
@@ -45,13 +54,14 @@ public class IndirectRenderer : IDisposable
         // I don't know how this is working right now but
         // it should preserve the sorting functionality
         var count = NUMBER_OF_ARGS_PER_INSTANCE_TYPE; // * _numberOfInstanceTypes
-        ShaderBuffers.InstancesArgsBuffer = new ComputeBuffer(count, sizeof(uint), ComputeBufferType.IndirectArguments);
-        ShaderBuffers.ShadowsArgsBuffer = new ComputeBuffer(count, sizeof(uint), ComputeBufferType.IndirectArguments);
-        ShaderBuffers.InstancesArgsBuffer.SetData(_args);
-        ShaderBuffers.ShadowsArgsBuffer.SetData(_args);
+        ShaderBuffers.Args = new ComputeBuffer(count, sizeof(uint), ComputeBufferType.IndirectArguments);
+        ShaderBuffers.ShadowsArgs = new ComputeBuffer(count, sizeof(uint), ComputeBufferType.IndirectArguments);
+        ShaderBuffers.Args.SetData(_args);
+        ShaderBuffers.ShadowsArgs.SetData(_args);
 
-        _matricesInitializer = new MatricesInitializer(_config.MatricesInitializer, _meshProperties, _numberOfInstances);
+        _matricesHandler = new MatricesHandler(_config.MatricesInitializer, _numberOfInstances, _meshProperties);
         _lodBitonicSorter = new LodBitonicSorter(_config.LodBitonicSorter, _numberOfInstances);
+        _culler = new Culler(_config.Culler, _numberOfInstances, _settings, _hiZBufferConfig, _config.RenderCamera);
 
         Initialize(positions, rotations, scales);
         RenderPipelineManager.beginFrameRendering += OnBeginFrameRendering;
@@ -80,31 +90,31 @@ public class IndirectRenderer : IDisposable
 
     private void Initialize(List<Vector3> positions, List<Vector3> rotations, List<Vector3> scales)
     {
-        _matricesInitializer.Initialize(positions, rotations, scales);
-        _matricesInitializer.Dispatch();
+        _matricesHandler.Initialize(positions, rotations, scales);
+        _matricesHandler.Dispatch();
         
         _cameraPosition = _config.RenderCamera.transform.position;
         _lodBitonicSorter.Initialize(positions, _cameraPosition);
-        _lodBitonicSorter.ComputeAsync = _config.ComputeAsync;
+        _lodBitonicSorter.ComputeAsync = _settings.ComputeAsync;
     }
 
     private void OnBeginFrameRendering(ScriptableRenderContext context, Camera[] cameras)
     {
-        if (_config.RunCompute)
+        if (_settings.RunCompute)
         {
             Profiler.BeginSample("CalculateVisibleInstances");
             CalculateVisibleInstances();
             Profiler.EndSample();
         }
         
-        if (_config.DrawInstances)
+        if (_settings.DrawInstances)
         {
             Profiler.BeginSample("DrawInstances");
             DrawInstances();
             Profiler.EndSample();
         }
         
-        if (_config.DrawShadows)
+        if (_settings.DrawShadows)
         {
             Profiler.BeginSample("DrawInstanceShadows");
             DrawShadows();
@@ -124,22 +134,40 @@ public class IndirectRenderer : IDisposable
     {
         // Global data
         _cameraPosition = _config.RenderCamera.transform.position;
+        _bounds.center = _cameraPosition;
         
         if (_config.LogMatrices)
         {
             _config.LogMatrices = false;
-            _matricesInitializer.LogInstanceDrawMatrices("LogInstanceDrawMatrices");
+            _matricesHandler.LogInstanceDrawMatrices("LogInstanceDrawMatrices");
         }
         
         Profiler.BeginSample("Resetting args buffer");
         {
-            ShaderBuffers.InstancesArgsBuffer.SetData(_args);
-            ShaderBuffers.ShadowsArgsBuffer.SetData(_args);
+            ShaderBuffers.Args.SetData(_args);
+            ShaderBuffers.ShadowsArgs.SetData(_args);
             
             if (_config.LogArgumentsBuferAfterReset)
             {
                 _config.LogArgumentsBuferAfterReset = false;
                 // LogArgsBuffers("LogArgsBuffers - Instances After Reset", "LogArgsBuffers - Shadows After Reset");
+            }
+        }
+        Profiler.EndSample();
+        
+        Profiler.BeginSample("Occlusion");
+        {
+            _culler.Dispatch();
+            if (_config.LogArgumentsAfterOcclusion)
+            {
+                _config.LogArgumentsAfterOcclusion = false;
+                // LogArgsBuffers("LogArgsBuffers - Instances After Occlusion", "LogArgsBuffers - Shadows After Occlusion");
+            }
+            
+            if (_config.LogInstancesIsVisibleBuffer)
+            {
+                _config.LogInstancesIsVisibleBuffer = false;
+                //LogInstancesIsVisibleBuffers("LogInstancesIsVisibleBuffers - Instances", "LogInstancesIsVisibleBuffers - Shadows");
             }
         }
         Profiler.EndSample();
@@ -165,7 +193,7 @@ public class IndirectRenderer : IDisposable
             submeshIndex: 0,
             material: _meshProperties.Material,
             bounds: new Bounds(Vector3.zero, Vector3.one * 1000),
-            bufferWithArgs: ShaderBuffers.InstancesArgsBuffer,
+            bufferWithArgs: ShaderBuffers.Args,
             argsOffset: 0, //ARGS_BYTE_SIZE_PER_DRAW_CALL,
             properties: _meshProperties.Lod2PropertyBlock,
             castShadows: ShadowCastingMode.On,
@@ -196,6 +224,7 @@ public class IndirectRenderer : IDisposable
             Lod0PropertyBlock = new MaterialPropertyBlock(),
             Lod1PropertyBlock = new MaterialPropertyBlock(),
             Lod2PropertyBlock = new MaterialPropertyBlock(),
+            
             ShadowLod0PropertyBlock = new MaterialPropertyBlock(),
             ShadowLod1PropertyBlock = new MaterialPropertyBlock(),
             ShadowLod2PropertyBlock = new MaterialPropertyBlock()
@@ -233,11 +262,11 @@ public class IndirectRenderer : IDisposable
         var args = new uint[NUMBER_OF_ARGS_PER_INSTANCE_TYPE]; //new uint[_numberOfInstanceTypes * NUMBER_OF_ARGS_PER_INSTANCE_TYPE]
 
         // Lod 0
-        args[0] = _meshProperties.Lod0Indices; // 0 - index count per instance, 
-        args[1] = 1;                           // 1 - instance count
-        args[2] = 0;                           // 2 - start index location
-        args[3] = 0;                           // 3 - base vertex location
-        args[4] = 0;                           // 4 - start instance location
+        args[0] = _meshProperties.Lod0Indices;  // 0 - index count per instance, 
+        args[1] = 1;                            // 1 - instance count
+        args[2] = 0;                            // 2 - start index location
+        args[3] = 0;                            // 3 - base vertex location
+        args[4] = 0;                            // 4 - start instance location
         
         // Lod 1
         args[5] = _meshProperties.Lod1Indices;  // 0 - index count per instance, 

@@ -60,12 +60,12 @@ float4x4 Inverse(float4x4 input)
 
 [numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z)]
 inline void CSMain (
-        in uint3 dispatchThreadID : SV_DispatchThreadID, // DispatchThreadID  = dot(GroupID, numthreads) + GroupThreadId;
+        in uint3 dispatchThreadId : SV_DispatchThreadID, // DispatchThreadID  = dot(GroupID, numthreads) + GroupThreadId;
         in uint  groupIndex       : SV_GroupIndex,       // GroupIndex = unique index of a thread inside a group
-        in uint3 groupID          : SV_GroupID,          // GroupID = index for each dimension inside a ThreadGroupCount 
-        in uint3 groupThreadID    : SV_GroupThreadID)    // GroupThreadId = indices for each dimension inside a group of the current thread
+        in uint3 groupId          : SV_GroupID,          // GroupID = index for each dimension inside a ThreadGroupCount 
+        in uint3 groupThreadId    : SV_GroupThreadID)    // GroupThreadId = indices for each dimension inside a group of the current thread
 {
-    uint threadID = dispatchThreadID.x;
+    uint threadID = dispatchThreadId.x;
 
     float3 position = _Positions[threadID];
     float3 scale    = _Scales[threadID];

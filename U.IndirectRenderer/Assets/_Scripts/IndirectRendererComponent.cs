@@ -22,17 +22,33 @@ public class IndirectRendererConfig
     [Header("Compute Shaders")]
     public ComputeShader MatricesInitializer;
     public ComputeShader LodBitonicSorter;
-
-    [Header("Settings")]
-    public bool RunCompute = true;
-    public bool DrawInstances = true;
-    public bool DrawShadows = true;
-    public bool ComputeAsync = true;
+    public ComputeShader Culler;
 
     [Header("Debug")]
     public bool LogMatrices;
     public bool LogArgumentsBuferAfterReset;
+    public bool LogArgumentsAfterOcclusion;
+    public bool LogInstancesIsVisibleBuffer;
     public bool LogSortingData;
+}
+
+[Serializable]
+public class IndirectRendererSettings
+{
+    public bool RunCompute = true;
+    public bool DrawInstances = true;
+    public bool DrawShadows = true;
+    public bool ComputeAsync = true;
+    
+    [Space]
+    public bool EnableFrustumCulling = true;
+    public bool EnableOcclusionCulling = true;
+    public bool EnableDetailCulling = true;
+    public bool EnableLod = true;
+    public bool EnableOnlyLod2Shadows = true;
+    
+    [Range(00.00f, 00.02f)] 
+    public float DetailCullingPercentage = 0.005f;
 }
 
 [Serializable]
@@ -61,12 +77,14 @@ public class MeshProperties
 public class IndirectRendererComponent : MonoBehaviour
 {
     [SerializeField] private IndirectRendererConfig _config;
+    [SerializeField] private IndirectRendererSettings _settings;
+    [FormerlySerializedAs("_hizConfig")] [SerializeField] private HiZBufferConfig _hizBufferConfig;
 
     private IndirectRenderer _renderer;
     
-    List<Vector3> positions = new List<Vector3>();
-    List<Vector3> scales = new List<Vector3>();
-    List<Vector3> rotations = new List<Vector3>();
+    List<Vector3> _positions = new List<Vector3>();
+    List<Vector3> _scales = new List<Vector3>();
+    List<Vector3> _rotations = new List<Vector3>();
 
     private void Start()
     {
@@ -74,21 +92,21 @@ public class IndirectRendererComponent : MonoBehaviour
         {
             for (var j = 0; j < 128; j++)
             {
-                positions.Add(new Vector3
+                _positions.Add(new Vector3
                 {
                     x = i,
                     y = .5f,
                     z = j
                 });
                 
-                rotations.Add(new Vector3
+                _rotations.Add(new Vector3
                 {
                     x = 0f,
                     y = 0f,
                     z = 0f
                 });
                 
-                scales.Add(new Vector3
+                _scales.Add(new Vector3
                 {
                     x = .75f,
                     y = .75f,
@@ -97,7 +115,7 @@ public class IndirectRendererComponent : MonoBehaviour
             }
         }
         
-        _renderer = new IndirectRenderer(_config, positions, rotations, scales);
+        _renderer = new IndirectRenderer(_config, _settings, _hizBufferConfig, _positions, _rotations, _scales);
     }
 
     private void Update()
