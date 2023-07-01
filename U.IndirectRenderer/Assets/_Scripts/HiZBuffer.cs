@@ -21,7 +21,7 @@ public class HiZBuffer
     private const int MAXIMUM_BUFFER_SIZE = 1024;
 
     public RenderTexture Texture { get; private set; }
-    public Vector2 TextureSize { get; private set; }
+    public Vector2 TextureSize { get; }
 
     // private readonly HiZBufferConfig _config;
     // private readonly HiZBufferConfig _config;

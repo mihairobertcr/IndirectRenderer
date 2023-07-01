@@ -60,8 +60,8 @@ public class IndirectRenderer : IDisposable
         ShaderBuffers.ShadowsArgs.SetData(_args);
 
         _matricesHandler = new MatricesHandler(_config.MatricesInitializer, _numberOfInstances, _meshProperties);
+        _culler = new Culler(_config.Culler, _numberOfInstances, _config.RenderCamera);
         _lodBitonicSorter = new LodBitonicSorter(_config.LodBitonicSorter, _numberOfInstances);
-        _culler = new Culler(_config.Culler, _numberOfInstances, _settings, _hiZBufferConfig, _config.RenderCamera);
 
         Initialize(positions, rotations, scales);
         RenderPipelineManager.beginFrameRendering += OnBeginFrameRendering;
@@ -93,9 +93,13 @@ public class IndirectRenderer : IDisposable
         _matricesHandler.Initialize(positions, rotations, scales);
         _matricesHandler.Dispatch();
         
-        _cameraPosition = _config.RenderCamera.transform.position;
-        _lodBitonicSorter.Initialize(positions, _cameraPosition);
+        //_cameraPosition = _config.RenderCamera.transform.position; // ???
+        
+        var hiZBuffer = new HiZBuffer(_hiZBufferConfig, _config.RenderCamera);
+        _culler.Initialize(_settings, hiZBuffer);
+        
         _lodBitonicSorter.ComputeAsync = _settings.ComputeAsync;
+        _lodBitonicSorter.Initialize(positions, _cameraPosition);
     }
 
     private void OnBeginFrameRendering(ScriptableRenderContext context, Camera[] cameras)

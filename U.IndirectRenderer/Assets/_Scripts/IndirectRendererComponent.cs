@@ -78,7 +78,7 @@ public class IndirectRendererComponent : MonoBehaviour
 {
     [SerializeField] private IndirectRendererConfig _config;
     [SerializeField] private IndirectRendererSettings _settings;
-    [FormerlySerializedAs("_hizConfig")] [SerializeField] private HiZBufferConfig _hizBufferConfig;
+    [SerializeField] private HiZBufferConfig _hizBufferConfig;
 
     private IndirectRenderer _renderer;
     
