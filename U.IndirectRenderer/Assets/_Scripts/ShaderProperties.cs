@@ -24,12 +24,16 @@ public static class ShaderProperties
     public static readonly int BoundsData            = Shader.PropertyToID("_BoundsDataBuffer");
     public static readonly int SortingData           = Shader.PropertyToID("_SortingData");
     
-    public static readonly int MvpMatrix                     = Shader.PropertyToID("_MvpMatrix");
-    public static readonly int CameraPosition                = Shader.PropertyToID("_CameraPosition");
     public static readonly int ShadowDistance                = Shader.PropertyToID("_ShadowDistance");
     public static readonly int DetailCullingScreenPercentage = Shader.PropertyToID("_DetailCullingScreenPercentage");
     public static readonly int HiZTextureSize                = Shader.PropertyToID("_HiZTextureSize");
     public static readonly int HiZMap                        = Shader.PropertyToID("_HiZMap");
+    public static readonly int MvpMatrix                     = Shader.PropertyToID("_MvpMatrix");
+    public static readonly int CameraPosition                = Shader.PropertyToID("_CameraPosition");
+    
+    public static readonly int PredicatesInput   = Shader.PropertyToID("_PredicatesInput");
+    public static readonly int GroupSums         = Shader.PropertyToID("_GroupSums");
+    public static readonly int ScannedPredicates = Shader.PropertyToID("_ScannedPredicates");
     
     public static readonly int Data  = Shader.PropertyToID("_Data");
     public static readonly int Input = Shader.PropertyToID("_Input");

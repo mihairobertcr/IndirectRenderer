@@ -22,7 +22,8 @@ public class IndirectRenderer : IDisposable
     
     private readonly MatricesHandler _matricesHandler;
     private readonly LodBitonicSorter _lodBitonicSorter;
-    private readonly Culler _culler;
+    private readonly InstancesCuller _instancesCuller;
+    private readonly InstancesScanner _instancesScanner;
 
     private int _numberOfInstances = 16384;
     private int _numberOfInstanceTypes = 1;
@@ -60,8 +61,9 @@ public class IndirectRenderer : IDisposable
         ShaderBuffers.ShadowsArgs.SetData(_args);
 
         _matricesHandler = new MatricesHandler(_config.MatricesInitializer, _numberOfInstances, _meshProperties);
-        _culler = new Culler(_config.Culler, _numberOfInstances, _config.RenderCamera);
         _lodBitonicSorter = new LodBitonicSorter(_config.LodBitonicSorter, _numberOfInstances);
+        _instancesCuller = new InstancesCuller(_config.InstancesCuller, _numberOfInstances, _config.RenderCamera);
+        _instancesScanner = new InstancesScanner(_config.InstancesScanner, _numberOfInstances);
 
         Initialize(positions, rotations, scales);
         RenderPipelineManager.beginFrameRendering += OnBeginFrameRendering;
@@ -94,12 +96,15 @@ public class IndirectRenderer : IDisposable
         _matricesHandler.Dispatch();
         
         //_cameraPosition = _config.RenderCamera.transform.position; // ???
+
+        var cameraPosition = _config.RenderCamera.transform.position;
+        _lodBitonicSorter.Initialize(positions, cameraPosition);
+        _lodBitonicSorter.ComputeAsync = _settings.ComputeAsync;
         
         var hiZBuffer = new HiZBuffer(_hiZBufferConfig, _config.RenderCamera);
-        _culler.Initialize(_settings, hiZBuffer);
+        _instancesCuller.Initialize(_settings, hiZBuffer);
         
-        _lodBitonicSorter.ComputeAsync = _settings.ComputeAsync;
-        _lodBitonicSorter.Initialize(positions, _cameraPosition);
+        _instancesScanner.Initialize();
     }
 
     private void OnBeginFrameRendering(ScriptableRenderContext context, Camera[] cameras)
@@ -151,9 +156,9 @@ public class IndirectRenderer : IDisposable
             ShaderBuffers.Args.SetData(_args);
             ShaderBuffers.ShadowsArgs.SetData(_args);
             
-            if (_config.LogArgumentsBuferAfterReset)
+            if (_config.LogArgumentsBufferAfterReset)
             {
-                _config.LogArgumentsBuferAfterReset = false;
+                _config.LogArgumentsBufferAfterReset = false;
                 // LogArgsBuffers("LogArgsBuffers - Instances After Reset", "LogArgsBuffers - Shadows After Reset");
             }
         }
@@ -161,7 +166,7 @@ public class IndirectRenderer : IDisposable
         
         Profiler.BeginSample("Occlusion");
         {
-            _culler.Dispatch();
+            _instancesCuller.Dispatch();
             if (_config.LogArgumentsAfterOcclusion)
             {
                 _config.LogArgumentsAfterOcclusion = false;
@@ -172,6 +177,23 @@ public class IndirectRenderer : IDisposable
             {
                 _config.LogInstancesIsVisibleBuffer = false;
                 //LogInstancesIsVisibleBuffers("LogInstancesIsVisibleBuffers - Instances", "LogInstancesIsVisibleBuffers - Shadows");
+            }
+        }
+        Profiler.EndSample();
+        
+        Profiler.BeginSample("Scan Instances");
+        {
+            _instancesScanner.Dispatch();
+            if (_config.LogGroupSumArrayBuffer)
+            {
+                _config.LogGroupSumArrayBuffer = false;
+                //LogGroupSumArrayBuffer("LogGroupSumArrayBuffer - Instances", "LogGroupSumArrayBuffer - Shadows");
+            }
+            
+            if (_config.LogScannedPredicates)
+            {
+                _config.LogScannedPredicates = false;
+                //LogScannedPredicates("LogScannedPredicates - Instances", "LogScannedPredicates - Shadows");
             }
         }
         Profiler.EndSample();

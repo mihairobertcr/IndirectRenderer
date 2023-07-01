@@ -1,6 +1,7 @@
+using System.Runtime.InteropServices;
 using UnityEngine;
 
-public class Culler
+public class InstancesCuller
 {
     private readonly ComputeShader _computeShader;
     private readonly int _numberOfInstances;
@@ -10,7 +11,7 @@ public class Culler
     // private readonly HiZBuffer _hiZBuffer;
     private readonly int _occlusionGroupX;
 
-    public Culler(ComputeShader computeShader, int numberOfInstances, 
+    public InstancesCuller(ComputeShader computeShader, int numberOfInstances, 
         //IndirectRendererSettings settings, HiZBufferConfig hiZBufferConfig, 
         Camera camera, Camera debugCamera = null)
     {
@@ -23,6 +24,10 @@ public class Culler
 
     public void Initialize(IndirectRendererSettings settings, HiZBuffer hiZBuffer)
     {
+        ShaderBuffers.IsVisible       = new ComputeBuffer(_numberOfInstances, sizeof(uint), ComputeBufferType.Default);
+        ShaderBuffers.IsShadowVisible = new ComputeBuffer(_numberOfInstances, sizeof(uint), ComputeBufferType.Default);
+        ShaderBuffers.BoundsData      = new ComputeBuffer(_numberOfInstances, BoundsData.Size, ComputeBufferType.Default);
+
         _computeShader.SetInt(ShaderProperties.ShouldFrustumCull,        settings.EnableFrustumCulling    ? 1 : 0);
         _computeShader.SetInt(ShaderProperties.ShouldOcclusionCull,      settings.EnableOcclusionCulling  ? 1 : 0);
         _computeShader.SetInt(ShaderProperties.ShouldDetailCull,         settings.EnableDetailCulling     ? 1 : 0);

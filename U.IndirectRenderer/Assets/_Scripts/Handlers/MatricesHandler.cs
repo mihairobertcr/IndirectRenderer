@@ -118,17 +118,17 @@ public class MatricesHandler
         _meshProperties.Lod0PropertyBlock.SetBuffer(ShaderProperties.InstanceMatrixRows45, ShaderBuffers.InstanceMatrixRows45);
         _meshProperties.Lod1PropertyBlock.SetBuffer(ShaderProperties.InstanceMatrixRows45, ShaderBuffers.InstanceMatrixRows45);
         _meshProperties.Lod2PropertyBlock.SetBuffer(ShaderProperties.InstanceMatrixRows45, ShaderBuffers.InstanceMatrixRows45);
+        
+        _meshProperties.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.InstanceMatrixRows01, ShaderBuffers.InstanceMatrixRows01);
+        _meshProperties.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.InstanceMatrixRows01, ShaderBuffers.InstanceMatrixRows01);
+        _meshProperties.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.InstanceMatrixRows01, ShaderBuffers.InstanceMatrixRows01);
             
-        // irm.shadowLod00MatPropBlock.SetBuffer(_InstancesDrawMatrixRows01, m_shadowCulledMatrixRows01);
-        // irm.shadowLod01MatPropBlock.SetBuffer(_InstancesDrawMatrixRows01, m_shadowCulledMatrixRows01);
-        // irm.shadowLod02MatPropBlock.SetBuffer(_InstancesDrawMatrixRows01, m_shadowCulledMatrixRows01);
-        //     
-        // irm.shadowLod00MatPropBlock.SetBuffer(_InstancesDrawMatrixRows23, m_shadowCulledMatrixRows23);
-        // irm.shadowLod01MatPropBlock.SetBuffer(_InstancesDrawMatrixRows23, m_shadowCulledMatrixRows23);
-        // irm.shadowLod02MatPropBlock.SetBuffer(_InstancesDrawMatrixRows23, m_shadowCulledMatrixRows23);
-        //     
-        // irm.shadowLod00MatPropBlock.SetBuffer(_InstancesDrawMatrixRows45, m_shadowCulledMatrixRows45);
-        // irm.shadowLod01MatPropBlock.SetBuffer(_InstancesDrawMatrixRows45, m_shadowCulledMatrixRows45);
-        // irm.shadowLod02MatPropBlock.SetBuffer(_InstancesDrawMatrixRows45, m_shadowCulledMatrixRows45);
+        _meshProperties.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.InstanceMatrixRows23, ShaderBuffers.InstanceMatrixRows23);
+        _meshProperties.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.InstanceMatrixRows23, ShaderBuffers.InstanceMatrixRows23);
+        _meshProperties.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.InstanceMatrixRows23, ShaderBuffers.InstanceMatrixRows23);
+            
+        _meshProperties.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.InstanceMatrixRows45, ShaderBuffers.InstanceMatrixRows45);
+        _meshProperties.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.InstanceMatrixRows45, ShaderBuffers.InstanceMatrixRows45);
+        _meshProperties.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.InstanceMatrixRows45, ShaderBuffers.InstanceMatrixRows45);
     }
 }

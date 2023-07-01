@@ -22,13 +22,16 @@ public class IndirectRendererConfig
     [Header("Compute Shaders")]
     public ComputeShader MatricesInitializer;
     public ComputeShader LodBitonicSorter;
-    public ComputeShader Culler;
+    public ComputeShader InstancesCuller;
+    public ComputeShader InstancesScanner;
 
     [Header("Debug")]
     public bool LogMatrices;
-    public bool LogArgumentsBuferAfterReset;
+    public bool LogArgumentsBufferAfterReset;
     public bool LogArgumentsAfterOcclusion;
     public bool LogInstancesIsVisibleBuffer;
+    public bool LogGroupSumArrayBuffer;
+    public bool LogScannedPredicates;
     public bool LogSortingData;
 }
 

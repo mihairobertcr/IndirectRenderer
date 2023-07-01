@@ -29,6 +29,7 @@ cbuffer CB
 };
 
 StructuredBuffer<BoundsData> _BoundsDataBuffer;
+
 RWStructuredBuffer<uint> _ArgsBuffer;
 RWStructuredBuffer<uint> _ShadowArgsBuffer;
 RWStructuredBuffer<uint> _IsVisibleBuffer;
@@ -80,7 +81,7 @@ inline uint IsVisibleAfterOcclusionCulling(float clipMinX, float clipMaxX, float
     
     const float widthSS = (maxXY.x - minXY.x);
     const float heightSS = (maxXY.y - minXY.y);    
-    const float maxSizeSS = max(widthSS * _HiZTextureSize.x, heightSS * _HiZTextureSize.y);    
+    // const float maxSizeSS = max(widthSS * _HiZTextureSize.x, heightSS * _HiZTextureSize.y);    
     const float stepX = widthSS / xSamples;    
     const float stepY = heightSS / ySamples;    
     
