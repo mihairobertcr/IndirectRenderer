@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class InstancesScanner
 {
-    private const int SCAN_THREAD_GROUP_SIZE = 64;
+    private const int SCAN_THREAD_GROUP_SIZE = 64; //TODO: Move to base class
     
     private readonly ComputeShader _computeShader;
     private readonly int _numberOfInstances;
@@ -13,7 +13,7 @@ public class InstancesScanner
     {
         _computeShader = computeShader;
         _numberOfInstances = numberOfInstances;
-        _scanInstancesGroupX = Mathf.Max(1, numberOfInstances / (2 * SCAN_THREAD_GROUP_SIZE));
+        _scanInstancesGroupX = Mathf.Max(1, numberOfInstances / (2 * SCAN_THREAD_GROUP_SIZE)); //TODO: Extract common method for groups
     }
 
     public void Initialize()

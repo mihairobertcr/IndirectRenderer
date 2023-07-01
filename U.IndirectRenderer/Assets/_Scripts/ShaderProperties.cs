@@ -35,6 +35,9 @@ public static class ShaderProperties
     public static readonly int GroupSums         = Shader.PropertyToID("_GroupSums");
     public static readonly int ScannedPredicates = Shader.PropertyToID("_ScannedPredicates");
     
+    public static readonly int GroupSumsInput  = Shader.PropertyToID("_GroupSumsInput");
+    public static readonly int GroupSumsOutput = Shader.PropertyToID("_GroupSumsOutput");
+    
     public static readonly int Data  = Shader.PropertyToID("_Data");
     public static readonly int Input = Shader.PropertyToID("_Input");
     

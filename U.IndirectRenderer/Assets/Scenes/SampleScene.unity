@@ -495,12 +495,14 @@ MonoBehaviour:
     LodBitonicSorter: {fileID: 7200000, guid: 6f7afd63860da43238b81f2a660befc9, type: 3}
     InstancesCuller: {fileID: 7200000, guid: 33fbcc6be2866431cb42e4a688e83cea, type: 3}
     InstancesScanner: {fileID: 7200000, guid: 734cfd04ff92d4db8a4a713ce9c0d92b, type: 3}
+    GroupSumsScanner: {fileID: 7200000, guid: c5b9ba8237ff641d8a7c10c4148e1eee, type: 3}
     LogMatrices: 0
     LogArgumentsBufferAfterReset: 0
     LogArgumentsAfterOcclusion: 0
     LogInstancesIsVisibleBuffer: 0
-    LogGroupSumArrayBuffer: 0
+    LogGroupSumsBuffer: 0
     LogScannedPredicates: 0
+    LogScannedGroupSumsBuffer: 0
     LogSortingData: 0
   _settings:
     RunCompute: 1

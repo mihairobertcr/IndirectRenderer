@@ -21,11 +21,11 @@ public static class ShaderKernels
     public static void Initialize(IndirectRendererConfig config)
     {
         TryGetKernel("CSMain",          config.MatricesInitializer, out _matricesInitializer);
-        TryGetKernel("BitonicSort",     config.LodBitonicSorter, out _lodSorter);
-        TryGetKernel("MatrixTranspose", config.LodBitonicSorter, out _lodTransposedSorter);
-        TryGetKernel("CSMain",          config.InstancesCuller, out _culler);
-        // TryGetKernel("CSMain", _instancesScanner, out _instancesScanner);
-        // TryGetKernel("CSMain", _groupSumsScanner, out _groupSumsScanner);
+        TryGetKernel("BitonicSort",     config.LodBitonicSorter,    out _lodSorter);
+        TryGetKernel("MatrixTranspose", config.LodBitonicSorter,    out _lodTransposedSorter);
+        TryGetKernel("CSMain",          config.InstancesCuller,     out _culler);
+        TryGetKernel("CSMain",          config.InstancesScanner,    out _instancesScanner);
+        TryGetKernel("CSMain",          config.GroupSumsScanner,    out _groupSumsScanner);
         // TryGetKernel("CSMain", _instancesDataCopier, out _instancesDataCopier);
     }
 

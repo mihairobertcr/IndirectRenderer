@@ -24,6 +24,7 @@ public class IndirectRenderer : IDisposable
     private readonly LodBitonicSorter _lodBitonicSorter;
     private readonly InstancesCuller _instancesCuller;
     private readonly InstancesScanner _instancesScanner;
+    private readonly GroupSumsScanner _groupSumsScanner;
 
     private int _numberOfInstances = 16384;
     private int _numberOfInstanceTypes = 1;
@@ -105,6 +106,7 @@ public class IndirectRenderer : IDisposable
         _instancesCuller.Initialize(_settings, hiZBuffer);
         
         _instancesScanner.Initialize();
+        _groupSumsScanner.Initialize();
     }
 
     private void OnBeginFrameRendering(ScriptableRenderContext context, Camera[] cameras)
@@ -184,16 +186,27 @@ public class IndirectRenderer : IDisposable
         Profiler.BeginSample("Scan Instances");
         {
             _instancesScanner.Dispatch();
-            if (_config.LogGroupSumArrayBuffer)
+            if (_config.LogGroupSumsBuffer)
             {
-                _config.LogGroupSumArrayBuffer = false;
-                //LogGroupSumArrayBuffer("LogGroupSumArrayBuffer - Instances", "LogGroupSumArrayBuffer - Shadows");
+                _config.LogGroupSumsBuffer = false;
+                //LogGroupSumsBuffer("LogGroupSumsBuffer - Instances", "LogGroupSumsBuffer - Shadows");
             }
             
             if (_config.LogScannedPredicates)
             {
                 _config.LogScannedPredicates = false;
                 //LogScannedPredicates("LogScannedPredicates - Instances", "LogScannedPredicates - Shadows");
+            }
+        }
+        Profiler.EndSample();
+        
+        Profiler.BeginSample("Scan Thread Groups");
+        {
+            _groupSumsScanner.Dispatch();
+            if (_config.LogScannedGroupSumsBuffer)
+            {
+                _config.LogScannedGroupSumsBuffer = false;
+                // LogScannedGroupSumBuffer("LogScannedGroupSumBuffer - Instances", "LogScannedGroupSumBuffer - Shadows");
             }
         }
         Profiler.EndSample();

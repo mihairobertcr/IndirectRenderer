@@ -23,6 +23,9 @@ public static class ShaderBuffers
     public static ComputeBuffer ScannedPredicates;
     public static ComputeBuffer ShadowsScannedPredicates;
     
+    public static ComputeBuffer ScannedGroupSums;
+    public static ComputeBuffer ShadowsScannedGroupSums;
+    
     public static CommandBuffer SortingCommandBuffer;
     
     public static void Dispose()
@@ -46,6 +49,9 @@ public static class ShaderBuffers
         
         ScannedPredicates.Release();
         ShadowsScannedPredicates.Release();
+        
+        ScannedGroupSums.Release();
+        ShadowsScannedGroupSums.Release();
         
         SortingCommandBuffer.Release();
     }

@@ -24,14 +24,16 @@ public class IndirectRendererConfig
     public ComputeShader LodBitonicSorter;
     public ComputeShader InstancesCuller;
     public ComputeShader InstancesScanner;
+    public ComputeShader GroupSumsScanner;
 
     [Header("Debug")]
     public bool LogMatrices;
     public bool LogArgumentsBufferAfterReset;
     public bool LogArgumentsAfterOcclusion;
     public bool LogInstancesIsVisibleBuffer;
-    public bool LogGroupSumArrayBuffer;
+    public bool LogGroupSumsBuffer;
     public bool LogScannedPredicates;
+    public bool LogScannedGroupSumsBuffer;
     public bool LogSortingData;
 }
 
