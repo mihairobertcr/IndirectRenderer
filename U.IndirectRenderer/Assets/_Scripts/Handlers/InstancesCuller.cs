@@ -39,14 +39,14 @@ public class InstancesCuller
         
         _computeShader.SetVector(ShaderProperties.HiZTextureSize, hiZBuffer.TextureSize);
         
-        _computeShader.SetBuffer(ShaderKernels.Culler, ShaderProperties.ArgsBuffer,            ShaderBuffers.Args);
-        _computeShader.SetBuffer(ShaderKernels.Culler, ShaderProperties.ShadowArgsBuffer,      ShaderBuffers.ShadowsArgs);
-        _computeShader.SetBuffer(ShaderKernels.Culler, ShaderProperties.IsVisibleBuffer,       ShaderBuffers.IsVisible);
-        _computeShader.SetBuffer(ShaderKernels.Culler, ShaderProperties.IsShadowVisibleBuffer, ShaderBuffers.IsShadowVisible);
-        _computeShader.SetBuffer(ShaderKernels.Culler, ShaderProperties.BoundsData,            ShaderBuffers.BoundsData);
-        _computeShader.SetBuffer(ShaderKernels.Culler, ShaderProperties.SortingData,           ShaderBuffers.SortingData);
+        _computeShader.SetBuffer(ShaderKernels.InstancesCuller, ShaderProperties.ArgsBuffer,            ShaderBuffers.Args);
+        _computeShader.SetBuffer(ShaderKernels.InstancesCuller, ShaderProperties.ShadowArgsBuffer,      ShaderBuffers.ShadowsArgs);
+        _computeShader.SetBuffer(ShaderKernels.InstancesCuller, ShaderProperties.IsVisibleBuffer,       ShaderBuffers.IsVisible);
+        _computeShader.SetBuffer(ShaderKernels.InstancesCuller, ShaderProperties.IsShadowVisibleBuffer, ShaderBuffers.IsShadowVisible);
+        _computeShader.SetBuffer(ShaderKernels.InstancesCuller, ShaderProperties.BoundsData,            ShaderBuffers.BoundsData);
+        _computeShader.SetBuffer(ShaderKernels.InstancesCuller, ShaderProperties.SortingData,           ShaderBuffers.SortingData);
         
-        _computeShader.SetTexture(ShaderKernels.Culler, ShaderProperties.HiZMap, hiZBuffer.Texture);
+        _computeShader.SetTexture(ShaderKernels.InstancesCuller, ShaderProperties.HiZMap, hiZBuffer.Texture);
     }
 
     public void Dispatch()
@@ -62,6 +62,6 @@ public class InstancesCuller
         _computeShader.SetVector(ShaderProperties.CameraPosition, cameraPosition);
         
         // Dispatch
-        _computeShader.Dispatch(ShaderKernels.Culler, _occlusionGroupX, 1, 1);
+        _computeShader.Dispatch(ShaderKernels.InstancesCuller, _occlusionGroupX, 1, 1);
     }
 }

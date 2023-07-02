@@ -25,6 +25,7 @@ public class IndirectRendererConfig
     public ComputeShader InstancesCuller;
     public ComputeShader InstancesScanner;
     public ComputeShader GroupSumsScanner;
+    public ComputeShader InstancesDataCopier;
 
     [Header("Debug")]
     public bool LogMatrices;
@@ -34,6 +35,8 @@ public class IndirectRendererConfig
     public bool LogGroupSumsBuffer;
     public bool LogScannedPredicates;
     public bool LogScannedGroupSumsBuffer;
+    public bool LogCulledMatrices;
+    public bool LogArgsBufferAfterCopy;
     public bool LogSortingData;
 }
 

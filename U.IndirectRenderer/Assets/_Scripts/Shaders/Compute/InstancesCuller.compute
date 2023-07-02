@@ -114,14 +114,13 @@ inline uint IsVisibleAfterFrustumCulling(float4 clipPos)
 
 [numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z)]
 inline void CSMain (
-        in uint3 dispatchThreadId : SV_DispatchThreadID, // DispatchThreadID  = dot(GroupID, numthreads) + GroupThreadId;
-        in uint  groupIndex       : SV_GroupIndex,       // uint GroupIndex = unique index of a thread inside a group
-        in uint3 groupId          : SV_GroupID,          // GroupID = index for each dimension inside a ThreadGroupCount 
-        in uint3 groupThreadId    : SV_GroupThreadID     // uint3 GroupThreadId = indices for each dimension inside a group of the current thread
-    )
+        in uint3 _dispatchThreadId : SV_DispatchThreadID, // DispatchThreadID = dot(GroupID, numthreads) + GroupThreadId;
+        in uint  _groupIndex       : SV_GroupIndex,       // GroupIndex = unique index of a thread inside a group
+        in uint3 _groupId          : SV_GroupID,          // GroupID = index for each dimension inside a ThreadGroupCount 
+        in uint3 _groupThreadId    : SV_GroupThreadID)    // GroupThreadId = indices for each dimension inside a group of the current thread
 {
     // Calculate the instance index
-    uint threadId = dispatchThreadId.x;
+    uint threadId = _dispatchThreadId.x;
     SortingData sortingData = _SortingData[threadId];
     uint drawCall = (sortingData.DrawCallInstanceIndex >> 16);
     uint index = (sortingData.DrawCallInstanceIndex) & 0xFFFF;

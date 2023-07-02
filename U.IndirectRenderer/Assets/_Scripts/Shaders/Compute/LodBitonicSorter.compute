@@ -21,53 +21,53 @@ groupshared SortingData _SharedData[BITONIC_BLOCK_SIZE];
 
 [numthreads(BITONIC_BLOCK_SIZE, 1, 1)]
 void BitonicSort(
-    in uint3 dispatchThreadId : SV_DispatchThreadID, // DispatchThreadID  = dot(GroupID, numthreads) + GroupThreadId;
-    in uint  groupIndex       : SV_GroupIndex,       // GroupIndex = unique index of a thread inside a group
-    in uint3 groupId          : SV_GroupID,          // GroupID = index for each dimension inside a ThreadGroupCount 
-    in uint3 groupThreadId    : SV_GroupThreadID)    // GroupThreadId = indices for each dimension inside a group of the current thread
+    in uint3 _dispatchThreadId : SV_DispatchThreadID, // DispatchThreadID = dot(GroupID, numthreads) + GroupThreadId;
+    in uint  _groupIndex       : SV_GroupIndex,       // GroupIndex = unique index of a thread inside a group
+    in uint3 _groupId          : SV_GroupID,          // GroupID = index for each dimension inside a ThreadGroupCount 
+    in uint3 _groupThreadId    : SV_GroupThreadID)    // GroupThreadId = indices for each dimension inside a group of the current thread
 {
-    uint threadID = dispatchThreadId.x;
-    _SharedData[groupIndex] = _Data[threadID];
+    uint threadID = _dispatchThreadId.x;
+    _SharedData[_groupIndex] = _Data[threadID];
     
     GroupMemoryBarrierWithGroupSync();
 
     // Sort the shared data
     for (uint j = _Level >> 1; j > 0; j >>= 1)
     {
-        SortingData result = _SharedData[groupIndex];
-        SortingData first  = _SharedData[groupIndex & ~j];
-        SortingData second = _SharedData[groupIndex | j];
+        SortingData result = _SharedData[_groupIndex];
+        SortingData first  = _SharedData[_groupIndex & ~j];
+        SortingData second = _SharedData[_groupIndex | j];
         
         float firstDistance  = (first.DrawCallInstanceIndex >> 16) * 5000 + first.DistanceToCamera;
         float secondDistance = (second.DrawCallInstanceIndex >> 16) * 5000 + second.DistanceToCamera;
         
         if ((firstDistance <= secondDistance) == ((bool)(_LevelMask & threadID)))
         {
-            result = _SharedData[groupIndex ^ j];
+            result = _SharedData[_groupIndex ^ j];
         }
         
         GroupMemoryBarrierWithGroupSync();
 
-        _SharedData[groupIndex] = result;
+        _SharedData[_groupIndex] = result;
         GroupMemoryBarrierWithGroupSync();
     }
 
     // Store shared data
-    _Data[threadID] = _SharedData[groupIndex];
+    _Data[threadID] = _SharedData[_groupIndex];
 }
 
 groupshared SortingData _SharedTransposeData[TRANSPOSE_BLOCK_SIZE * TRANSPOSE_BLOCK_SIZE];
 
 [numthreads(TRANSPOSE_BLOCK_SIZE, TRANSPOSE_BLOCK_SIZE, 1)]
 void MatrixTranspose(
-    uint3 dispatchThreadId : SV_DispatchThreadID, 
-    uint  groupIndex       : SV_GroupIndex,
-    uint3 groupId          : SV_GroupID, 
-    uint3 groupThreadId    : SV_GroupThreadID)
+    uint3 _dispatchThreadId : SV_DispatchThreadID, 
+    uint  _groupIndex       : SV_GroupIndex,
+    uint3 _groupId          : SV_GroupID, 
+    uint3 _groupThreadId    : SV_GroupThreadID)
 {
-    _SharedTransposeData[groupIndex] = _Input[dispatchThreadId.y * _Width + dispatchThreadId.x];
+    _SharedTransposeData[_groupIndex] = _Input[_dispatchThreadId.y * _Width + _dispatchThreadId.x];
     GroupMemoryBarrierWithGroupSync();
 
-    uint2 XY = dispatchThreadId.yx - groupThreadId.yx + groupThreadId.xy;
-    _Data[XY.y * _Height + XY.x] = _SharedTransposeData[groupThreadId.x * TRANSPOSE_BLOCK_SIZE + groupThreadId.y];
+    uint2 XY = _dispatchThreadId.yx - _groupThreadId.yx + _groupThreadId.xy;
+    _Data[XY.y * _Height + XY.x] = _SharedTransposeData[_groupThreadId.x * TRANSPOSE_BLOCK_SIZE + _groupThreadId.y];
 }

@@ -9,9 +9,13 @@ public static class ShaderProperties
     public static readonly int ArgsBuffer       = Shader.PropertyToID("_ArgsBuffer");
     public static readonly int ShadowArgsBuffer = Shader.PropertyToID("_ShadowArgsBuffer");
     
-    public static readonly int InstanceMatrixRows01 = Shader.PropertyToID("_InstanceMatrixRows01");
-    public static readonly int InstanceMatrixRows23 = Shader.PropertyToID("_InstanceMatrixRows23");
-    public static readonly int InstanceMatrixRows45 = Shader.PropertyToID("_InstanceMatrixRows45");
+    public static readonly int MatrixRows01 = Shader.PropertyToID("_MatrixRows01");
+    public static readonly int MatrixRows23 = Shader.PropertyToID("_MatrixRows23");
+    public static readonly int MatrixRows45 = Shader.PropertyToID("_MatrixRows45");
+    
+    public static readonly int CulledMatrixRows01 = Shader.PropertyToID("_CulledMatrixRows01");
+    public static readonly int CulledMatrixRows23 = Shader.PropertyToID("_CulledMatrixRows23");
+    public static readonly int CulledMatrixRows45 = Shader.PropertyToID("_CulledMatrixRows45");
     
     public static readonly int ShouldFrustumCull        = Shader.PropertyToID("_ShouldFrustumCull");
     public static readonly int ShouldOcclusionCull      = Shader.PropertyToID("_ShouldOcclusionCull");
@@ -35,9 +39,13 @@ public static class ShaderProperties
     public static readonly int GroupSums         = Shader.PropertyToID("_GroupSums");
     public static readonly int ScannedPredicates = Shader.PropertyToID("_ScannedPredicates");
     
+    public static readonly int NumberOfGroups = Shader.PropertyToID("_NumberOfGroups");
     public static readonly int GroupSumsInput  = Shader.PropertyToID("_GroupSumsInput");
     public static readonly int GroupSumsOutput = Shader.PropertyToID("_GroupSumsOutput");
     
+    public static readonly int NumberOfDrawCalls = Shader.PropertyToID("_NumberOfDrawCalls");
+    public static readonly int DrawCallsDataOutput = Shader.PropertyToID("_DrawCallsDataOutput");
+
     public static readonly int Data  = Shader.PropertyToID("_Data");
     public static readonly int Input = Shader.PropertyToID("_Input");
     

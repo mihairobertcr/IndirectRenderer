@@ -8,6 +8,7 @@ using UnityEngine.Rendering;
 
 public class IndirectRenderer : IDisposable
 {
+    //TODO: Extract to wrappers base Class
     public const int NUMBER_OF_ARGS_PER_INSTANCE_TYPE = NUMBER_OF_DRAW_CALLS * NUMBER_OF_ARGS_PER_DRAW; // 3draws * 5args = 15args
 
     private const int NUMBER_OF_DRAW_CALLS = 3;                                                         // (LOD00 + LOD01 + LOD02)
@@ -20,11 +21,12 @@ public class IndirectRenderer : IDisposable
     private readonly MeshProperties _meshProperties;
     private readonly uint[] _args;
     
-    private readonly MatricesHandler _matricesHandler;
+    private readonly MatricesInitializer _matricesInitializer;
     private readonly LodBitonicSorter _lodBitonicSorter;
     private readonly InstancesCuller _instancesCuller;
     private readonly InstancesScanner _instancesScanner;
     private readonly GroupSumsScanner _groupSumsScanner;
+    private readonly InstancesDataCopier _dataCopier;
 
     private int _numberOfInstances = 16384;
     private int _numberOfInstanceTypes = 1;
@@ -61,10 +63,13 @@ public class IndirectRenderer : IDisposable
         ShaderBuffers.Args.SetData(_args);
         ShaderBuffers.ShadowsArgs.SetData(_args);
 
-        _matricesHandler = new MatricesHandler(_config.MatricesInitializer, _numberOfInstances, _meshProperties);
+        _matricesInitializer = new MatricesInitializer(_config.MatricesInitializer, _numberOfInstances);
         _lodBitonicSorter = new LodBitonicSorter(_config.LodBitonicSorter, _numberOfInstances);
         _instancesCuller = new InstancesCuller(_config.InstancesCuller, _numberOfInstances, _config.RenderCamera);
         _instancesScanner = new InstancesScanner(_config.InstancesScanner, _numberOfInstances);
+        _groupSumsScanner = new GroupSumsScanner(_config.GroupSumsScanner, _numberOfInstances);
+        _dataCopier = new InstancesDataCopier(_config.InstancesDataCopier, _numberOfInstances, _numberOfInstanceTypes);
+        
 
         Initialize(positions, rotations, scales);
         RenderPipelineManager.beginFrameRendering += OnBeginFrameRendering;
@@ -93,8 +98,8 @@ public class IndirectRenderer : IDisposable
 
     private void Initialize(List<Vector3> positions, List<Vector3> rotations, List<Vector3> scales)
     {
-        _matricesHandler.Initialize(positions, rotations, scales);
-        _matricesHandler.Dispatch();
+        _matricesInitializer.Initialize(positions, rotations, scales);
+        _matricesInitializer.Dispatch();
         
         //_cameraPosition = _config.RenderCamera.transform.position; // ???
 
@@ -107,6 +112,7 @@ public class IndirectRenderer : IDisposable
         
         _instancesScanner.Initialize();
         _groupSumsScanner.Initialize();
+        _dataCopier.Initialize(_meshProperties);
     }
 
     private void OnBeginFrameRendering(ScriptableRenderContext context, Camera[] cameras)
@@ -150,7 +156,7 @@ public class IndirectRenderer : IDisposable
         if (_config.LogMatrices)
         {
             _config.LogMatrices = false;
-            _matricesHandler.LogInstanceDrawMatrices("LogInstanceDrawMatrices");
+            _matricesInitializer.LogInstanceDrawMatrices("LogInstanceDrawMatrices");
         }
         
         Profiler.BeginSample("Resetting args buffer");
@@ -207,6 +213,23 @@ public class IndirectRenderer : IDisposable
             {
                 _config.LogScannedGroupSumsBuffer = false;
                 // LogScannedGroupSumBuffer("LogScannedGroupSumBuffer - Instances", "LogScannedGroupSumBuffer - Shadows");
+            }
+        }
+        Profiler.EndSample();
+        
+        Profiler.BeginSample("Copy Instance Data");
+        {
+            _dataCopier.Dispatch();
+            if (_config.LogCulledMatrices)
+            {
+                _config.LogCulledMatrices = false;
+                // LogCulledInstancesDrawMatrices("LogCulledMatrices - Instances", "LogCulledMatrices - Shadows");
+            }
+            
+            if (_config.LogArgsBufferAfterCopy)
+            {
+                _config.LogArgsBufferAfterCopy = false;
+                // LogArgsBuffers("LogArgsBuffers - Instances After Copy", "LogArgsBuffers - Shadows After Copy");
             }
         }
         Profiler.EndSample();
@@ -302,21 +325,21 @@ public class IndirectRenderer : IDisposable
 
         // Lod 0
         args[0] = _meshProperties.Lod0Indices;  // 0 - index count per instance, 
-        args[1] = 1;                            // 1 - instance count
+        args[1] = 0;                            // 1 - instance count
         args[2] = 0;                            // 2 - start index location
         args[3] = 0;                            // 3 - base vertex location
         args[4] = 0;                            // 4 - start instance location
         
         // Lod 1
         args[5] = _meshProperties.Lod1Indices;  // 0 - index count per instance, 
-        args[6] = 1;                            // 1 - instance count
+        args[6] = 0;                            // 1 - instance count
         args[7] = args[0] + args[2];            // 2 - start index location
         args[8] = 0;                            // 3 - base vertex location
         args[9] = 0;                            // 4 - start instance location
         
         // Lod 2
         args[10] = _meshProperties.Lod2Indices; // 0 - index count per instance, 
-        args[11] = 1;                           // 1 - instance count
+        args[11] = 0;                           // 1 - instance count
         args[12] = args[5] + args[7];           // 2 - start index location
         args[13] = 0;                           // 3 - base vertex location
         args[14] = 0;                           // 4 - start instance location

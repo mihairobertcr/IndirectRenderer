@@ -16,15 +16,14 @@ RWStructuredBuffer<uint> _ScannedPredicates;
 // Based on Parallel Prefix Sum (Scan) with CUDA by Mark Harris
 [numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z)]
 inline void CSMain (
-        in uint3 _dispatchThreadID : SV_DispatchThreadID, // DispatchThreadID  = dot(GroupID, numthreads) + GroupThreadId;
-        in uint  _groupIndex       : SV_GroupIndex,       // uint GroupIndex = unique index of a thread inside a group
-        in uint3 _groupID          : SV_GroupID,          // GroupID = index for each dimension inside a ThreadGroupCount 
-        in uint3 _groupThreadID    : SV_GroupThreadID     // uint3 GroupThreadId = indices for each dimension inside a group of the current thread
-    )        
+        in uint3 _dispatchThreadId : SV_DispatchThreadID, // DispatchThreadID = dot(GroupID, numthreads) + GroupThreadId;
+        in uint  _groupIndex       : SV_GroupIndex,       // GroupIndex = unique index of a thread inside a group
+        in uint3 _groupId          : SV_GroupID,          // GroupID = index for each dimension inside a ThreadGroupCount 
+        in uint3 _groupThreadId    : SV_GroupThreadID)    // GroupThreadId = indices for each dimension inside a group of the current thread
 {
-    int threadId = _dispatchThreadID.x;
-    int groupThreadId = _groupThreadID.x;
-    int groupId = _groupID.x;
+    int threadId = _dispatchThreadId.x;
+    int groupThreadId = _groupThreadId.x;
+    int groupId = _groupId.x;
 
     // Load input into shared memory
     temp[2 * groupThreadId] = _PredicatesInput[2 * threadId]; 

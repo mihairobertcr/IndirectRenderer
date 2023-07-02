@@ -6,9 +6,17 @@ public static class ShaderBuffers
     public static ComputeBuffer Args;
     public static ComputeBuffer ShadowsArgs;
 
-    public static ComputeBuffer InstanceMatrixRows01;
-    public static ComputeBuffer InstanceMatrixRows23;
-    public static ComputeBuffer InstanceMatrixRows45;
+    public static ComputeBuffer MatrixRows01;
+    public static ComputeBuffer MatrixRows23;
+    public static ComputeBuffer MatrixRows45;
+    
+    public static ComputeBuffer CulledMatrixRows01;
+    public static ComputeBuffer CulledMatrixRows23;
+    public static ComputeBuffer CulledMatrixRows45;
+    
+    public static ComputeBuffer ShadowsCulledMatrixRows01;
+    public static ComputeBuffer ShadowsCulledMatrixRows23;
+    public static ComputeBuffer ShadowsCulledMatrixRows45;
     
     public static ComputeBuffer SortingData;
     public static ComputeBuffer SortingDataTemp;
@@ -33,9 +41,13 @@ public static class ShaderBuffers
         Args.Release();
         ShadowsArgs.Release();
         
-        InstanceMatrixRows01.Release();
-        InstanceMatrixRows23.Release();
-        InstanceMatrixRows45.Release();
+        MatrixRows01.Release();
+        MatrixRows23.Release();
+        MatrixRows45.Release();
+        
+        CulledMatrixRows01.Release();
+        CulledMatrixRows23.Release();
+        CulledMatrixRows45.Release();
         
         BoundsData.Release();
         IsVisible.Release();

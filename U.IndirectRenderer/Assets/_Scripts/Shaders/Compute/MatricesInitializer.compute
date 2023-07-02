@@ -10,9 +10,9 @@ StructuredBuffer<float3> _Positions;
 StructuredBuffer<float3> _Scales;
 StructuredBuffer<float3> _Rotations;
 
-RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows01;
-RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows23;
-RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows45;
+RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows01;
+RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows23;
+RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows45;
 
 float4x4 RotationMatrix(float3 axis, float angle)
 {
@@ -60,12 +60,12 @@ float4x4 Inverse(float4x4 input)
 
 [numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z)]
 inline void CSMain (
-        in uint3 dispatchThreadId : SV_DispatchThreadID, // DispatchThreadID  = dot(GroupID, numthreads) + GroupThreadId;
-        in uint  groupIndex       : SV_GroupIndex,       // GroupIndex = unique index of a thread inside a group
-        in uint3 groupId          : SV_GroupID,          // GroupID = index for each dimension inside a ThreadGroupCount 
-        in uint3 groupThreadId    : SV_GroupThreadID)    // GroupThreadId = indices for each dimension inside a group of the current thread
+        in uint3 _dispatchThreadId : SV_DispatchThreadID, // DispatchThreadID = dot(GroupID, numthreads) + GroupThreadId;
+        in uint  _groupIndex       : SV_GroupIndex,       // GroupIndex = unique index of a thread inside a group
+        in uint3 _groupId          : SV_GroupID,          // GroupID = index for each dimension inside a ThreadGroupCount 
+        in uint3 _groupThreadId    : SV_GroupThreadID)    // GroupThreadId = indices for each dimension inside a group of the current thread
 {
-    uint threadID = dispatchThreadId.x;
+    uint threadID = _dispatchThreadId.x;
 
     float3 position = _Positions[threadID];
     float3 scale    = _Scales[threadID];
@@ -99,7 +99,7 @@ inline void CSMain (
     rows45.FirstRow  = worldToObject[1];
     rows45.SecondRow = worldToObject[2];
     
-    _InstanceMatrixRows01[threadID] = rows01;
-    _InstanceMatrixRows23[threadID] = rows23;
-    _InstanceMatrixRows45[threadID] = rows45;
+    _MatrixRows01[threadID] = rows01;
+    _MatrixRows23[threadID] = rows23;
+    _MatrixRows45[threadID] = rows45;
 }
