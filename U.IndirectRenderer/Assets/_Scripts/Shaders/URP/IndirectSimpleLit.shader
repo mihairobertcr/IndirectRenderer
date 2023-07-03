@@ -151,9 +151,9 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
             // StructuredBuffer<uint> _ArgsBuffer;
 
             //TODO: Consider removing RW
-            RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows01;
-            RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows23;
-            RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows45;
+            RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows01;
+            RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows23;
+            RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows45;
             
             void IndirectSetup()
             {
@@ -163,9 +163,9 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
                 //     uint index = unity_InstanceID + _ArgsBuffer[_ArgsOffset];
                 // #endif
                 
-                Indirect2x2Matrix rows01 = _InstanceMatrixRows01[unity_InstanceID];
-                Indirect2x2Matrix rows23 = _InstanceMatrixRows23[unity_InstanceID];
-                Indirect2x2Matrix rows45 = _InstanceMatrixRows45[unity_InstanceID];
+                Indirect2x2Matrix rows01 = _MatrixRows01[unity_InstanceID];
+                Indirect2x2Matrix rows23 = _MatrixRows23[unity_InstanceID];
+                Indirect2x2Matrix rows45 = _MatrixRows45[unity_InstanceID];
                 
                 unity_ObjectToWorld = float4x4(rows01.FirstRow, rows01.SecondRow, rows23.FirstRow, float4(0, 0, 0, 1));
                 unity_WorldToObject = float4x4(rows23.SecondRow, rows45.FirstRow, rows45.SecondRow, float4(0, 0, 0, 1));
@@ -397,9 +397,9 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
             
             // uniform uint _ArgsOffset;
             // StructuredBuffer<uint> _ArgsBuffer;
-            RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows01;
-            RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows23;
-            RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows45;
+            RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows01;
+            RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows23;
+            RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows45;
             
             void IndirectSetup()
             {
@@ -409,9 +409,9 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
                 //     uint index = unity_InstanceID + _ArgsBuffer[_ArgsOffset];
                 // #endif
                 
-                Indirect2x2Matrix rows01 = _InstanceMatrixRows01[unity_InstanceID];
-                Indirect2x2Matrix rows23 = _InstanceMatrixRows23[unity_InstanceID];
-                Indirect2x2Matrix rows45 = _InstanceMatrixRows45[unity_InstanceID];
+                Indirect2x2Matrix rows01 = _MatrixRows01[unity_InstanceID];
+                Indirect2x2Matrix rows23 = _MatrixRows23[unity_InstanceID];
+                Indirect2x2Matrix rows45 = _MatrixRows45[unity_InstanceID];
                 
                 unity_ObjectToWorld = float4x4(rows01.FirstRow, rows01.SecondRow, rows23.FirstRow, float4(0, 0, 0, 1));
                 unity_WorldToObject = float4x4(rows23.SecondRow, rows45.FirstRow, rows45.SecondRow, float4(0, 0, 0, 1));
@@ -458,9 +458,9 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
             
             // uniform uint _ArgsOffset;
             // StructuredBuffer<uint> _ArgsBuffer;
-            RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows01;
-            RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows23;
-            RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows45;
+            RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows01;
+            RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows23;
+            RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows45;
             
             void IndirectSetup()
             {
@@ -470,9 +470,9 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
                 //     uint index = unity_InstanceID + _ArgsBuffer[_ArgsOffset];
                 // #endif
                 
-                Indirect2x2Matrix rows01 = _InstanceMatrixRows01[unity_InstanceID];
-                Indirect2x2Matrix rows23 = _InstanceMatrixRows23[unity_InstanceID];
-                Indirect2x2Matrix rows45 = _InstanceMatrixRows45[unity_InstanceID];
+                Indirect2x2Matrix rows01 = _MatrixRows01[unity_InstanceID];
+                Indirect2x2Matrix rows23 = _MatrixRows23[unity_InstanceID];
+                Indirect2x2Matrix rows45 = _MatrixRows45[unity_InstanceID];
                 
                 unity_ObjectToWorld = float4x4(rows01.FirstRow, rows01.SecondRow, rows23.FirstRow, float4(0, 0, 0, 1));
                 unity_WorldToObject = float4x4(rows23.SecondRow, rows45.FirstRow, rows45.SecondRow, float4(0, 0, 0, 1));
@@ -519,9 +519,9 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
             
             // uniform uint _ArgsOffset;
             // StructuredBuffer<uint> _ArgsBuffer;
-            RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows01;
-            RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows23;
-            RWStructuredBuffer<Indirect2x2Matrix> _InstanceMatrixRows45;
+            RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows01;
+            RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows23;
+            RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows45;
             
             void IndirectSetup()
             {
@@ -531,9 +531,9 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
                 //     uint index = unity_InstanceID + _ArgsBuffer[_ArgsOffset];
                 // #endif
                 
-                Indirect2x2Matrix rows01 = _InstanceMatrixRows01[unity_InstanceID];
-                Indirect2x2Matrix rows23 = _InstanceMatrixRows23[unity_InstanceID];
-                Indirect2x2Matrix rows45 = _InstanceMatrixRows45[unity_InstanceID];
+                Indirect2x2Matrix rows01 = _MatrixRows01[unity_InstanceID];
+                Indirect2x2Matrix rows23 = _MatrixRows23[unity_InstanceID];
+                Indirect2x2Matrix rows45 = _MatrixRows45[unity_InstanceID];
                 
                 unity_ObjectToWorld = float4x4(rows01.FirstRow, rows01.SecondRow, rows23.FirstRow, float4(0, 0, 0, 1));
                 unity_WorldToObject = float4x4(rows23.SecondRow, rows45.FirstRow, rows45.SecondRow, float4(0, 0, 0, 1));

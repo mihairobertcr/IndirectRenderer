@@ -5,19 +5,31 @@ public class InstancesDataCopier
     private const int SCAN_THREAD_GROUP_SIZE = 64; //TODO: Move to base class
 
     private readonly ComputeShader _computeShader;
+    private readonly int _numberOfInstances;
     private readonly int _copyInstanceDataGroupX;
     private readonly int _numberOfInstanceTypes;
 
     public InstancesDataCopier(ComputeShader computeShader, int numberOfInstances, int numberOfInstanceTypes)
     {
         _computeShader = computeShader;
+        _numberOfInstances = numberOfInstances;
         _copyInstanceDataGroupX = Mathf.Max(1, numberOfInstances / (2 * SCAN_THREAD_GROUP_SIZE)); //TODO: Extract common method for groups;
         _numberOfInstanceTypes = numberOfInstanceTypes;
     }
 
     public void Initialize(MeshProperties properties)
     {
+        
+        ShaderBuffers.CulledMatrixRows01 = new ComputeBuffer(_numberOfInstances, Indirect2x2Matrix.Size, ComputeBufferType.Default);
+        ShaderBuffers.CulledMatrixRows23 = new ComputeBuffer(_numberOfInstances, Indirect2x2Matrix.Size, ComputeBufferType.Default);
+        ShaderBuffers.CulledMatrixRows45 = new ComputeBuffer(_numberOfInstances, Indirect2x2Matrix.Size, ComputeBufferType.Default);
+        
+        ShaderBuffers.ShadowsCulledMatrixRows01 = new ComputeBuffer(_numberOfInstances, Indirect2x2Matrix.Size, ComputeBufferType.Default);
+        ShaderBuffers.ShadowsCulledMatrixRows23 = new ComputeBuffer(_numberOfInstances, Indirect2x2Matrix.Size, ComputeBufferType.Default);
+        ShaderBuffers.ShadowsCulledMatrixRows45 = new ComputeBuffer(_numberOfInstances, Indirect2x2Matrix.Size, ComputeBufferType.Default);
+        
         InitializeMaterialProperties(properties);
+
         
         _computeShader.SetInt(ShaderProperties.NumberOfDrawCalls, _numberOfInstanceTypes * IndirectRenderer.NUMBER_OF_ARGS_PER_INSTANCE_TYPE);
         

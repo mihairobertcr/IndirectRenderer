@@ -49,6 +49,10 @@ public static class ShaderBuffers
         CulledMatrixRows23.Release();
         CulledMatrixRows45.Release();
         
+        ShadowsCulledMatrixRows01.Release();
+        ShadowsCulledMatrixRows23.Release();
+        ShadowsCulledMatrixRows45.Release();
+        
         BoundsData.Release();
         IsVisible.Release();
         IsShadowVisible.Release();

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
@@ -16,17 +17,37 @@ public class InstancesCuller
         Camera camera, Camera debugCamera = null)
     {
         _computeShader = computeShader;
+        _numberOfInstances = numberOfInstances;
         _camera = camera;
         // _settings = settings;
         // _hiZBuffer = new HiZBuffer(hiZBufferConfig, camera);
         _occlusionGroupX = Mathf.Max(1, _numberOfInstances / 64);
     }
 
-    public void Initialize(IndirectRendererSettings settings, HiZBuffer hiZBuffer)
+    public void Initialize(List<Vector3> positions,  List<Vector3> scales, IndirectRendererSettings settings, HiZBuffer hiZBuffer)
     {
         ShaderBuffers.IsVisible       = new ComputeBuffer(_numberOfInstances, sizeof(uint), ComputeBufferType.Default);
         ShaderBuffers.IsShadowVisible = new ComputeBuffer(_numberOfInstances, sizeof(uint), ComputeBufferType.Default);
         ShaderBuffers.BoundsData      = new ComputeBuffer(_numberOfInstances, BoundsData.Size, ComputeBufferType.Default);
+
+        var boundsData = new List<BoundsData>();
+        for (var i = 0; i < positions.Count; i++)
+        {
+            //TODO: Create bounding boxes
+            var bounds = new Bounds();
+            bounds.center = positions[i];
+            var size = Vector3.one; // TODO: Properly calculate or pass the size of aabbs
+            size.Scale(scales[i]);
+            bounds.size = size;
+                
+            boundsData.Add(new BoundsData 
+            {
+                BoundsCenter = bounds.center,
+                BoundsExtents = bounds.extents,
+            });
+        }
+        
+        ShaderBuffers.BoundsData.SetData(boundsData);
 
         _computeShader.SetInt(ShaderProperties.ShouldFrustumCull,        settings.EnableFrustumCulling    ? 1 : 0);
         _computeShader.SetInt(ShaderProperties.ShouldOcclusionCull,      settings.EnableOcclusionCulling  ? 1 : 0);

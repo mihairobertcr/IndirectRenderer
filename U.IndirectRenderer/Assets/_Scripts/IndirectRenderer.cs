@@ -108,7 +108,7 @@ public class IndirectRenderer : IDisposable
         _lodBitonicSorter.ComputeAsync = _settings.ComputeAsync;
         
         var hiZBuffer = new HiZBuffer(_hiZBufferConfig, _config.RenderCamera);
-        _instancesCuller.Initialize(_settings, hiZBuffer);
+        _instancesCuller.Initialize(positions, scales, _settings, hiZBuffer);
         
         _instancesScanner.Initialize();
         _groupSumsScanner.Initialize();
@@ -150,8 +150,8 @@ public class IndirectRenderer : IDisposable
     private void CalculateVisibleInstances()
     {
         // Global data
-        _cameraPosition = _config.RenderCamera.transform.position;
-        _bounds.center = _cameraPosition;
+        // _cameraPosition = _config.RenderCamera.transform.position;
+        // _bounds.center = _cameraPosition;
         
         if (_config.LogMatrices)
         {
@@ -257,7 +257,7 @@ public class IndirectRenderer : IDisposable
             bounds: new Bounds(Vector3.zero, Vector3.one * 1000),
             bufferWithArgs: ShaderBuffers.Args,
             argsOffset: 0, //ARGS_BYTE_SIZE_PER_DRAW_CALL,
-            properties: _meshProperties.Lod2PropertyBlock,
+            properties: _meshProperties.Lod0PropertyBlock,
             castShadows: ShadowCastingMode.On,
             receiveShadows: true);
         // camera: Camera.main); 

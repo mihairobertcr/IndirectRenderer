@@ -42,7 +42,7 @@ public class HiZBuffer
         _debugCamera = debugCamera;
         
         _generateBufferMaterial = new Material(config.GenerateBufferShader);
-        _debugMaterial = new Material(config.DebugShader);
+        // _debugMaterial = new Material(config.DebugShader);
         _renderCamera.depthTextureMode = DepthTextureMode.Depth;
 
         TextureSize = CalculateTextureSize(out var size);
