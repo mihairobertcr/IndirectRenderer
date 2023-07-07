@@ -67,6 +67,22 @@ public class InstancesDataCopier
 
     private static void InitializeMaterialProperties(MeshProperties properties)
     {
+        properties.Lod0PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 4);
+        properties.Lod1PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 9);
+        properties.Lod2PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 14);
+        
+        properties.ShadowLod0PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 4);
+        properties.ShadowLod1PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 9);
+        properties.ShadowLod2PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 14);
+        
+        properties.Lod0PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, ShaderBuffers.Args);
+        properties.Lod1PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, ShaderBuffers.Args);
+        properties.Lod2PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, ShaderBuffers.Args);
+        
+        properties.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, ShaderBuffers.ShadowsArgs);
+        properties.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, ShaderBuffers.ShadowsArgs);
+        properties.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, ShaderBuffers.ShadowsArgs);
+        
         properties.Lod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, ShaderBuffers.CulledMatrixRows01);
         properties.Lod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, ShaderBuffers.CulledMatrixRows01);
         properties.Lod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, ShaderBuffers.CulledMatrixRows01);

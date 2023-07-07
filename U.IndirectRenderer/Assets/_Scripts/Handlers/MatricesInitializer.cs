@@ -14,7 +14,7 @@ public class MatricesInitializer
     private ComputeBuffer _rotationsBuffer;
     private ComputeBuffer _scalesBuffer;
 
-    public MatricesInitializer(ComputeShader computeShader, int numberOfInstances)
+    public MatricesInitializer(ComputeShader computeShader, int numberOfInstances) //, MeshProperties properties)
     {
         _computeShader = computeShader;
         _numberOfInstances = numberOfInstances;
@@ -22,7 +22,7 @@ public class MatricesInitializer
         InitializeMatricesBuffers();
         InitializeTransformBuffers();
         InitializeComputeShader();
-        // InitializeMaterialProperties();
+        // InitializeMaterialProperties(properties);
     }
 
     public void Initialize(List<Vector3> positions, List<Vector3> rotations, List<Vector3> scales)
@@ -101,30 +101,46 @@ public class MatricesInitializer
         _computeShader.SetBuffer(ShaderKernels.MatricesInitializer, ShaderProperties.MatrixRows45, ShaderBuffers.MatrixRows45);
     }
 
-    // private void InitializeMaterialProperties()
+    // private static void InitializeMaterialProperties(MeshProperties properties)
     // {
-    //     _meshProperties.Lod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, ShaderBuffers.CulledMatrixRows01);
-    //     _meshProperties.Lod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, ShaderBuffers.CulledMatrixRows01);
-    //     _meshProperties.Lod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, ShaderBuffers.CulledMatrixRows01);
-    //         
-    //     _meshProperties.Lod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, ShaderBuffers.CulledMatrixRows23);
-    //     _meshProperties.Lod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, ShaderBuffers.CulledMatrixRows23);
-    //     _meshProperties.Lod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, ShaderBuffers.CulledMatrixRows23);
-    //         
-    //     _meshProperties.Lod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, ShaderBuffers.CulledMatrixRows45);
-    //     _meshProperties.Lod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, ShaderBuffers.CulledMatrixRows45);
-    //     _meshProperties.Lod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, ShaderBuffers.CulledMatrixRows45);
+    //     properties.Lod0PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 4);
+    //     properties.Lod1PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 9);
+    //     properties.Lod2PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 14);
     //     
-    //     _meshProperties.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, ShaderBuffers.ShadowsCulledMatrixRows01);
-    //     _meshProperties.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, ShaderBuffers.ShadowsCulledMatrixRows01);
-    //     _meshProperties.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, ShaderBuffers.ShadowsCulledMatrixRows01);
+    //     properties.ShadowLod0PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 4);
+    //     properties.ShadowLod1PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 9);
+    //     properties.ShadowLod2PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 14);
+    //     
+    //     properties.Lod0PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, ShaderBuffers.Args);
+    //     properties.Lod1PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, ShaderBuffers.Args);
+    //     properties.Lod2PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, ShaderBuffers.Args);
+    //     
+    //     properties.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, ShaderBuffers.ShadowsArgs);
+    //     properties.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, ShaderBuffers.ShadowsArgs);
+    //     properties.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, ShaderBuffers.ShadowsArgs);
+    //     
+    //     properties.Lod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, ShaderBuffers.CulledMatrixRows01);
+    //     properties.Lod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, ShaderBuffers.CulledMatrixRows01);
+    //     properties.Lod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, ShaderBuffers.CulledMatrixRows01);
     //         
-    //     _meshProperties.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, ShaderBuffers.ShadowsCulledMatrixRows23);
-    //     _meshProperties.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, ShaderBuffers.ShadowsCulledMatrixRows23);
-    //     _meshProperties.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, ShaderBuffers.ShadowsCulledMatrixRows23);
+    //     properties.Lod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, ShaderBuffers.CulledMatrixRows23);
+    //     properties.Lod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, ShaderBuffers.CulledMatrixRows23);
+    //     properties.Lod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, ShaderBuffers.CulledMatrixRows23);
     //         
-    //     _meshProperties.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, ShaderBuffers.ShadowsCulledMatrixRows45);
-    //     _meshProperties.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, ShaderBuffers.ShadowsCulledMatrixRows45);
-    //     _meshProperties.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, ShaderBuffers.ShadowsCulledMatrixRows45);
+    //     properties.Lod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, ShaderBuffers.CulledMatrixRows45);
+    //     properties.Lod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, ShaderBuffers.CulledMatrixRows45);
+    //     properties.Lod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, ShaderBuffers.CulledMatrixRows45);
+    //     
+    //     properties.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, ShaderBuffers.ShadowsCulledMatrixRows01);
+    //     properties.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, ShaderBuffers.ShadowsCulledMatrixRows01);
+    //     properties.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, ShaderBuffers.ShadowsCulledMatrixRows01);
+    //         
+    //     properties.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, ShaderBuffers.ShadowsCulledMatrixRows23);
+    //     properties.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, ShaderBuffers.ShadowsCulledMatrixRows23);
+    //     properties.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, ShaderBuffers.ShadowsCulledMatrixRows23);
+    //         
+    //     properties.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, ShaderBuffers.ShadowsCulledMatrixRows45);
+    //     properties.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, ShaderBuffers.ShadowsCulledMatrixRows45);
+    //     properties.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, ShaderBuffers.ShadowsCulledMatrixRows45);
     // }
 }

@@ -147,8 +147,8 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
             #if defined(UNITY_PROCEDURAL_INSTANCING_ENABLED)
             #pragma instancing_options procedural:IndirectSetup
             
-            // uniform uint _ArgsOffset;
-            // StructuredBuffer<uint> _ArgsBuffer;
+            uniform uint _ArgsOffset;
+            StructuredBuffer<uint> _ArgsBuffer;
 
             //TODO: Consider removing RW
             RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows01;
@@ -160,12 +160,12 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
                 // #if defined(SHADER_API_METAL)
                 //     uint index = unity_InstanceID;
                 // #else
-                //     uint index = unity_InstanceID + _ArgsBuffer[_ArgsOffset];
+                uint index = unity_InstanceID + _ArgsBuffer[_ArgsOffset];
                 // #endif
                 
-                Indirect2x2Matrix rows01 = _MatrixRows01[unity_InstanceID];
-                Indirect2x2Matrix rows23 = _MatrixRows23[unity_InstanceID];
-                Indirect2x2Matrix rows45 = _MatrixRows45[unity_InstanceID];
+                Indirect2x2Matrix rows01 = _MatrixRows01[index];
+                Indirect2x2Matrix rows23 = _MatrixRows23[index];
+                Indirect2x2Matrix rows45 = _MatrixRows45[index];
                 
                 unity_ObjectToWorld = float4x4(rows01.FirstRow, rows01.SecondRow, rows23.FirstRow, float4(0, 0, 0, 1));
                 unity_WorldToObject = float4x4(rows23.SecondRow, rows45.FirstRow, rows45.SecondRow, float4(0, 0, 0, 1));
@@ -395,8 +395,8 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
             #if defined(UNITY_PROCEDURAL_INSTANCING_ENABLED)
             #pragma instancing_options procedural:IndirectSetup
             
-            // uniform uint _ArgsOffset;
-            // StructuredBuffer<uint> _ArgsBuffer;
+            uniform uint _ArgsOffset;
+            StructuredBuffer<uint> _ArgsBuffer;
             RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows01;
             RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows23;
             RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows45;
@@ -406,12 +406,12 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
                 // #if defined(SHADER_API_METAL)
                 //     uint index = unity_InstanceID;
                 // #else
-                //     uint index = unity_InstanceID + _ArgsBuffer[_ArgsOffset];
+                uint index = unity_InstanceID + _ArgsBuffer[_ArgsOffset];
                 // #endif
                 
-                Indirect2x2Matrix rows01 = _MatrixRows01[unity_InstanceID];
-                Indirect2x2Matrix rows23 = _MatrixRows23[unity_InstanceID];
-                Indirect2x2Matrix rows45 = _MatrixRows45[unity_InstanceID];
+                Indirect2x2Matrix rows01 = _MatrixRows01[index];
+                Indirect2x2Matrix rows23 = _MatrixRows23[index];
+                Indirect2x2Matrix rows45 = _MatrixRows45[index];
                 
                 unity_ObjectToWorld = float4x4(rows01.FirstRow, rows01.SecondRow, rows23.FirstRow, float4(0, 0, 0, 1));
                 unity_WorldToObject = float4x4(rows23.SecondRow, rows45.FirstRow, rows45.SecondRow, float4(0, 0, 0, 1));
@@ -456,8 +456,8 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
             #if defined(UNITY_PROCEDURAL_INSTANCING_ENABLED)
             #pragma instancing_options procedural:IndirectSetup
             
-            // uniform uint _ArgsOffset;
-            // StructuredBuffer<uint> _ArgsBuffer;
+            uniform uint _ArgsOffset;
+            StructuredBuffer<uint> _ArgsBuffer;
             RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows01;
             RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows23;
             RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows45;
@@ -467,12 +467,12 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
                 // #if defined(SHADER_API_METAL)
                 //     uint index = unity_InstanceID;
                 // #else
-                //     uint index = unity_InstanceID + _ArgsBuffer[_ArgsOffset];
+                uint index = unity_InstanceID + _ArgsBuffer[_ArgsOffset];
                 // #endif
                 
-                Indirect2x2Matrix rows01 = _MatrixRows01[unity_InstanceID];
-                Indirect2x2Matrix rows23 = _MatrixRows23[unity_InstanceID];
-                Indirect2x2Matrix rows45 = _MatrixRows45[unity_InstanceID];
+                Indirect2x2Matrix rows01 = _MatrixRows01[index];
+                Indirect2x2Matrix rows23 = _MatrixRows23[index];
+                Indirect2x2Matrix rows45 = _MatrixRows45[index];
                 
                 unity_ObjectToWorld = float4x4(rows01.FirstRow, rows01.SecondRow, rows23.FirstRow, float4(0, 0, 0, 1));
                 unity_WorldToObject = float4x4(rows23.SecondRow, rows45.FirstRow, rows45.SecondRow, float4(0, 0, 0, 1));
@@ -517,8 +517,8 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
             #if defined(UNITY_PROCEDURAL_INSTANCING_ENABLED)
             #pragma instancing_options procedural:IndirectSetup
             
-            // uniform uint _ArgsOffset;
-            // StructuredBuffer<uint> _ArgsBuffer;
+            uniform uint _ArgsOffset;
+            StructuredBuffer<uint> _ArgsBuffer;
             RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows01;
             RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows23;
             RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows45;
@@ -528,12 +528,12 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
                 // #if defined(SHADER_API_METAL)
                 //     uint index = unity_InstanceID;
                 // #else
-                //     uint index = unity_InstanceID + _ArgsBuffer[_ArgsOffset];
+                uint index = unity_InstanceID + _ArgsBuffer[_ArgsOffset];
                 // #endif
                 
-                Indirect2x2Matrix rows01 = _MatrixRows01[unity_InstanceID];
-                Indirect2x2Matrix rows23 = _MatrixRows23[unity_InstanceID];
-                Indirect2x2Matrix rows45 = _MatrixRows45[unity_InstanceID];
+                Indirect2x2Matrix rows01 = _MatrixRows01[index];
+                Indirect2x2Matrix rows23 = _MatrixRows23[index];
+                Indirect2x2Matrix rows45 = _MatrixRows45[index];
                 
                 unity_ObjectToWorld = float4x4(rows01.FirstRow, rows01.SecondRow, rows23.FirstRow, float4(0, 0, 0, 1));
                 unity_WorldToObject = float4x4(rows23.SecondRow, rows45.FirstRow, rows45.SecondRow, float4(0, 0, 0, 1));

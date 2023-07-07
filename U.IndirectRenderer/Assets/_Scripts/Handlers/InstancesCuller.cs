@@ -11,6 +11,7 @@ public class InstancesCuller
     // private readonly IndirectRendererSettings _settings;
     // private readonly HiZBuffer _hiZBuffer;
     private readonly int _occlusionGroupX;
+    private List<BoundsData> _boundsData; //TODO: Convert to array
 
     public InstancesCuller(ComputeShader computeShader, int numberOfInstances, 
         //IndirectRendererSettings settings, HiZBufferConfig hiZBufferConfig, 
@@ -30,7 +31,7 @@ public class InstancesCuller
         ShaderBuffers.IsShadowVisible = new ComputeBuffer(_numberOfInstances, sizeof(uint), ComputeBufferType.Default);
         ShaderBuffers.BoundsData      = new ComputeBuffer(_numberOfInstances, BoundsData.Size, ComputeBufferType.Default);
 
-        var boundsData = new List<BoundsData>();
+        _boundsData = new List<BoundsData>();
         for (var i = 0; i < positions.Count; i++)
         {
             //TODO: Create bounding boxes
@@ -40,14 +41,14 @@ public class InstancesCuller
             size.Scale(scales[i]);
             bounds.size = size;
                 
-            boundsData.Add(new BoundsData 
+            _boundsData.Add(new BoundsData 
             {
                 BoundsCenter = bounds.center,
                 BoundsExtents = bounds.extents,
             });
         }
         
-        ShaderBuffers.BoundsData.SetData(boundsData);
+        ShaderBuffers.BoundsData.SetData(_boundsData);
 
         _computeShader.SetInt(ShaderProperties.ShouldFrustumCull,        settings.EnableFrustumCulling    ? 1 : 0);
         _computeShader.SetInt(ShaderProperties.ShouldOcclusionCull,      settings.EnableOcclusionCulling  ? 1 : 0);
@@ -83,6 +84,24 @@ public class InstancesCuller
         _computeShader.SetVector(ShaderProperties.CameraPosition, cameraPosition);
         
         // Dispatch
+        // var data = new SortingData[_numberOfInstances];
+        // ShaderBuffers.SortingData.GetData(data);
+        //
+        // foreach (var i in data)
+        // {
+        //     Debug.Log(i.DrawCallInstanceIndex >> 16);
+        // }
+        
         _computeShader.Dispatch(ShaderKernels.InstancesCuller, _occlusionGroupX, 1, 1);
+    }
+    
+    // TODO: #EDITOR
+    public void DrawGizmos()
+    {
+        Gizmos.color = new Color(1f, 0f, 0f, 0.333f);
+        for (int i = 0; i < _boundsData.Count; i++)
+        {
+            Gizmos.DrawWireCube(_boundsData[i].BoundsCenter, _boundsData[i].BoundsExtents * 2f);
+        }
     }
 }

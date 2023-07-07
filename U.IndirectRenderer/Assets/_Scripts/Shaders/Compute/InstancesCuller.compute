@@ -6,8 +6,8 @@
 #define THREAD_GROUP_SIZE_Y 1
 #define THREAD_GROUP_SIZE_Z 1
 
-#define LOD00_RANGE 500
-#define LOD01_RANGE 2000
+#define LOD00_RANGE 20
+#define LOD01_RANGE 50
 
 cbuffer CB
 {
@@ -185,20 +185,20 @@ inline void CSMain (
         // Do we pass the frustum culling...?
         isVisible *= _ShouldFrustumCull ? isInFrustum : 1;
 
-        // Do we pass the occlusion culling...?
-        isVisible *= (_ShouldOcclusionCull * isVisible > 0) ? IsVisibleAfterOcclusionCulling(clipMinX, clipMaxX, clipMinY, clipMaxY, clipMinZ) : 1;
-
-        // // // Do we pass the detail (screen size) culling...?
-        isVisible *= (_ShouldDetailCull * isVisible > 0) ? IsVisibleAfterDetailCulling(clipMinX, clipMaxX, clipMinY, clipMaxY) : 1;
+        // // Do we pass the occlusion culling...?
+        // isVisible *= (_ShouldOcclusionCull * isVisible > 0) ? IsVisibleAfterOcclusionCulling(clipMinX, clipMaxX, clipMinY, clipMaxY, clipMinZ) : 1;
+        //
+        // // // // Do we pass the detail (screen size) culling...?
+        // isVisible *= (_ShouldDetailCull * isVisible > 0) ? IsVisibleAfterDetailCulling(clipMinX, clipMaxX, clipMinY, clipMaxY) : 1;
     }
 
-    float lod00Range = LOD00_RANGE;
-    float lod01Range = LOD01_RANGE;
+    float lod0Range = LOD00_RANGE;
+    float lod1Range = LOD01_RANGE;
 
     // Calculate the correct index to the arguments buffers
     uint argsIndex = drawCall + 1;    
-    argsIndex += 5 * (minDistanceToCamera > lod00Range);
-    argsIndex += 5 * (minDistanceToCamera > lod01Range);
+    argsIndex += 5 * (minDistanceToCamera > lod0Range);
+    argsIndex += 5 * (minDistanceToCamera > lod1Range);
     argsIndex = _ShouldLod * argsIndex + ((_ShouldLod == 0) * (drawCall + 11));
     
     uint shadowArgsIndex = argsIndex;//_ShouldOnlyUseLod2Shadows ? drawCall + 11 : argsIndex;
@@ -209,7 +209,7 @@ inline void CSMain (
     // Output
     _IsVisibleBuffer[threadId] = isVisible;
     InterlockedAdd(_ArgsBuffer[argsIndex], isVisible);
-
+    
     _IsShadowVisibleBuffer[threadId] = isCastingShadow;
     InterlockedAdd(_ShadowArgsBuffer[shadowArgsIndex], isCastingShadow);
 

@@ -38,6 +38,7 @@ public class IndirectRendererConfig
     public bool LogCulledMatrices;
     public bool LogArgsBufferAfterCopy;
     public bool LogSortingData;
+    public bool DebugBounds;
 }
 
 [Serializable]
@@ -128,7 +129,7 @@ public class IndirectRendererComponent : MonoBehaviour
 
     private void Update()
     {
-        // _renderer.Update(positions, rotations, scales);
+        // _renderer.Update();
         // Graphics.DrawMeshInstancedIndirect(
         //     mesh: _meshProperties.Mesh,
         //     submeshIndex: 0,
@@ -145,5 +146,15 @@ public class IndirectRendererComponent : MonoBehaviour
     private void OnDestroy()
     {
         _renderer.Dispose();
+    }
+
+    private void OnDrawGizmos()
+    {
+        if (!Application.isPlaying)
+        {
+            return;
+        }
+        
+        _renderer.DrawGizmos();
     }
 }

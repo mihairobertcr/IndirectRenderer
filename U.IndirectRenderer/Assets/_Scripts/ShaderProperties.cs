@@ -2,13 +2,14 @@ using UnityEngine;
 
 public static class ShaderProperties
 {
+    public static readonly int ArgsBuffer       = Shader.PropertyToID("_ArgsBuffer");
+    public static readonly int ShadowArgsBuffer = Shader.PropertyToID("_ShadowArgsBuffer");
+    public static readonly int ArgsOffset       = Shader.PropertyToID("_ArgsOffset");
+    
     public static readonly int Positions = Shader.PropertyToID("_Positions");
     public static readonly int Rotations = Shader.PropertyToID("_Rotations");
     public static readonly int Scales    = Shader.PropertyToID("_Scales");
-    
-    public static readonly int ArgsBuffer       = Shader.PropertyToID("_ArgsBuffer");
-    public static readonly int ShadowArgsBuffer = Shader.PropertyToID("_ShadowArgsBuffer");
-    
+
     public static readonly int MatrixRows01 = Shader.PropertyToID("_MatrixRows01");
     public static readonly int MatrixRows23 = Shader.PropertyToID("_MatrixRows23");
     public static readonly int MatrixRows45 = Shader.PropertyToID("_MatrixRows45");
