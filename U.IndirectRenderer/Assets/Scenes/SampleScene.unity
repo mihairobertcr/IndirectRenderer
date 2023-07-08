@@ -104,7 +104,7 @@ NavMeshSettings:
   serializedVersion: 2
   m_ObjectHideFlags: 0
   m_BuildSettings:
-    serializedVersion: 2
+    serializedVersion: 3
     agentTypeID: 0
     agentRadius: 0.5
     agentHeight: 2
@@ -117,7 +117,7 @@ NavMeshSettings:
     cellSize: 0.16666667
     manualTileSize: 0
     tileSize: 256
-    accuratePlacement: 0
+    buildHeightMesh: 0
     maxJobWorkers: 0
     preserveTilesOutsideBounds: 0
     debug:
@@ -164,9 +164,17 @@ Camera:
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
+  m_Iso: 200
+  m_ShutterSpeed: 0.005
+  m_Aperture: 16
+  m_FocusDistance: 10
+  m_FocalLength: 50
+  m_BladeCount: 5
+  m_Curvature: {x: 2, y: 11}
+  m_BarrelClipping: 0.25
+  m_Anamorphism: 0
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
-  m_FocalLength: 50
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -238,9 +246,20 @@ MonoBehaviour:
   m_Dithering: 0
   m_ClearDepth: 1
   m_AllowXRRendering: 1
+  m_AllowHDROutput: 1
+  m_UseScreenCoordOverride: 0
+  m_ScreenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
+  m_TaaSettings:
+    quality: 3
+    frameInfluence: 0.1
+    jitterScale: 1
+    mipBias: 0
+    varianceClampScale: 0.9
+    contrastAdaptiveSharpening: 0
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -348,14 +367,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 1
+  m_Version: 3
   m_UsePipelineSettings: 1
   m_AdditionalLightsShadowResolutionTier: 2
   m_LightLayerMask: 1
+  m_RenderingLayers: 1
   m_CustomShadowLayers: 0
   m_ShadowLayerMask: 1
+  m_ShadowRenderingLayers: 1
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
+  m_SoftShadowQuality: 1
 --- !u!1 &925946674
 GameObject:
   m_ObjectHideFlags: 0
@@ -383,9 +405,17 @@ MeshCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 925946674}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 4
+  serializedVersion: 5
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
@@ -487,8 +517,8 @@ MonoBehaviour:
     RenderCamera: {fileID: 330585545}
     DebugCamera: {fileID: 0}
     Material: {fileID: 2100000, guid: a8248d39566b4478591457de205c621e, type: 2}
-    Lod0Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
-    Lod1Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+    Lod0Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+    Lod1Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
     Lod2Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
     MatricesInitializer: {fileID: 7200000, guid: 08d7ec0392f7748948199728f40cbc7f,
       type: 3}
@@ -499,14 +529,14 @@ MonoBehaviour:
     InstancesDataCopier: {fileID: 7200000, guid: 266562bdb8f774ae2872176ce62aca32,
       type: 3}
     LogMatrices: 0
-    LogArgumentsBufferAfterReset: 1
-    LogArgumentsAfterOcclusion: 1
+    LogArgumentsBufferAfterReset: 0
+    LogArgumentsAfterOcclusion: 0
     LogInstancesIsVisibleBuffer: 0
     LogGroupSumsBuffer: 0
     LogScannedPredicates: 0
     LogScannedGroupSumsBuffer: 0
     LogCulledMatrices: 0
-    LogArgsBufferAfterCopy: 1
+    LogArgsBufferAfterCopy: 0
     LogSortingData: 0
     DebugBounds: 1
   _settings:

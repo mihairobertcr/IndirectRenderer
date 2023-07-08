@@ -6,6 +6,10 @@ public static class ShaderProperties
     public static readonly int ShadowArgsBuffer = Shader.PropertyToID("_ShadowArgsBuffer");
     public static readonly int ArgsOffset       = Shader.PropertyToID("_ArgsOffset");
     
+    public static readonly int LodArgs0 = Shader.PropertyToID("_LodArgs0");
+    public static readonly int LodArgs1 = Shader.PropertyToID("_LodArgs1");
+    public static readonly int LodArgs2 = Shader.PropertyToID("_LodArgs2");
+    
     public static readonly int Positions = Shader.PropertyToID("_Positions");
     public static readonly int Rotations = Shader.PropertyToID("_Rotations");
     public static readonly int Scales    = Shader.PropertyToID("_Scales");

@@ -35,6 +35,10 @@ public static class ShaderBuffers
     public static ComputeBuffer ShadowsScannedGroupSums;
     
     public static CommandBuffer SortingCommandBuffer;
+
+    public static ComputeBuffer LodArgs0;
+    public static ComputeBuffer LodArgs1;
+    public static ComputeBuffer LodArgs2;
     
     public static void Dispose()
     {
@@ -70,5 +74,9 @@ public static class ShaderBuffers
         ShadowsScannedGroupSums.Release();
         
         SortingCommandBuffer.Release();
+        
+        LodArgs0.Release();
+        LodArgs1.Release();
+        LodArgs2.Release();
     }
 }

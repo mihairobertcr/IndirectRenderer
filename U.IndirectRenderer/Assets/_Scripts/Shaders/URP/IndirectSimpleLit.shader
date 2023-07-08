@@ -142,11 +142,11 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
             // (note, BaseMap, BumpMap and EmissionMap is being defined by the SurfaceInput.hlsl include)
             TEXTURE2D(_SpecGlossMap);
             SAMPLER(sampler_SpecGlossMap);
-            
+
             // Indirect rendering setup
+            #pragma instancing_options procedural:setup
+
             #if defined(UNITY_PROCEDURAL_INSTANCING_ENABLED)
-            #pragma instancing_options procedural:IndirectSetup
-            
             uniform uint _ArgsOffset;
             StructuredBuffer<uint> _ArgsBuffer;
 
@@ -154,9 +154,12 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
             RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows01;
             RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows23;
             RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows45;
-            
-            void IndirectSetup()
+            #endif
+
+            void setup()
             {
+                #if defined(UNITY_PROCEDURAL_INSTANCING_ENABLED)
+
                 // #if defined(SHADER_API_METAL)
                 //     uint index = unity_InstanceID;
                 // #else
@@ -169,26 +172,28 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
                 
                 unity_ObjectToWorld = float4x4(rows01.FirstRow, rows01.SecondRow, rows23.FirstRow, float4(0, 0, 0, 1));
                 unity_WorldToObject = float4x4(rows23.SecondRow, rows45.FirstRow, rows45.SecondRow, float4(0, 0, 0, 1));
+                #endif
             }
-            #endif
 
             // Functions
-            half4 SampleSpecularSmoothness(float2 uv, half alpha, half4 specColor, TEXTURE2D_PARAM(specMap, sampler_specMap))
+            half4 SampleSpecularSmoothness(float2 uv, half alpha, half4 specColor,
+                                           TEXTURE2D_PARAM(specMap, sampler_specMap))
             {
                 half4 specularSmoothness = half4(0.0h, 0.0h, 0.0h, 1.0h);
                 #ifdef _SPECGLOSSMAP
 					specularSmoothness = SAMPLE_TEXTURE2D(specMap, sampler_specMap, uv) * specColor;
                 #elif defined(_SPECULAR_COLOR)
-                    specularSmoothness = specColor;
+                specularSmoothness = specColor;
                 #endif
 
                 #if UNITY_VERSION >= 202120 // or #if SHADER_LIBRARY_VERSION_MAJOR < 12, but that versioning method is deprecated for newer versions
+
                 // v12 is changing this, so it's calculated later. Likely so that smoothness value stays 0-1 so it can display better for debug views.
-                    #ifdef _GLOSSINESS_FROM_BASE_ALPHA
+                #ifdef _GLOSSINESS_FROM_BASE_ALPHA
 						    specularSmoothness.a = exp2(10 * alpha + 1);
-                    #else
+                #else
 						    specularSmoothness.a = exp2(10 * specularSmoothness.a + 1);
-                    #endif
+                #endif
                 #endif
                 return specularSmoothness;
             }
@@ -282,9 +287,9 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
 
                 VertexPositionInputs positionInputs = GetVertexPositionInputs(IN.positionOS.xyz);
-                
+
                 #ifdef _NORMALMAP
-                    VertexNormalInputs normalInputs = GetVertexNormalInputs(IN.normalOS.xyz, IN.tangentOS);
+                VertexNormalInputs normalInputs = GetVertexNormalInputs(IN.normalOS.xyz, IN.tangentOS);
                 #else
 					VertexNormalInputs normalInputs = GetVertexNormalInputs(IN.normalOS.xyz);
                 #endif
@@ -297,9 +302,9 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
                 half fogFactor = ComputeFogFactor(positionInputs.positionCS.z);
 
                 #ifdef _NORMALMAP
-                    OUT.normalWS = half4(normalInputs.normalWS, viewDirWS.x);
-                    OUT.tangentWS = half4(normalInputs.tangentWS, viewDirWS.y);
-                    OUT.bitangentWS = half4(normalInputs.bitangentWS, viewDirWS.z);
+                OUT.normalWS = half4(normalInputs.normalWS, viewDirWS.x);
+                OUT.tangentWS = half4(normalInputs.tangentWS, viewDirWS.y);
+                OUT.bitangentWS = half4(normalInputs.bitangentWS, viewDirWS.z);
                 #else
 					OUT.normalWS = NormalizeNormalPerVertex(normalInputs.normalWS);
 					//OUT.viewDirWS = viewDirWS;
@@ -311,7 +316,7 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
                 #ifdef _ADDITIONAL_LIGHTS_VERTEX
 					OUT.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
                 #else
-                    OUT.fogFactor = fogFactor;
+                OUT.fogFactor = fogFactor;
                 #endif
 
                 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
@@ -390,19 +395,21 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/ShadowCasterPass.hlsl"
 
             // Indirect rendering setup
-            #pragma multi_compile _ PROCEDURAL_INSTANCING_ON //???
+            #pragma multi_compile _ PROCEDURAL_INSTANCING_ON
+
+            #pragma instancing_options procedural:setup
 
             #if defined(UNITY_PROCEDURAL_INSTANCING_ENABLED)
-            #pragma instancing_options procedural:IndirectSetup
-            
             uniform uint _ArgsOffset;
             StructuredBuffer<uint> _ArgsBuffer;
             RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows01;
             RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows23;
             RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows45;
-            
-            void IndirectSetup()
+            #endif
+
+            void setup()
             {
+                #if defined(UNITY_PROCEDURAL_INSTANCING_ENABLED)
                 // #if defined(SHADER_API_METAL)
                 //     uint index = unity_InstanceID;
                 // #else
@@ -415,9 +422,8 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
                 
                 unity_ObjectToWorld = float4x4(rows01.FirstRow, rows01.SecondRow, rows23.FirstRow, float4(0, 0, 0, 1));
                 unity_WorldToObject = float4x4(rows23.SecondRow, rows45.FirstRow, rows45.SecondRow, float4(0, 0, 0, 1));
+                #endif
             }
-            #endif
-            
             ENDHLSL
         }
 
@@ -451,19 +457,21 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
 
             // Indirect rendering setup
-            #pragma multi_compile _ PROCEDURAL_INSTANCING_ON //???
+            #pragma multi_compile _ PROCEDURAL_INSTANCING_ON
 
-            #if defined(UNITY_PROCEDURAL_INSTANCING_ENABLED)
-            #pragma instancing_options procedural:IndirectSetup
+            #pragma instancing_options procedural:setup
             
+            #if defined(UNITY_PROCEDURAL_INSTANCING_ENABLED)
             uniform uint _ArgsOffset;
             StructuredBuffer<uint> _ArgsBuffer;
             RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows01;
             RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows23;
             RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows45;
+            #endif
             
-            void IndirectSetup()
+            void setup()
             {
+                #if defined(UNITY_PROCEDURAL_INSTANCING_ENABLED)
                 // #if defined(SHADER_API_METAL)
                 //     uint index = unity_InstanceID;
                 // #else
@@ -476,8 +484,8 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
                 
                 unity_ObjectToWorld = float4x4(rows01.FirstRow, rows01.SecondRow, rows23.FirstRow, float4(0, 0, 0, 1));
                 unity_WorldToObject = float4x4(rows23.SecondRow, rows45.FirstRow, rows45.SecondRow, float4(0, 0, 0, 1));
+                #endif
             }
-            #endif
             
             ENDHLSL
         }
@@ -512,19 +520,21 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthNormalsPass.hlsl"
 
             // Indirect rendering setup
-            #pragma multi_compile _ PROCEDURAL_INSTANCING_ON //???
+            #pragma multi_compile _ PROCEDURAL_INSTANCING_ON
 
-            #if defined(UNITY_PROCEDURAL_INSTANCING_ENABLED)
-            #pragma instancing_options procedural:IndirectSetup
+            #pragma instancing_options procedural:setup
             
+            #if defined(UNITY_PROCEDURAL_INSTANCING_ENABLED)
             uniform uint _ArgsOffset;
             StructuredBuffer<uint> _ArgsBuffer;
             RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows01;
             RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows23;
             RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows45;
+            #endif
             
-            void IndirectSetup()
+            void setup()
             {
+                #if defined(UNITY_PROCEDURAL_INSTANCING_ENABLED)
                 // #if defined(SHADER_API_METAL)
                 //     uint index = unity_InstanceID;
                 // #else
@@ -537,8 +547,9 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
                 
                 unity_ObjectToWorld = float4x4(rows01.FirstRow, rows01.SecondRow, rows23.FirstRow, float4(0, 0, 0, 1));
                 unity_WorldToObject = float4x4(rows23.SecondRow, rows45.FirstRow, rows45.SecondRow, float4(0, 0, 0, 1));
+
+                #endif
             }
-            #endif
             
             ENDHLSL
         }

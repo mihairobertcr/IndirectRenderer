@@ -73,7 +73,7 @@ public class IndirectRenderer : IDisposable
         
 
         Initialize(positions, rotations, scales);
-        RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
+        RenderPipelineManager.beginFrameRendering += BeginFrameRendering;
         
         // _matricesInitializer.Initialize(positions, rotations, scales);
         // _matricesInitializer.Dispatch();
@@ -94,7 +94,11 @@ public class IndirectRenderer : IDisposable
     public void Dispose()
     {
         ShaderBuffers.Dispose();
-        RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
+        RenderPipelineManager.beginFrameRendering -= BeginFrameRendering;
+        
+        // args0Buffer.Release();
+        // args1Buffer.Release();
+        // args2Buffer.Release();
     }
 
     private void Initialize(List<Vector3> positions, List<Vector3> rotations, List<Vector3> scales)
@@ -113,13 +117,14 @@ public class IndirectRenderer : IDisposable
         
         _instancesScanner.Initialize();
         _groupSumsScanner.Initialize();
-        _dataCopier.Initialize(_meshProperties);
+        _dataCopier.Initialize(_meshProperties, _config);
     }
 
-    public void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
+    public void BeginFrameRendering(ScriptableRenderContext context, Camera[] camera)
     // public void Update()
     {
-        if (_config.RenderCamera != camera) return;
+        // Debug.Log("OnBeginCameraRendering");
+        // if (_config.RenderCamera != camera) return;
         
         if (_settings.RunCompute)
         {
@@ -164,85 +169,73 @@ public class IndirectRenderer : IDisposable
         }
         
         Profiler.BeginSample("Resetting args buffer");
+        ShaderBuffers.Args.SetData(_args);
+        ShaderBuffers.ShadowsArgs.SetData(_args);
+        
+        if (_config.LogArgumentsBufferAfterReset)
         {
-            ShaderBuffers.Args.SetData(_args);
-            ShaderBuffers.ShadowsArgs.SetData(_args);
-            
-            if (_config.LogArgumentsBufferAfterReset)
-            {
-                _config.LogArgumentsBufferAfterReset = false;
-                LogArgsBuffers("LogArgsBuffers - Instances After Reset", "LogArgsBuffers - Shadows After Reset");
-            }
+            _config.LogArgumentsBufferAfterReset = false;
+            LogArgsBuffers("LogArgsBuffers - Instances After Reset", "LogArgsBuffers - Shadows After Reset");
         }
         Profiler.EndSample();
         
         Profiler.BeginSample("Occlusion");
+        _instancesCuller.Dispatch();
+        if (_config.LogArgumentsAfterOcclusion)
         {
-            _instancesCuller.Dispatch();
-            if (_config.LogArgumentsAfterOcclusion)
-            {
-                _config.LogArgumentsAfterOcclusion = false;
-                LogArgsBuffers("LogArgsBuffers - Instances After Occlusion", "LogArgsBuffers - Shadows After Occlusion");
-            }
-            
-            if (_config.LogInstancesIsVisibleBuffer)
-            {
-                _config.LogInstancesIsVisibleBuffer = false;
-                //LogInstancesIsVisibleBuffers("LogInstancesIsVisibleBuffers - Instances", "LogInstancesIsVisibleBuffers - Shadows");
-            }
+            _config.LogArgumentsAfterOcclusion = false;
+            LogArgsBuffers("LogArgsBuffers - Instances After Occlusion", "LogArgsBuffers - Shadows After Occlusion");
+        }
+        
+        if (_config.LogInstancesIsVisibleBuffer)
+        {
+            _config.LogInstancesIsVisibleBuffer = false;
+            //LogInstancesIsVisibleBuffers("LogInstancesIsVisibleBuffers - Instances", "LogInstancesIsVisibleBuffers - Shadows");
         }
         Profiler.EndSample();
         
         Profiler.BeginSample("Scan Instances");
+        _instancesScanner.Dispatch();
+        if (_config.LogGroupSumsBuffer)
         {
-            _instancesScanner.Dispatch();
-            if (_config.LogGroupSumsBuffer)
-            {
-                _config.LogGroupSumsBuffer = false;
-                //LogGroupSumsBuffer("LogGroupSumsBuffer - Instances", "LogGroupSumsBuffer - Shadows");
-            }
-            
-            if (_config.LogScannedPredicates)
-            {
-                _config.LogScannedPredicates = false;
-                //LogScannedPredicates("LogScannedPredicates - Instances", "LogScannedPredicates - Shadows");
-            }
+            _config.LogGroupSumsBuffer = false;
+            //LogGroupSumsBuffer("LogGroupSumsBuffer - Instances", "LogGroupSumsBuffer - Shadows");
+        }
+        
+        if (_config.LogScannedPredicates)
+        {
+            _config.LogScannedPredicates = false;
+            //LogScannedPredicates("LogScannedPredicates - Instances", "LogScannedPredicates - Shadows");
         }
         Profiler.EndSample();
         
         Profiler.BeginSample("Scan Thread Groups");
+        _groupSumsScanner.Dispatch();
+        if (_config.LogScannedGroupSumsBuffer)
         {
-            _groupSumsScanner.Dispatch();
-            if (_config.LogScannedGroupSumsBuffer)
-            {
-                _config.LogScannedGroupSumsBuffer = false;
-                // LogScannedGroupSumBuffer("LogScannedGroupSumBuffer - Instances", "LogScannedGroupSumBuffer - Shadows");
-            }
+            _config.LogScannedGroupSumsBuffer = false;
+            // LogScannedGroupSumBuffer("LogScannedGroupSumBuffer - Instances", "LogScannedGroupSumBuffer - Shadows");
         }
         Profiler.EndSample();
         
         Profiler.BeginSample("Copy Instance Data");
+        _dataCopier.Dispatch();
+        if (_config.LogCulledMatrices)
         {
-            _dataCopier.Dispatch();
-            if (_config.LogCulledMatrices)
-            {
-                _config.LogCulledMatrices = false;
-                // LogCulledInstancesDrawMatrices("LogCulledMatrices - Instances", "LogCulledMatrices - Shadows");
-            }
-            
-            if (_config.LogArgsBufferAfterCopy)
-            {
-                _config.LogArgsBufferAfterCopy = false;
-                LogArgsBuffers("LogArgsBuffers - Instances After Copy", "LogArgsBuffers - Shadows After Copy");
-            }
+            _config.LogCulledMatrices = false;
+            // LogCulledInstancesDrawMatrices("LogCulledMatrices - Instances", "LogCulledMatrices - Shadows");
+        }
+        
+        if (_config.LogArgsBufferAfterCopy)
+        {
+            _config.LogArgsBufferAfterCopy = false;
+            LogArgsBuffers("LogArgsBuffers - Instances After Copy", "LogArgsBuffers - Shadows After Copy");
         }
         Profiler.EndSample();
         
         Profiler.BeginSample("LOD Sorting");
-        {
-            // m_lastCamPosition = m_camPosition;
-            _lodBitonicSorter.Dispatch();
-        }
+        // m_lastCamPosition = m_camPosition;
+        _lodBitonicSorter.Dispatch();
         Profiler.EndSample();
         
         if (_config.LogSortingData)
@@ -251,65 +244,95 @@ public class IndirectRenderer : IDisposable
             _lodBitonicSorter.LogSortingData("LogSortingData");
         }
     }
+    
+    // ComputeBuffer args0Buffer = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
+    // ComputeBuffer args1Buffer = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
+    // ComputeBuffer args2Buffer = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
 
     private void DrawInstances()
     {
-        // Graphics.DrawMeshInstancedIndirect(
-        //     mesh: _meshProperties.Mesh,
-        //     submeshIndex: 0,
-        //     material: _meshProperties.Material,
-        //     bounds: new Bounds(Vector3.zero, Vector3.one * 1000),
-        //     bufferWithArgs: ShaderBuffers.Args,
-        //     argsOffset: 0, //ARGS_BYTE_SIZE_PER_DRAW_CALL,
-        //     properties: _meshProperties.Lod0PropertyBlock,
-        //     castShadows: ShadowCastingMode.On,
-        //     receiveShadows: true);
+        var data = new uint[15];
+        ShaderBuffers.Args.GetData(data);
         
-        if (_settings.EnableLod)
-        {
-            // Graphics.DrawMeshInstancedIndirect(irm.mesh, 0, irm.material, m_bounds, m_instancesArgsBuffer, argsIndex + ARGS_BYTE_SIZE_PER_DRAW_CALL * 0, irm.lod00MatPropBlock, ShadowCastingMode.Off);
-            // Graphics.DrawMeshInstancedIndirect(irm.mesh, 0, irm.material, m_bounds, m_instancesArgsBuffer, argsIndex + ARGS_BYTE_SIZE_PER_DRAW_CALL * 1, irm.lod01MatPropBlock, ShadowCastingMode.Off);
-            
-            Graphics.DrawMeshInstancedIndirect(
-                mesh: _meshProperties.Mesh,
-                submeshIndex: 0,
-                material: _meshProperties.Material,
-                bounds: new Bounds(Vector3.zero, Vector3.one * 100),
-                bufferWithArgs: ShaderBuffers.Args,
-                argsOffset: ARGS_BYTE_SIZE_PER_DRAW_CALL * 0,
-                properties: _meshProperties.Lod0PropertyBlock,
-                castShadows: ShadowCastingMode.Off);
-            
-            Graphics.DrawMeshInstancedIndirect(
-                mesh: _meshProperties.Mesh,
-                submeshIndex: 0,
-                material: _meshProperties.Material,
-                bounds: new Bounds(Vector3.zero, Vector3.one * 100),
-                bufferWithArgs: ShaderBuffers.Args,
-                argsOffset: ARGS_BYTE_SIZE_PER_DRAW_CALL * 1,
-                properties: _meshProperties.Lod1PropertyBlock,
-                castShadows: ShadowCastingMode.Off);
-        }
-
-        // var args = new uint[15];
-        // ShaderBuffers.Args.GetData(args);
         // Debug.Log("----------");
-        // foreach (var arg in args)
+        // foreach (var u in data)
         // {
-        //     Debug.Log(arg);
-        //
+        //     Debug.Log(u); 
         // }
         // Debug.Log("----------");
+        
+        var args0 = new uint[5];
+        ShaderBuffers.LodArgs0.GetData(args0);
+        args0[1] = data[1];
+        args0[4] = data[4];
+        ShaderBuffers.LodArgs0.SetData(args0);
 
-        Graphics.DrawMeshInstancedIndirect(
-            mesh: _meshProperties.Mesh,
-            submeshIndex: 0,
-            material: _meshProperties.Material,
-            bounds: _bounds,
-            bufferWithArgs: ShaderBuffers.Args,
-            argsOffset: ARGS_BYTE_SIZE_PER_DRAW_CALL * 2,
-            properties: _meshProperties.Lod2PropertyBlock,
-            castShadows: ShadowCastingMode.Off);
+        var args1 = new uint[5];
+        ShaderBuffers.LodArgs1.GetData(args1);
+        args1[1] = data[6];
+        args1[4] = data[9];
+        ShaderBuffers.LodArgs1.SetData(args1);
+        
+        // var args0 = new uint[5];
+        // var args1 = new uint[5];
+        // var args2 = new uint[5];
+        
+        // for (var i = 0; i < args0.Length; i++)
+        // {
+        //     args0[i] = data[i];
+        // }
+        //
+        // for (var i = 0; i < args0.Length; i++)
+        // {
+        //     args1[i] = data[i + 5];
+        // }
+        //
+        // for (var i = 0; i < args0.Length; i++)
+        // {
+        //     args2[i] = data[i + 10];
+        // }
+        
+        // args0Buffer.SetData(args0);
+        // args1Buffer.SetData(args1);
+        // args2Buffer.SetData(args2);
+
+        if (_settings.EnableLod)
+        {
+            Graphics.DrawMeshInstancedIndirect(
+                mesh: _config.Lod0Mesh, //_meshProperties.Mesh,
+                submeshIndex: 0,
+                material: _meshProperties.Material,
+                bounds: _bounds,
+                bufferWithArgs: ShaderBuffers.LodArgs0, //ShaderBuffers.Args,
+                argsOffset: 0,// ARGS_BYTE_SIZE_PER_DRAW_CALL * 0,
+                properties: _meshProperties.Lod0PropertyBlock,
+                castShadows: ShadowCastingMode.On);
+                //camera: _config.RenderCamera);
+
+            Graphics.DrawMeshInstancedIndirect(
+                mesh: _config.Lod1Mesh, //_meshProperties.Mesh,
+                submeshIndex: 0,
+                material: _meshProperties.Material,
+                bounds: _bounds,
+                bufferWithArgs: ShaderBuffers.LodArgs1, //ShaderBuffers.Args,
+                argsOffset: 0, //ARGS_BYTE_SIZE_PER_DRAW_CALL * 1,
+                properties: _meshProperties.Lod1PropertyBlock,
+                castShadows: ShadowCastingMode.On);
+                //camera: _config.RenderCamera);
+        }
+
+        // Graphics.DrawMeshInstancedIndirect(
+        //     mesh: _config.Lod2Mesh, //_meshProperties.Mesh,
+        //     submeshIndex: 0,
+        //     material: _meshProperties.Material,
+        //     bounds: _bounds,
+        //     bufferWithArgs: ShaderBuffers.LodArgs2, //ShaderBuffers.Args,
+        //     argsOffset: 0, //ARGS_BYTE_SIZE_PER_DRAW_CALL * 2,
+        //     properties: _meshProperties.Lod2PropertyBlock,
+        //     castShadows: ShadowCastingMode.On);
+        
+
+
     }
     
     private void DrawShadows()

@@ -24,6 +24,11 @@ RWStructuredBuffer<Indirect2x2Matrix> _CulledMatrixRows01;
 RWStructuredBuffer<Indirect2x2Matrix> _CulledMatrixRows23;
 RWStructuredBuffer<Indirect2x2Matrix> _CulledMatrixRows45;
 
+// Split args
+RWStructuredBuffer<uint> _LodArgs0;
+RWStructuredBuffer<uint> _LodArgs1;
+RWStructuredBuffer<uint> _LodArgs2;
+
 // Based on Parallel Prefix Sum (Scan) with CUDA by Mark Harris
 [numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z)]
 inline void CSMain (
@@ -56,5 +61,32 @@ inline void CSMain (
                 _DrawCallsDataOutput[(k - 1) * 5 + 4] +   // Previous prop type offset 
                 _DrawCallsDataOutput[(k - 1) * 5 + 1];    // Previous prop type number of instances
         }
+
+        //TODO: Move to its own kernel since it should run only once
+        // uint original;
+        // InterlockedExchange(_LodArgs0[1], _DrawCallsDataOutput[1], original);
+        // InterlockedExchange(_LodArgs1[1], _DrawCallsDataOutput[6], original);
+        // InterlockedExchange(_LodArgs2[1], _DrawCallsDataOutput[11], original);
+        //
+        // InterlockedExchange(_LodArgs0[4], _DrawCallsDataOutput[4], original);
+        // InterlockedExchange(_LodArgs1[4], _DrawCallsDataOutput[9], original);
+        // InterlockedExchange(_LodArgs2[4], _DrawCallsDataOutput[14], original);
     }
+
+    // Hack to split args buffer
+    // TODO: Refactor
+    // for (uint i = 0; i < 5; i++)
+    // {
+    //     _LodArgs0[i] = _DrawCallsDataOutput[i];
+    // }
+    //     
+    // for (uint i = 0; i < 5; i++)
+    // {
+    //     _LodArgs1[i] = _DrawCallsDataOutput[i + 5];
+    // }
+    //     
+    // for (uint i = 0; i < 5; i++)
+    // {
+    //     _LodArgs2[i] = _DrawCallsDataOutput[i + 10];
+    // }
 }

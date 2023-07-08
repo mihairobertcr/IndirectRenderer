@@ -129,18 +129,8 @@ public class IndirectRendererComponent : MonoBehaviour
 
     private void Update()
     {
+        // Debug.Log("Update");
         // _renderer.Update();
-        // Graphics.DrawMeshInstancedIndirect(
-        //     mesh: _meshProperties.Mesh,
-        //     submeshIndex: 0,
-        //     material: _meshProperties.Material,
-        //     bounds: new Bounds(Vector3.zero, Vector3.one * 1000),
-        //     bufferWithArgs: ShaderBuffers.InstancesArgsBuffer,
-        //     argsOffset: 0, //ARGS_BYTE_SIZE_PER_DRAW_CALL,
-        //     properties: _meshProperties.Lod2PropertyBlock,
-        //     castShadows: ShadowCastingMode.On,
-        //     receiveShadows: true);
-        // // camera: Camera.main);   
     }
 
     private void OnDestroy()
