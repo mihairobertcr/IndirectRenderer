@@ -9,6 +9,7 @@ public static class ShaderKernels
     public static int InstancesScanner => _instancesScanner;
     public static int GroupSumsScanner => _groupSumsScanner;
     public static int DataCopier => _dataCopier;
+    public static int ArgumentsSplitter => _argumentsSplitter;
 
     private static int _matricesInitializer = -1;
     private static int _lodSorter = -1;
@@ -17,6 +18,7 @@ public static class ShaderKernels
     private static int _instancesScanner = -1;
     private static int _groupSumsScanner = -1;
     private static int _dataCopier = -1;
+    private static int _argumentsSplitter = -1;
 
     public static void Initialize(IndirectRendererConfig config)
     {
@@ -27,6 +29,7 @@ public static class ShaderKernels
         TryGetKernel("CSMain",          config.InstancesScanner,    out _instancesScanner);
         TryGetKernel("CSMain",          config.GroupSumsScanner,    out _groupSumsScanner);
         TryGetKernel("CSMain",          config.InstancesDataCopier, out _dataCopier);
+        TryGetKernel("SplitArguments",  config.InstancesDataCopier, out _argumentsSplitter);
     }
 
     private static bool TryGetKernel(string kernelName, ComputeShader computeShader, out int kernelId)

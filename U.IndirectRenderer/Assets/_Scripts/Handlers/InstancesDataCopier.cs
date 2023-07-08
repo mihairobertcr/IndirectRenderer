@@ -30,7 +30,6 @@ public class InstancesDataCopier
 
         var args0 = new uint[] { 0, 0, 0, 0, 0 };
         args0[0] = config.Lod0Mesh.GetIndexCount(0);
-        // args0[1] = 0;
         args0[2] = config.Lod0Mesh.GetIndexStart(0);
         args0[3] = config.Lod0Mesh.GetBaseVertex(0);
         ShaderBuffers.LodArgs0 = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
@@ -38,7 +37,6 @@ public class InstancesDataCopier
         
         var args1 = new uint[] { 0, 0, 0, 0, 0 };
         args1[0] = config.Lod1Mesh.GetIndexCount(0);
-        // args1[1] = 0;
         args1[2] = config.Lod1Mesh.GetIndexStart(0);
         args1[3] = config.Lod1Mesh.GetBaseVertex(0);
         ShaderBuffers.LodArgs1 = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
@@ -46,7 +44,6 @@ public class InstancesDataCopier
         
         var args2 = new uint[] { 0, 0, 0, 0, 0 };
         args2[0] = config.Lod2Mesh.GetIndexCount(0);
-        // args2[1] = 0;
         args2[2] = config.Lod2Mesh.GetIndexStart(0);
         args2[3] = config.Lod2Mesh.GetBaseVertex(0);
         ShaderBuffers.LodArgs2 = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
@@ -74,12 +71,7 @@ public class InstancesDataCopier
         _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.CulledMatrixRows23,  ShaderBuffers.CulledMatrixRows23);
         _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.CulledMatrixRows45,  ShaderBuffers.CulledMatrixRows45);
         _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.DrawCallsDataOutput, ShaderBuffers.Args);
-        
-        // _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.LodArgs0, ShaderBuffers.LodArgs0);
-        // _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.LodArgs1, ShaderBuffers.LodArgs2);
-        // _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.LodArgs2, ShaderBuffers.LodArgs2);
 
-        
         _computeShader.Dispatch(ShaderKernels.DataCopier, _copyInstanceDataGroupX, 1, 1);
         
         // Shadows
@@ -92,6 +84,13 @@ public class InstancesDataCopier
         _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.DrawCallsDataOutput, ShaderBuffers.ShadowsArgs);
         
         _computeShader.Dispatch(ShaderKernels.DataCopier, _copyInstanceDataGroupX, 1, 1);
+        
+        _computeShader.SetBuffer(ShaderKernels.ArgumentsSplitter, ShaderProperties.DrawCallsDataOutput, ShaderBuffers.Args);
+        _computeShader.SetBuffer(ShaderKernels.ArgumentsSplitter, ShaderProperties.LodArgs0, ShaderBuffers.LodArgs0);
+        _computeShader.SetBuffer(ShaderKernels.ArgumentsSplitter, ShaderProperties.LodArgs1, ShaderBuffers.LodArgs1);
+        _computeShader.SetBuffer(ShaderKernels.ArgumentsSplitter, ShaderProperties.LodArgs2, ShaderBuffers.LodArgs2);
+        
+        _computeShader.Dispatch(ShaderKernels.ArgumentsSplitter, 1, 1, 1);
     }
 
     private static void InitializeMaterialProperties(MeshProperties properties)

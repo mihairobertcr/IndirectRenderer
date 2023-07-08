@@ -251,8 +251,8 @@ public class IndirectRenderer : IDisposable
 
     private void DrawInstances()
     {
-        var data = new uint[15];
-        ShaderBuffers.Args.GetData(data);
+        // var data = new uint[15];
+        // ShaderBuffers.Args.GetData(data);
         
         // Debug.Log("----------");
         // foreach (var u in data)
@@ -261,17 +261,17 @@ public class IndirectRenderer : IDisposable
         // }
         // Debug.Log("----------");
         
-        var args0 = new uint[5];
-        ShaderBuffers.LodArgs0.GetData(args0);
-        args0[1] = data[1];
-        args0[4] = data[4];
-        ShaderBuffers.LodArgs0.SetData(args0);
-
-        var args1 = new uint[5];
-        ShaderBuffers.LodArgs1.GetData(args1);
-        args1[1] = data[6];
-        args1[4] = data[9];
-        ShaderBuffers.LodArgs1.SetData(args1);
+        // var args0 = new uint[5];
+        // ShaderBuffers.LodArgs0.GetData(args0);
+        // args0[1] = data[1];
+        // args0[4] = data[4];
+        // ShaderBuffers.LodArgs0.SetData(args0);
+        //
+        // var args1 = new uint[5];
+        // ShaderBuffers.LodArgs1.GetData(args1);
+        // args1[1] = data[6];
+        // args1[4] = data[9];
+        // ShaderBuffers.LodArgs1.SetData(args1);
         
         // var args0 = new uint[5];
         // var args1 = new uint[5];
@@ -321,18 +321,15 @@ public class IndirectRenderer : IDisposable
                 //camera: _config.RenderCamera);
         }
 
-        // Graphics.DrawMeshInstancedIndirect(
-        //     mesh: _config.Lod2Mesh, //_meshProperties.Mesh,
-        //     submeshIndex: 0,
-        //     material: _meshProperties.Material,
-        //     bounds: _bounds,
-        //     bufferWithArgs: ShaderBuffers.LodArgs2, //ShaderBuffers.Args,
-        //     argsOffset: 0, //ARGS_BYTE_SIZE_PER_DRAW_CALL * 2,
-        //     properties: _meshProperties.Lod2PropertyBlock,
-        //     castShadows: ShadowCastingMode.On);
-        
-
-
+        Graphics.DrawMeshInstancedIndirect(
+            mesh: _config.Lod2Mesh, //_meshProperties.Mesh,
+            submeshIndex: 0,
+            material: _meshProperties.Material,
+            bounds: _bounds,
+            bufferWithArgs: ShaderBuffers.LodArgs2, //ShaderBuffers.Args,
+            argsOffset: 0, //ARGS_BYTE_SIZE_PER_DRAW_CALL * 2,
+            properties: _meshProperties.Lod2PropertyBlock,
+            castShadows: ShadowCastingMode.On);
     }
     
     private void DrawShadows()

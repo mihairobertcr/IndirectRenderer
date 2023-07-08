@@ -1,6 +1,7 @@
 #include "../IndirectData.hlsl"
 
 #pragma kernel CSMain
+#pragma kernel SplitArguments;
 
 #define THREAD_GROUP_SIZE_X 128
 #define THREAD_GROUP_SIZE_Y   1
@@ -61,32 +62,22 @@ inline void CSMain (
                 _DrawCallsDataOutput[(k - 1) * 5 + 4] +   // Previous prop type offset 
                 _DrawCallsDataOutput[(k - 1) * 5 + 1];    // Previous prop type number of instances
         }
-
-        //TODO: Move to its own kernel since it should run only once
-        // uint original;
-        // InterlockedExchange(_LodArgs0[1], _DrawCallsDataOutput[1], original);
-        // InterlockedExchange(_LodArgs1[1], _DrawCallsDataOutput[6], original);
-        // InterlockedExchange(_LodArgs2[1], _DrawCallsDataOutput[11], original);
-        //
-        // InterlockedExchange(_LodArgs0[4], _DrawCallsDataOutput[4], original);
-        // InterlockedExchange(_LodArgs1[4], _DrawCallsDataOutput[9], original);
-        // InterlockedExchange(_LodArgs2[4], _DrawCallsDataOutput[14], original);
     }
+}
 
-    // Hack to split args buffer
-    // TODO: Refactor
-    // for (uint i = 0; i < 5; i++)
-    // {
-    //     _LodArgs0[i] = _DrawCallsDataOutput[i];
-    // }
-    //     
-    // for (uint i = 0; i < 5; i++)
-    // {
-    //     _LodArgs1[i] = _DrawCallsDataOutput[i + 5];
-    // }
-    //     
-    // for (uint i = 0; i < 5; i++)
-    // {
-    //     _LodArgs2[i] = _DrawCallsDataOutput[i + 10];
-    // }
+[numthreads(1, 1, 1)]
+inline void SplitArguments(
+        in uint3 _dispatchThreadId : SV_DispatchThreadID, // DispatchThreadID = dot(GroupID, numthreads) + GroupThreadId;
+        in uint  _groupIndex       : SV_GroupIndex,       // GroupIndex = unique index of a thread inside a group
+        in uint3 _groupId          : SV_GroupID,          // GroupID = index for each dimension inside a ThreadGroupCount 
+        in uint3 _groupThreadId    : SV_GroupThreadID)    // GroupThreadId = indices for each dimension inside a group of the current thread
+{
+    _LodArgs0[1] = _DrawCallsDataOutput[1];
+    _LodArgs0[4] = _DrawCallsDataOutput[4];
+    
+    _LodArgs1[1] = _DrawCallsDataOutput[6];
+    _LodArgs1[4] = _DrawCallsDataOutput[9];
+
+    _LodArgs2[1] = _DrawCallsDataOutput[11];
+    _LodArgs2[4] = _DrawCallsDataOutput[14];
 }
