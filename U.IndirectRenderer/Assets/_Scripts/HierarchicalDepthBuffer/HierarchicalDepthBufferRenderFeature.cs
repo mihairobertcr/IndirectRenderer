@@ -27,6 +27,21 @@ public class HierarchicalDepthBufferRenderFeature : ScriptableRendererFeature
         {
             _config = config;
             _hizMaterial = CoreUtils.CreateEngineMaterial(_config.Shader);
+            
+            // _config.TextureSize = new Vector2(1024, 1024);
+            // _lodCount = CalculateLoadCount(1024);
+            //
+            // _temporaries = new int[_lodCount];
+            //
+            // if (_config.Texture == null)
+            // {
+            //     _config.Texture = new RenderTexture(_size, _size, 0, RenderTextureFormat.RGHalf, RenderTextureReadWrite.Linear);
+            //     _config.Texture.filterMode = FilterMode.Point;
+            //     _config.Texture.useMipMap = true;
+            //     _config.Texture.autoGenerateMips = false;
+            //     _config.Texture.Create();
+            //     _config.Texture.hideFlags = HideFlags.HideAndDontSave;
+            // }
         }
         
         // This method is called before executing the render pass.
@@ -45,15 +60,16 @@ public class HierarchicalDepthBufferRenderFeature : ScriptableRendererFeature
             _lodCount = CalculateLoadCount(_size);
             
             _temporaries = new int[_lodCount];
-            
-            var texture = new RenderTexture(_size, _size, 0, RenderTextureFormat.RGHalf, RenderTextureReadWrite.Linear);
-            texture.filterMode = FilterMode.Point;
-            texture.useMipMap = true;
-            texture.autoGenerateMips = false;
-            texture.Create();
-            texture.hideFlags = HideFlags.HideAndDontSave;
-            
-            _config.Texture = texture;
+
+            if (_config.Texture == null)
+            {
+                _config.Texture = new RenderTexture(_size, _size, 0, RenderTextureFormat.RGHalf, RenderTextureReadWrite.Linear);
+                _config.Texture.filterMode = FilterMode.Point;
+                _config.Texture.useMipMap = true;
+                _config.Texture.autoGenerateMips = false;
+                _config.Texture.Create();
+                _config.Texture.hideFlags = HideFlags.HideAndDontSave;
+            }
         }
 
         // Here you can implement the rendering logic.
