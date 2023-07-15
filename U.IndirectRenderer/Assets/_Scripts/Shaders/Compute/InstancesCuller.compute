@@ -185,11 +185,11 @@ inline void CSMain (
         // Do we pass the frustum culling...?
         isVisible *= _ShouldFrustumCull ? isInFrustum : 1;
 
-        // // Do we pass the occlusion culling...?
-        // isVisible *= (_ShouldOcclusionCull * isVisible > 0) ? IsVisibleAfterOcclusionCulling(clipMinX, clipMaxX, clipMinY, clipMaxY, clipMinZ) : 1;
-        //
-        // // // // Do we pass the detail (screen size) culling...?
-        // isVisible *= (_ShouldDetailCull * isVisible > 0) ? IsVisibleAfterDetailCulling(clipMinX, clipMaxX, clipMinY, clipMaxY) : 1;
+        // Do we pass the occlusion culling...?
+        isVisible *= (_ShouldOcclusionCull * isVisible > 0) ? IsVisibleAfterOcclusionCulling(clipMinX, clipMaxX, clipMinY, clipMaxY, clipMinZ) : 1;
+        
+        // // // Do we pass the detail (screen size) culling...?
+        isVisible *= (_ShouldDetailCull * isVisible > 0) ? IsVisibleAfterDetailCulling(clipMinX, clipMaxX, clipMinY, clipMaxY) : 1;
     }
 
     float lod0Range = LOD00_RANGE;

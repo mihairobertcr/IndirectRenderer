@@ -11,24 +11,28 @@ Shader "IndirectRendering/HiZ/Buffer"
 
         Pass
         {
-            HLSLPROGRAM
+            CGPROGRAM
+            //HLSLPROGRAM
             #pragma target 4.5
             #pragma vertex vertex
             #pragma fragment blit
             #include "../IndirectData.hlsl"
-            #include "HiZ.hlsl"
-            ENDHLSL
+            #include "HiZ.cginc"
+            //ENDHLSL
+            ENDCG
         }
 
         Pass
         {
-            HLSLPROGRAM
+            CGPROGRAM
+            //HLSLPROGRAM
             #pragma target 4.5
             #pragma vertex vertex
             #pragma fragment reduce
             #include "../IndirectData.hlsl"
-            #include "HiZ.hlsl"
-            ENDHLSL
+            #include "HiZ.cginc"
+            //ENDHLSL
+            ENDCG
         }
     }
 
@@ -38,24 +42,28 @@ Shader "IndirectRendering/HiZ/Buffer"
 
         Pass
         {
-            HLSLPROGRAM
+            CGPROGRAM
+            //HLSLPROGRAM
             #pragma target 4.6
             #pragma vertex vertex
             #pragma fragment blit
             #include "../IndirectData.hlsl"
-            #include "HiZ.hlsl"
-            ENDHLSL
+            #include "HiZ.cginc"
+            //ENDHLSL
+            ENDCG
         }
 
         Pass
         {
-            HLSLPROGRAM
+            CGPROGRAM
+            //HLSLPROGRAM
             #pragma target 4.6
             #pragma vertex vertex
             #pragma fragment reduce
             #include "../IndirectData.hlsl"
-            #include "HiZ.hlsl"
-            ENDHLSL
+            #include "HiZ.cginc"
+            //ENDHLSL
+            ENDCG
         }
     }
 }

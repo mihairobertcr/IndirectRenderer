@@ -66,7 +66,7 @@ public class IndirectRenderer : IDisposable
 
         _matricesInitializer = new MatricesInitializer(_config.MatricesInitializer, _numberOfInstances); //, _meshProperties);
         _lodBitonicSorter = new LodBitonicSorter(_config.LodBitonicSorter, _numberOfInstances);
-        _instancesCuller = new InstancesCuller(_config.InstancesCuller, _numberOfInstances, _config.RenderCamera);
+        _instancesCuller = new InstancesCuller(_config.InstancesCuller, _numberOfInstances, _hiZBufferConfig, _config.RenderCamera);
         _instancesScanner = new InstancesScanner(_config.InstancesScanner, _numberOfInstances);
         _groupSumsScanner = new GroupSumsScanner(_config.GroupSumsScanner, _numberOfInstances);
         _dataCopier = new InstancesDataCopier(_config.InstancesDataCopier, _numberOfInstances, _numberOfInstanceTypes);
@@ -101,6 +101,14 @@ public class IndirectRenderer : IDisposable
         // args2Buffer.Release();
     }
 
+    public void DrawGizmos()
+    {
+        if (_config.DebugBounds)
+        {
+            _instancesCuller.DrawGizmos();
+        }
+    }
+    
     private void Initialize(List<Vector3> positions, List<Vector3> rotations, List<Vector3> scales)
     {
         _matricesInitializer.Initialize(positions, rotations, scales);
@@ -190,7 +198,7 @@ public class IndirectRenderer : IDisposable
         if (_config.LogInstancesIsVisibleBuffer)
         {
             _config.LogInstancesIsVisibleBuffer = false;
-            //LogInstancesIsVisibleBuffers("LogInstancesIsVisibleBuffers - Instances", "LogInstancesIsVisibleBuffers - Shadows");
+            LogInstancesIsVisibleBuffers("LogInstancesIsVisibleBuffers - Instances", "LogInstancesIsVisibleBuffers - Shadows");
         }
         Profiler.EndSample();
         
@@ -199,13 +207,13 @@ public class IndirectRenderer : IDisposable
         if (_config.LogGroupSumsBuffer)
         {
             _config.LogGroupSumsBuffer = false;
-            //LogGroupSumsBuffer("LogGroupSumsBuffer - Instances", "LogGroupSumsBuffer - Shadows");
+            LogGroupSumsBuffer("LogGroupSumsBuffer - Instances", "LogGroupSumsBuffer - Shadows");
         }
         
         if (_config.LogScannedPredicates)
         {
             _config.LogScannedPredicates = false;
-            //LogScannedPredicates("LogScannedPredicates - Instances", "LogScannedPredicates - Shadows");
+            LogScannedPredicates("LogScannedPredicates - Instances", "LogScannedPredicates - Shadows");
         }
         Profiler.EndSample();
         
@@ -214,7 +222,7 @@ public class IndirectRenderer : IDisposable
         if (_config.LogScannedGroupSumsBuffer)
         {
             _config.LogScannedGroupSumsBuffer = false;
-            // LogScannedGroupSumBuffer("LogScannedGroupSumBuffer - Instances", "LogScannedGroupSumBuffer - Shadows");
+            LogScannedGroupSumBuffer("LogScannedGroupSumBuffer - Instances", "LogScannedGroupSumBuffer - Shadows");
         }
         Profiler.EndSample();
         
@@ -223,7 +231,7 @@ public class IndirectRenderer : IDisposable
         if (_config.LogCulledMatrices)
         {
             _config.LogCulledMatrices = false;
-            // LogCulledInstancesDrawMatrices("LogCulledMatrices - Instances", "LogCulledMatrices - Shadows");
+            LogCulledInstancesDrawMatrices("LogCulledMatrices - Instances", "LogCulledMatrices - Shadows");
         }
         
         if (_config.LogArgsBufferAfterCopy)
@@ -244,58 +252,9 @@ public class IndirectRenderer : IDisposable
             _lodBitonicSorter.LogSortingData("LogSortingData");
         }
     }
-    
-    // ComputeBuffer args0Buffer = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
-    // ComputeBuffer args1Buffer = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
-    // ComputeBuffer args2Buffer = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
 
     private void DrawInstances()
     {
-        // var data = new uint[15];
-        // ShaderBuffers.Args.GetData(data);
-        
-        // Debug.Log("----------");
-        // foreach (var u in data)
-        // {
-        //     Debug.Log(u); 
-        // }
-        // Debug.Log("----------");
-        
-        // var args0 = new uint[5];
-        // ShaderBuffers.LodArgs0.GetData(args0);
-        // args0[1] = data[1];
-        // args0[4] = data[4];
-        // ShaderBuffers.LodArgs0.SetData(args0);
-        //
-        // var args1 = new uint[5];
-        // ShaderBuffers.LodArgs1.GetData(args1);
-        // args1[1] = data[6];
-        // args1[4] = data[9];
-        // ShaderBuffers.LodArgs1.SetData(args1);
-        
-        // var args0 = new uint[5];
-        // var args1 = new uint[5];
-        // var args2 = new uint[5];
-        
-        // for (var i = 0; i < args0.Length; i++)
-        // {
-        //     args0[i] = data[i];
-        // }
-        //
-        // for (var i = 0; i < args0.Length; i++)
-        // {
-        //     args1[i] = data[i + 5];
-        // }
-        //
-        // for (var i = 0; i < args0.Length; i++)
-        // {
-        //     args2[i] = data[i + 10];
-        // }
-        
-        // args0Buffer.SetData(args0);
-        // args1Buffer.SetData(args1);
-        // args2Buffer.SetData(args2);
-
         if (_settings.EnableLod)
         {
             Graphics.DrawMeshInstancedIndirect(
@@ -461,12 +420,149 @@ public class IndirectRenderer : IDisposable
         Debug.Log(instancesSB.ToString());
         Debug.Log(shadowsSB.ToString());
     }
-
-    public void DrawGizmos()
+    
+    private void LogInstancesIsVisibleBuffers(string instancePrefix = "", string shadowPrefix = "")
     {
-        if (_config.DebugBounds)
+        var instancesIsVisible = new uint[_numberOfInstances];
+        var shadowsIsVisible = new uint[_numberOfInstances];
+        ShaderBuffers.IsVisible.GetData(instancesIsVisible);
+        ShaderBuffers.IsShadowVisible.GetData(shadowsIsVisible);
+        
+        var instancesSB = new StringBuilder();
+        var shadowsSB = new StringBuilder();
+        
+        if (!string.IsNullOrEmpty(instancePrefix)) instancesSB.AppendLine(instancePrefix);
+        if (!string.IsNullOrEmpty(shadowPrefix)) shadowsSB.AppendLine(shadowPrefix);
+        
+        for (var i = 0; i < instancesIsVisible.Length; i++)
         {
-            _instancesCuller.DrawGizmos();
+            instancesSB.AppendLine(i + ": " + instancesIsVisible[i]);
+            shadowsSB.AppendLine(i + ": " + shadowsIsVisible[i]);
         }
+        
+        Debug.Log(instancesSB.ToString());
+        Debug.Log(shadowsSB.ToString());
+    }
+    
+    private void LogScannedPredicates(string instancePrefix = "", string shadowPrefix = "")
+    {
+        var instancesScannedData = new uint[_numberOfInstances];
+        var shadowsScannedData = new uint[_numberOfInstances];
+        ShaderBuffers.ScannedPredicates.GetData(instancesScannedData);
+        ShaderBuffers.ShadowsScannedPredicates.GetData(shadowsScannedData);
+        
+        var instancesSB = new StringBuilder();
+        var shadowsSB = new StringBuilder();
+        
+        if (!string.IsNullOrEmpty(instancePrefix)) instancesSB.AppendLine(instancePrefix);
+        if (!string.IsNullOrEmpty(shadowPrefix)) shadowsSB.AppendLine(shadowPrefix);
+        
+        for (var i = 0; i < instancesScannedData.Length; i++)
+        {
+            instancesSB.AppendLine(i + ": " + instancesScannedData[i]);
+            shadowsSB.AppendLine(i + ": " + shadowsScannedData[i]);
+        }
+
+        Debug.Log(instancesSB.ToString());
+        Debug.Log(shadowsSB.ToString());
+    }
+    
+    private void LogGroupSumsBuffer(string instancePrefix = "", string shadowPrefix = "")
+    {
+        var instancesScannedData = new uint[_numberOfInstances];
+        var shadowsScannedData = new uint[_numberOfInstances];
+        ShaderBuffers.GroupSumsBuffer.GetData(instancesScannedData);
+        ShaderBuffers.ShadowsScannedGroupSums.GetData(shadowsScannedData); // Which group sums ???
+        
+        var instancesSB = new StringBuilder();
+        var shadowsSB = new StringBuilder();
+        
+        if (!string.IsNullOrEmpty(instancePrefix)) instancesSB.AppendLine(instancePrefix);
+        if (!string.IsNullOrEmpty(shadowPrefix)) shadowsSB.AppendLine(shadowPrefix); 
+        
+        for (var i = 0; i < instancesScannedData.Length; i++)
+        {
+            instancesSB.AppendLine(i + ": " + instancesScannedData[i]);
+            shadowsSB.AppendLine(i + ": " + shadowsScannedData[i]);
+        }
+
+        Debug.Log(instancesSB.ToString());
+        Debug.Log(shadowsSB.ToString());
+    }
+    
+    private void LogScannedGroupSumBuffer(string instancePrefix = "", string shadowPrefix = "")
+    {
+        var instancesScannedData = new uint[_numberOfInstances];
+        var shadowsScannedData = new uint[_numberOfInstances];
+        ShaderBuffers.ScannedPredicates.GetData(instancesScannedData);
+        ShaderBuffers.ShadowsScannedPredicates.GetData(shadowsScannedData);
+        
+        var instancesSB = new StringBuilder();
+        var shadowsSB = new StringBuilder();
+        
+        if (!string.IsNullOrEmpty(instancePrefix)) instancesSB.AppendLine(instancePrefix);
+        if (!string.IsNullOrEmpty(shadowPrefix)) shadowsSB.AppendLine(shadowPrefix);
+        
+        for (var i = 0; i < instancesScannedData.Length; i++)
+        {
+            instancesSB.AppendLine(i + ": " + instancesScannedData[i]);
+            shadowsSB.AppendLine(i + ": " + shadowsScannedData[i]);
+        }
+
+        Debug.Log(instancesSB.ToString());
+        Debug.Log(shadowsSB.ToString());
+    }
+    
+    private void LogCulledInstancesDrawMatrices(string instancePrefix = "", string shadowPrefix = "")
+    {
+        var instancesMatrix1 = new Indirect2x2Matrix[_numberOfInstances];
+        var instancesMatrix2 = new Indirect2x2Matrix[_numberOfInstances];
+        var instancesMatrix3 = new Indirect2x2Matrix[_numberOfInstances];
+        ShaderBuffers.CulledMatrixRows01.GetData(instancesMatrix1);
+        ShaderBuffers.CulledMatrixRows23.GetData(instancesMatrix2);
+        ShaderBuffers.CulledMatrixRows45.GetData(instancesMatrix3);
+        
+        var shadowsMatrix1 = new Indirect2x2Matrix[_numberOfInstances];
+        var shadowsMatrix2 = new Indirect2x2Matrix[_numberOfInstances];
+        var shadowsMatrix3 = new Indirect2x2Matrix[_numberOfInstances];
+        ShaderBuffers.ShadowsCulledMatrixRows01.GetData(shadowsMatrix1);
+        ShaderBuffers.ShadowsCulledMatrixRows23.GetData(shadowsMatrix2);
+        ShaderBuffers.ShadowsCulledMatrixRows45.GetData(shadowsMatrix3);
+        
+        var instancesSB = new StringBuilder();
+        var shadowsSB = new StringBuilder();
+        
+        if (!string.IsNullOrEmpty(instancePrefix)){ instancesSB.AppendLine(instancePrefix); }
+        if (!string.IsNullOrEmpty(shadowPrefix))  { shadowsSB.AppendLine(shadowPrefix); }
+        
+        for (int i = 0; i < instancesMatrix1.Length; i++)
+        {
+            instancesSB.AppendLine(
+                i + "\n" 
+                + instancesMatrix1[i].FirstRow + "\n"
+                + instancesMatrix1[i].SecondRow + "\n"
+                + instancesMatrix2[i].FirstRow + "\n"
+                + "\n\n"
+                + instancesMatrix2[i].SecondRow + "\n"
+                + instancesMatrix3[i].FirstRow + "\n"
+                + instancesMatrix3[i].SecondRow + "\n"
+                + "\n"
+            );
+            
+            shadowsSB.AppendLine(
+                i + "\n" 
+                + shadowsMatrix1[i].FirstRow + "\n"
+                + shadowsMatrix1[i].SecondRow + "\n"
+                + shadowsMatrix2[i].FirstRow + "\n"
+                + "\n\n"
+                + shadowsMatrix2[i].SecondRow + "\n"
+                + shadowsMatrix3[i].FirstRow + "\n"
+                + shadowsMatrix3[i].SecondRow + "\n"
+                + "\n"
+            );
+        }
+
+        Debug.Log(instancesSB.ToString());
+        Debug.Log(shadowsSB.ToString());
     }
 }

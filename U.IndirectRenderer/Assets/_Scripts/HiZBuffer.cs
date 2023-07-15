@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.UI;
 
 [Serializable]
 public class HiZBufferConfig
@@ -8,6 +9,7 @@ public class HiZBufferConfig
     public RenderTexture TopDownView;
     public Shader GenerateBufferShader;
     public Shader DebugShader; // ???
+    public RawImage DebugPlane;
 }
 
 public class HiZBuffer
@@ -24,7 +26,7 @@ public class HiZBuffer
     public Vector2 TextureSize { get; }
 
     // private readonly HiZBufferConfig _config;
-    // private readonly HiZBufferConfig _config;
+    private readonly HiZBufferConfig _config;
     private readonly Camera _renderCamera;
     private readonly Camera _debugCamera;
     private readonly Material _generateBufferMaterial;
@@ -38,6 +40,7 @@ public class HiZBuffer
 
     public HiZBuffer(HiZBufferConfig config, Camera renderCamera, Camera debugCamera = null)
     {
+        _config = config;
         _renderCamera = renderCamera;
         _debugCamera = debugCamera;
         
@@ -68,6 +71,8 @@ public class HiZBuffer
         Texture.autoGenerateMips = false;
         Texture.Create();
         Texture.hideFlags = HideFlags.HideAndDontSave;
+        
+        _config.DebugPlane.texture = Texture;
     }
 
     private void InitializeCommandBuffer(int size)

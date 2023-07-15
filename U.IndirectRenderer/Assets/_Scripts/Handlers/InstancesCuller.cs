@@ -9,13 +9,12 @@ public class InstancesCuller
     
     private readonly Camera _camera;
     // private readonly IndirectRendererSettings _settings;
-    // private readonly HiZBuffer _hiZBuffer;
+    private readonly HiZBuffer _hiZBuffer;
     private readonly int _occlusionGroupX;
     private List<BoundsData> _boundsData; //TODO: Convert to array
 
     public InstancesCuller(ComputeShader computeShader, int numberOfInstances, 
-        //IndirectRendererSettings settings, HiZBufferConfig hiZBufferConfig, 
-        Camera camera, Camera debugCamera = null)
+        HiZBufferConfig hiZBufferConfig, Camera camera, Camera debugCamera = null)
     {
         _computeShader = computeShader;
         _numberOfInstances = numberOfInstances;
@@ -25,7 +24,7 @@ public class InstancesCuller
         _occlusionGroupX = Mathf.Max(1, _numberOfInstances / 64);
     }
 
-    public void Initialize(List<Vector3> positions,  List<Vector3> scales, IndirectRendererSettings settings, HiZBuffer hiZBuffer)
+    public void Initialize(List<Vector3> positions, List<Vector3> scales, IndirectRendererSettings settings, HiZBuffer hiZBuffer)
     {
         ShaderBuffers.IsVisible       = new ComputeBuffer(_numberOfInstances, sizeof(uint), ComputeBufferType.Default);
         ShaderBuffers.IsShadowVisible = new ComputeBuffer(_numberOfInstances, sizeof(uint), ComputeBufferType.Default);
