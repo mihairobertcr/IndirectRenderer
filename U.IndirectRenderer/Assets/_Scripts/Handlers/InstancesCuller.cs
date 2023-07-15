@@ -9,22 +9,21 @@ public class InstancesCuller
     
     private readonly Camera _camera;
     // private readonly IndirectRendererSettings _settings;
-    private readonly HiZBuffer _hiZBuffer;
     private readonly int _occlusionGroupX;
     private List<BoundsData> _boundsData; //TODO: Convert to array
 
     public InstancesCuller(ComputeShader computeShader, int numberOfInstances, 
-        HiZBufferConfig hiZBufferConfig, Camera camera, Camera debugCamera = null)
+        Camera camera, Camera debugCamera = null)
     {
         _computeShader = computeShader;
         _numberOfInstances = numberOfInstances;
         _camera = camera;
         // _settings = settings;
-        // _hiZBuffer = new HiZBuffer(hiZBufferConfig, camera);
+        // _hiZBuffer = new HiZBuffer(hierarchicalDepthBufferConfig, camera);
         _occlusionGroupX = Mathf.Max(1, _numberOfInstances / 64);
     }
 
-    public void Initialize(List<Vector3> positions, List<Vector3> scales, IndirectRendererSettings settings, HiZBuffer hiZBuffer)
+    public void Initialize(List<Vector3> positions, List<Vector3> scales, IndirectRendererSettings settings, HierarchicalDepthBufferConfig hiZBufferConfig)
     {
         ShaderBuffers.IsVisible       = new ComputeBuffer(_numberOfInstances, sizeof(uint), ComputeBufferType.Default);
         ShaderBuffers.IsShadowVisible = new ComputeBuffer(_numberOfInstances, sizeof(uint), ComputeBufferType.Default);
@@ -58,7 +57,7 @@ public class InstancesCuller
         _computeShader.SetFloat(ShaderProperties.ShadowDistance, QualitySettings.shadowDistance);
         _computeShader.SetFloat(ShaderProperties.DetailCullingScreenPercentage, settings.DetailCullingPercentage);
         
-        _computeShader.SetVector(ShaderProperties.HiZTextureSize, hiZBuffer.TextureSize);
+        _computeShader.SetVector(ShaderProperties.HiZTextureSize, hiZBufferConfig.TextureSize);
         
         _computeShader.SetBuffer(ShaderKernels.InstancesCuller, ShaderProperties.ArgsBuffer,            ShaderBuffers.Args);
         _computeShader.SetBuffer(ShaderKernels.InstancesCuller, ShaderProperties.ShadowArgsBuffer,      ShaderBuffers.ShadowsArgs);
@@ -67,7 +66,8 @@ public class InstancesCuller
         _computeShader.SetBuffer(ShaderKernels.InstancesCuller, ShaderProperties.BoundsData,            ShaderBuffers.BoundsData);
         _computeShader.SetBuffer(ShaderKernels.InstancesCuller, ShaderProperties.SortingData,           ShaderBuffers.SortingData);
         
-        _computeShader.SetTexture(ShaderKernels.InstancesCuller, ShaderProperties.HiZMap, hiZBuffer.Texture);
+        // if (hiZBufferConfig.Texture == null) return;
+        _computeShader.SetTexture(ShaderKernels.InstancesCuller, ShaderProperties.HiZMap, hiZBufferConfig.Texture);
     }
 
     public void Dispatch()
@@ -81,16 +81,7 @@ public class InstancesCuller
         // _computeShader.SetFloat(ShaderProperties.ShadowDistance, QualitySettings.shadowDistance);
         _computeShader.SetMatrix(ShaderProperties.MvpMatrix, modelViewProjection);
         _computeShader.SetVector(ShaderProperties.CameraPosition, cameraPosition);
-        
-        // Dispatch
-        // var data = new SortingData[_numberOfInstances];
-        // ShaderBuffers.SortingData.GetData(data);
-        //
-        // foreach (var i in data)
-        // {
-        //     Debug.Log(i.DrawCallInstanceIndex >> 16);
-        // }
-        
+              
         _computeShader.Dispatch(ShaderKernels.InstancesCuller, _occlusionGroupX, 1, 1);
     }
     

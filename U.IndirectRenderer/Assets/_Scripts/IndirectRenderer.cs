@@ -17,7 +17,7 @@ public class IndirectRenderer : IDisposable
 
     private readonly IndirectRendererConfig _config;
     private readonly IndirectRendererSettings _settings;
-    private readonly HiZBufferConfig _hiZBufferConfig;
+    private readonly HierarchicalDepthBufferConfig _hierarchicalDepthBufferConfig;
     private readonly MeshProperties _meshProperties;
     private readonly uint[] _args;
     
@@ -40,14 +40,14 @@ public class IndirectRenderer : IDisposable
 
     public IndirectRenderer(IndirectRendererConfig config, 
         IndirectRendererSettings settings, 
-        HiZBufferConfig hiZBufferConfig,
+        HierarchicalDepthBufferConfig hierarchicalDepthBufferConfig,
         List<Vector3> positions, 
         List<Vector3> rotations, 
         List<Vector3> scales)
     {
         _config = config;
         _settings = settings;
-        _hiZBufferConfig = hiZBufferConfig;
+        _hierarchicalDepthBufferConfig = hierarchicalDepthBufferConfig;
         
         _meshProperties = CreateMeshProperties();
         _args = InitializeArgumentsBuffer();
@@ -66,7 +66,7 @@ public class IndirectRenderer : IDisposable
 
         _matricesInitializer = new MatricesInitializer(_config.MatricesInitializer, _numberOfInstances); //, _meshProperties);
         _lodBitonicSorter = new LodBitonicSorter(_config.LodBitonicSorter, _numberOfInstances);
-        _instancesCuller = new InstancesCuller(_config.InstancesCuller, _numberOfInstances, _hiZBufferConfig, _config.RenderCamera);
+        _instancesCuller = new InstancesCuller(_config.InstancesCuller, _numberOfInstances, _config.RenderCamera);
         _instancesScanner = new InstancesScanner(_config.InstancesScanner, _numberOfInstances);
         _groupSumsScanner = new GroupSumsScanner(_config.GroupSumsScanner, _numberOfInstances);
         _dataCopier = new InstancesDataCopier(_config.InstancesDataCopier, _numberOfInstances, _numberOfInstanceTypes);
@@ -120,8 +120,8 @@ public class IndirectRenderer : IDisposable
         _lodBitonicSorter.Initialize(positions, cameraPosition);
         _lodBitonicSorter.ComputeAsync = _settings.ComputeAsync;
         
-        var hiZBuffer = new HiZBuffer(_hiZBufferConfig, _config.RenderCamera);
-        _instancesCuller.Initialize(positions, scales, _settings, hiZBuffer);
+        // var hiZBuffer = new HiZBuffer(_hierarchicalDepthBufferConfig, _config.RenderCamera);
+        _instancesCuller.Initialize(positions, scales, _settings, _hierarchicalDepthBufferConfig);
         
         _instancesScanner.Initialize();
         _groupSumsScanner.Initialize();

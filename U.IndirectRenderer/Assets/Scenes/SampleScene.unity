@@ -655,12 +655,7 @@ MonoBehaviour:
     EnableLod: 1
     EnableOnlyLod2Shadows: 0
     DetailCullingPercentage: 0.005
-  _hizBufferConfig:
-    TopDownView: {fileID: 0}
-    GenerateBufferShader: {fileID: 4800000, guid: 483ebfd3207614b6692e71936dfc9844,
-      type: 3}
-    DebugShader: {fileID: 0}
-    DebugPlane: {fileID: 1985035718}
+  _hizBufferConfig: {fileID: 11400000, guid: 52c4863dafa8f4277bdfa114810bee3c, type: 2}
 --- !u!4 &1014861749
 Transform:
   m_ObjectHideFlags: 0
@@ -694,7 +689,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1146541826
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -882,7 +877,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -449.99976, y: 250}
+  m_AnchoredPosition: {x: -449.99976, y: 248}
   m_SizeDelta: {x: -900.0005, y: -500}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1985035718
