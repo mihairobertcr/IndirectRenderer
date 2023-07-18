@@ -61,15 +61,14 @@ public class HierarchicalDepthBufferRenderFeature : ScriptableRendererFeature
             
             _temporaries = new int[_lodCount];
 
-            if (_config.Texture == null)
-            {
-                _config.Texture = new RenderTexture(_size, _size, 0, RenderTextureFormat.RGHalf, RenderTextureReadWrite.Linear);
-                _config.Texture.filterMode = FilterMode.Point;
-                _config.Texture.useMipMap = true;
-                _config.Texture.autoGenerateMips = false;
-                _config.Texture.Create();
-                _config.Texture.hideFlags = HideFlags.HideAndDontSave;
-            }
+            if (_config.Texture != null) return;
+
+            _config.Texture = new RenderTexture(_size, _size, 0, RenderTextureFormat.RGHalf, RenderTextureReadWrite.Linear);
+            _config.Texture.filterMode = FilterMode.Point;
+            _config.Texture.useMipMap = true;
+            _config.Texture.autoGenerateMips = false;
+            _config.Texture.Create();
+            _config.Texture.hideFlags = HideFlags.HideAndDontSave;
         }
 
         // Here you can implement the rendering logic.
