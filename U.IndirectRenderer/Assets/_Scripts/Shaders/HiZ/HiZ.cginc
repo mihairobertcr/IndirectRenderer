@@ -119,7 +119,7 @@ Varyings vertex(in Input i)
     output.vertex = UnityObjectToClipPos(i.vertex.xyz);
     output.uv = i.uv;
 
-    UNITY_TRANSFER_DEPTH(output.depth);
+    //UNITY_TRANSFER_DEPTH(output.depth);
     output.scrPos=ComputeScreenPos(output.vertex);
 
     return output;

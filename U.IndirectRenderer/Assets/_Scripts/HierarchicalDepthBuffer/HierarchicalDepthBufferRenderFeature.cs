@@ -12,7 +12,7 @@ public class HierarchicalDepthBufferRenderFeature : ScriptableRendererFeature
             Reduce
         }
         
-        private const int MAXIMUM_BUFFER_SIZE = 1024;
+        private const int MAXIMUM_BUFFER_SIZE = 2048;
 
         private readonly HierarchicalDepthBufferConfig _config;
         private readonly Material _hizMaterial;
@@ -77,15 +77,13 @@ public class HierarchicalDepthBufferRenderFeature : ScriptableRendererFeature
         // You don't have to call ScriptableRenderContext.submit, the render pipeline will call it at specific points in the pipeline.
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            Debug.Log("Pass");
             if (renderingData.cameraData.cameraType != CameraType.Game) return;
             
-            // Debug.Log("-----");
             var cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, new ProfilingSampler("Indirect Camera Depth Buffer")))
             {
                 var id = new RenderTargetIdentifier(_config.Texture);
-                // _commandBuffer.SetGlobalTexture("_LightTexture", _shadowmapCopy);
-                // cmd.Blit(null, id, _hizMaterial, (int)Pass.Blit);
                 Blit(cmd, BuiltinRenderTextureType.None, id, _hizMaterial, (int)Pass.Blit);
             
                 for (var i = 0; i < _lodCount; ++i)
@@ -98,13 +96,10 @@ public class HierarchicalDepthBufferRenderFeature : ScriptableRendererFeature
                     cmd.GetTemporaryRT(_temporaries[i], _size, _size, 0, FilterMode.Point, RenderTextureFormat.RGHalf, RenderTextureReadWrite.Linear);
                     if (i == 0)
                     {
-                        // _commandBuffer.Blit(id, _temporaries[0], _hizMaterial, (int)Pass.Reduce);
                         Blit(cmd, id, _temporaries[0], _hizMaterial, (int)Pass.Reduce);
                     }
                     else
                     {
-                        // _commandBuffer.Blit(_temporaries[i - 1], _temporaries[i], _hizMaterial, (int)Pass.Reduce);
-                        // Blitter.BlitTexture(cmd, _temporaries[i - 1], _temporaries[i], _hizMaterial, (int)Pass.Reduce);
                         Blit(cmd, _temporaries[i - 1], _temporaries[i], _hizMaterial, (int)Pass.Reduce);
                     }
                 
@@ -116,7 +111,6 @@ public class HierarchicalDepthBufferRenderFeature : ScriptableRendererFeature
                 }
 
                 cmd.ReleaseTemporaryRT(_temporaries[_lodCount - 1]);
-                // _renderCamera.AddCommandBuffer(_cameraEvent, _commandBuffer);
             }
             
             context.ExecuteCommandBuffer(cmd);

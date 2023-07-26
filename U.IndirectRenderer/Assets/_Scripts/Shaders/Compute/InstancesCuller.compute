@@ -51,19 +51,20 @@ inline uint IsVisibleAfterDetailCulling(float clipMinX, float clipMaxX, float cl
 inline uint IsVisibleAfterOcclusionCulling(float clipMinX, float clipMaxX, float clipMinY, float clipMaxY, float clipMinZ)
 {
     // Change it to 0 - 1 range 
-    float2 minXY = float2(clipMinX, clipMinY) * 0.5 + 0.5;
-    float2 maxXY = float2(clipMaxX, clipMaxY) * 0.5 + 0.5;
-    
+    float2 uvLeftBottom = float2(clipMinX, clipMinY) * 0.5 + 0.5;
+    float2 uvRightTop = float2(clipMaxX, clipMaxY) * 0.5 + 0.5;
+
+    /* ***** First approach *****
     // Calculate hi-Z buffer mip
-    int2 size = (maxXY - minXY) * _HiZTextureSize.xy;
+    int2 size = (uvRightTop - uvLeftBottom) * _HiZTextureSize.xy;
     float mip = ceil(log2(max(size.x, size.y)));
     mip = clamp(mip, 0, 10);
     
     // Texel footprint for the lower (finer-grained) level
-    float  lowerLevel = max(mip - 1, 0);
+    float  lowerLevel = max(mip + 2, 0);
     float2 scale = exp2(-lowerLevel);
-    float2 a = floor(minXY * scale);
-    float2 b = ceil(maxXY * scale);
+    float2 a = floor(uvLeftBottom * scale);
+    float2 b = ceil(uvRightTop * scale);
     float2 dimensions = b - a;
     
     // Use the lower level if we only touch <= 2 texels in both dimensions
@@ -79,27 +80,92 @@ inline uint IsVisibleAfterOcclusionCulling(float clipMinX, float clipMaxX, float
     const int   xSamples = 8; // numSamples + 1;
     const int   ySamples = 25; // numSamples + 1;
     
-    const float widthSS = (maxXY.x - minXY.x);
-    const float heightSS = (maxXY.y - minXY.y);    
+    const float widthSS = (uvRightTop.x - uvLeftBottom.x);
+    const float heightSS = (uvRightTop.y - uvLeftBottom.y);    
     // const float maxSizeSS = max(widthSS * _HiZTextureSize.x, heightSS * _HiZTextureSize.y);    
     const float stepX = widthSS / xSamples;    
     const float stepY = heightSS / ySamples;    
     
     float hiZDepth = 1;    
-    float yPosition = minXY.y;
+    float yPosition = uvLeftBottom.y;
     for(int y = 0; y < ySamples; ++y)
     {
-        float xPosition = minXY.x;
+        float xPosition = uvLeftBottom.x;
         for(int x = 0; x < xSamples; ++x)
         {
             const float2 nCoords0 = float2(xPosition, yPosition);
             hiZDepth = min(hiZDepth, _HiZMap.SampleLevel(sampler_HiZMap, nCoords0, mip).r);
             xPosition += stepX;
         }
-        yPosition += stepY;    
+        
+        yPosition += stepY;
     }
-    
-    return (1.0 - clipMinZ) >= hiZDepth - 0.000015; // last is an epsilon
+
+    return (1.0 - clipMinZ) >= hiZDepth + 0.00015; // last is an epsilon
+    ***** */
+
+    ///* ***** Second approach *****
+    // Hiz Occlusion Culling: Determine if the grass instance is occluded by other geometry
+    // Calculate the UV coordinates of the NDC AABB's left-bottom and right-top corners
+
+    //float minX = 1, minY = 1, minZ = 1, maxX = -1, maxY = -1, maxZ = -1; // New AABB parameters in NDC
+    float maxZ = -1;
+
+    // The depth value in NDC is the depth for DirectX (inversed in MVP matrix), or z value for OpenGL
+    float depth = maxZ;
+
+    // If using OpenGL, take the minimum z value and convert it to a 0-1 depth value
+    // if (isOpenGL)
+    // {
+    //     depth = minZ;
+    //     depth = depth * 0.5f + 0.5f;
+    // }
+
+    uint depthTextureSize = _HiZTextureSize.x;
+
+    // Calculate the mipmap level to sample in the Hiz texture
+    uint mipmapLevel = (uint)clamp(depthTextureSize * 2 / log2(max(clipMaxX - clipMinX, clipMaxY - clipMinY)), 0, log2(depthTextureSize) - 4);
+    // Current mipmap size
+    uint size = depthTextureSize / (1 << mipmapLevel);
+
+    // Calculate the pixel positions of the left-bottom and right-top corners in the Hiz texture
+    uint2 pixelLeftBottom = uint2(clamp(uvLeftBottom.x * size, 0, size - 1), clamp(uvLeftBottom.y * size, 0, size - 1));
+    uint2 pixelRightTop = uint2(clamp(uvRightTop.x * size, 0, size - 1), clamp(uvRightTop.y * size, 0, size - 1));
+    // Sample the depth value in the Hiz texture and compare it with the grass instance's depth
+    float depthInTexture = _HiZMap.mips[mipmapLevel][pixelLeftBottom].r;
+    // if (isOpenGL)
+    // {
+    //     if (pixelLeftBottom.x < pixelRightTop.x && pixelLeftBottom.y < pixelRightTop.y)
+    //     {
+    //         depthInTexture = max(max(depthInTexture, _HiZMap.mips[mipmapLevel][pixelRightTop].r),
+    //             max(_HiZMap.mips[mipmapLevel][int2(pixelLeftBottom.x, pixelRightTop.y)].r, _HiZMap.mips[mipmapLevel][int2(pixelRightTop.x, pixelLeftBottom.y)].r));
+    //     }
+    //     else if (pixelLeftBottom.x < pixelRightTop.x)
+    //         depthInTexture = max(depthInTexture, _HiZMap.mips[mipmapLevel][int2(pixelRightTop.x, pixelLeftBottom.y)].r);
+    //     else if (pixelLeftBottom.y < pixelRightTop.y)
+    //         depthInTexture = max(depthInTexture, _HiZMap.mips[mipmapLevel][int2(pixelLeftBottom.x, pixelRightTop.y)].r);
+    //
+    //     if (depthInTexture < depth)
+    //         return false;
+    // }
+    // else
+    {
+        if (pixelLeftBottom.x < pixelRightTop.x && pixelLeftBottom.y < pixelRightTop.y)
+        {
+            depthInTexture = min(min(depthInTexture, _HiZMap.mips[mipmapLevel][pixelRightTop].r),
+                min(_HiZMap.mips[mipmapLevel][int2(pixelLeftBottom.x, pixelRightTop.y)].r, _HiZMap.mips[mipmapLevel][int2(pixelRightTop.x, pixelLeftBottom.y)].r));
+        }
+        else if (pixelLeftBottom.x < pixelRightTop.x)
+            depthInTexture = min(depthInTexture, _HiZMap.mips[mipmapLevel][int2(pixelRightTop.x, pixelLeftBottom.y)].r);
+        else if (pixelLeftBottom.y < pixelRightTop.y)
+            depthInTexture = min(depthInTexture, _HiZMap.mips[mipmapLevel][int2(pixelLeftBottom.x, pixelRightTop.y)].r);
+
+        if (depthInTexture <= (1.0 - clipMinZ))
+            return true;
+        
+        return false;
+    }
+    //*/
 }
 
 inline uint IsVisibleAfterFrustumCulling(float4 clipPos)

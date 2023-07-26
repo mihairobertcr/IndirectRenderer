@@ -129,7 +129,7 @@ public class IndirectRendererComponent : MonoBehaviour
 
     private void Update()
     {
-        // Debug.Log("Update");
+        Debug.Log("Update");
         // _renderer.Update();
     }
 
