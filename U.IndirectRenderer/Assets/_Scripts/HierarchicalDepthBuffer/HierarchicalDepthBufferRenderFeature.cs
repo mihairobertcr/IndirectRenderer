@@ -27,28 +27,8 @@ public class HierarchicalDepthBufferRenderFeature : ScriptableRendererFeature
         {
             _config = config;
             _hizMaterial = CoreUtils.CreateEngineMaterial(_config.Shader);
-            
-            // _config.TextureSize = new Vector2(1024, 1024);
-            // _lodCount = CalculateLoadCount(1024);
-            //
-            // _temporaries = new int[_lodCount];
-            //
-            // if (_config.Texture == null)
-            // {
-            //     _config.Texture = new RenderTexture(_size, _size, 0, RenderTextureFormat.RGHalf, RenderTextureReadWrite.Linear);
-            //     _config.Texture.filterMode = FilterMode.Point;
-            //     _config.Texture.useMipMap = true;
-            //     _config.Texture.autoGenerateMips = false;
-            //     _config.Texture.Create();
-            //     _config.Texture.hideFlags = HideFlags.HideAndDontSave;
-            // }
         }
         
-        // This method is called before executing the render pass.
-        // It can be used to configure render targets and their clear state. Also to create temporary render target textures.
-        // When empty this render pass will render to the active camera render target.
-        // You should never call CommandBuffer.SetRenderTarget. Instead call <c>ConfigureTarget</c> and <c>ConfigureClear</c>.
-        // The render pipeline will ensure target setup and clearing happens in a performant manner.
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             if (renderingData.cameraData.cameraType != CameraType.Game) return;
@@ -77,7 +57,6 @@ public class HierarchicalDepthBufferRenderFeature : ScriptableRendererFeature
         // You don't have to call ScriptableRenderContext.submit, the render pipeline will call it at specific points in the pipeline.
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            Debug.Log("Pass");
             if (renderingData.cameraData.cameraType != CameraType.Game) return;
             
             var cmd = CommandBufferPool.Get();
@@ -158,20 +137,7 @@ public class HierarchicalDepthBufferRenderFeature : ScriptableRendererFeature
         // Configures where the render pass should be injected.
         _pass.renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
     }
-
-    // public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
-    // {
-    //     //base.SetupRenderPasses(renderer, in renderingData);
-    //     if (renderingData.cameraData.cameraType == CameraType.Game)
-    //     {
-    //         // _pass.ConfigureInput(ScriptableRenderPassInput.Color);
-    //         _pass.ConfigureInput(ScriptableRenderPassInput.Depth);
-    //         _pass.SetTarget() ???
-    //     }
-    // }
-
-    // Here you can inject one or multiple render passes in the renderer.
-    // This method is called when setting up the renderer once per-camera.
+    
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
         renderer.EnqueuePass(_pass);

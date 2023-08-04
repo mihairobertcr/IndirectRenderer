@@ -127,12 +127,6 @@ public class IndirectRendererComponent : MonoBehaviour
         _renderer = new IndirectRenderer(_config, _settings, _hizBufferConfig, _positions, _rotations, _scales);
     }
 
-    private void Update()
-    {
-        Debug.Log("Update");
-        // _renderer.Update();
-    }
-
     private void OnDestroy()
     {
         _renderer.Dispose();

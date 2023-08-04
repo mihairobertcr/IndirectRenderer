@@ -38,6 +38,8 @@ public class IndirectRenderer : IDisposable
     private Vector3 _cameraPosition = Vector3.zero;
     private Bounds _bounds;
 
+    private RendererDataContext _context;
+
     public IndirectRenderer(IndirectRendererConfig config, 
         IndirectRendererSettings settings, 
         HierarchicalDepthBufferConfig hierarchicalDepthBufferConfig,
@@ -48,6 +50,8 @@ public class IndirectRenderer : IDisposable
         _config = config;
         _settings = settings;
         _hierarchicalDepthBufferConfig = hierarchicalDepthBufferConfig;
+
+        _context = new RendererDataContext();
         
         _meshProperties = CreateMeshProperties();
         _args = InitializeArgumentsBuffer();
@@ -59,17 +63,17 @@ public class IndirectRenderer : IDisposable
         // I don't know how this is working right now but
         // it should preserve the sorting functionality
         var count = NUMBER_OF_ARGS_PER_INSTANCE_TYPE; // * _numberOfInstanceTypes
-        ShaderBuffers.Args = new ComputeBuffer(count, sizeof(uint), ComputeBufferType.IndirectArguments);
-        ShaderBuffers.ShadowsArgs = new ComputeBuffer(count, sizeof(uint), ComputeBufferType.IndirectArguments);
-        ShaderBuffers.Args.SetData(_args);
-        ShaderBuffers.ShadowsArgs.SetData(_args);
+        _context.Args = new ComputeBuffer(count, sizeof(uint), ComputeBufferType.IndirectArguments);
+        _context.ShadowsArgs = new ComputeBuffer(count, sizeof(uint), ComputeBufferType.IndirectArguments);
+        _context.Args.SetData(_args);
+        _context.ShadowsArgs.SetData(_args);
 
-        _matricesInitializer = new MatricesInitializer(_config.MatricesInitializer, _numberOfInstances); //, _meshProperties);
-        _lodBitonicSorter = new LodBitonicSorter(_config.LodBitonicSorter, _numberOfInstances);
-        _instancesCuller = new InstancesCuller(_config.InstancesCuller, _numberOfInstances, _config.RenderCamera);
-        _instancesScanner = new InstancesScanner(_config.InstancesScanner, _numberOfInstances);
-        _groupSumsScanner = new GroupSumsScanner(_config.GroupSumsScanner, _numberOfInstances);
-        _dataCopier = new InstancesDataCopier(_config.InstancesDataCopier, _numberOfInstances, _numberOfInstanceTypes);
+        _matricesInitializer = new MatricesInitializer(_config.MatricesInitializer, _numberOfInstances, _context); //, _meshProperties);
+        _lodBitonicSorter = new LodBitonicSorter(_config.LodBitonicSorter, _numberOfInstances, _context);
+        _instancesCuller = new InstancesCuller(_config.InstancesCuller, _numberOfInstances, _context, _config.RenderCamera);
+        _instancesScanner = new InstancesScanner(_config.InstancesScanner, _numberOfInstances, _context);
+        _groupSumsScanner = new GroupSumsScanner(_config.GroupSumsScanner, _numberOfInstances, _context);
+        _dataCopier = new InstancesDataCopier(_config.InstancesDataCopier, _numberOfInstances, _context, _numberOfInstanceTypes);
         
 
         Initialize(positions, rotations, scales);
@@ -93,7 +97,7 @@ public class IndirectRenderer : IDisposable
 
     public void Dispose()
     {
-        ShaderBuffers.Dispose();
+        _context.Dispose();
         RenderPipelineManager.beginFrameRendering -= BeginFrameRendering;
         
         // args0Buffer.Release();
@@ -177,8 +181,8 @@ public class IndirectRenderer : IDisposable
         }
         
         Profiler.BeginSample("Resetting args buffer");
-        ShaderBuffers.Args.SetData(_args);
-        ShaderBuffers.ShadowsArgs.SetData(_args);
+        _context.Args.SetData(_args);
+        _context.ShadowsArgs.SetData(_args);
         
         if (_config.LogArgumentsBufferAfterReset)
         {
@@ -262,7 +266,7 @@ public class IndirectRenderer : IDisposable
                 submeshIndex: 0,
                 material: _meshProperties.Material,
                 bounds: _bounds,
-                bufferWithArgs: ShaderBuffers.LodArgs0, //ShaderBuffers.Args,
+                bufferWithArgs: _context.LodArgs0, //RendererDataContext.Args,
                 argsOffset: 0,// ARGS_BYTE_SIZE_PER_DRAW_CALL * 0,
                 properties: _meshProperties.Lod0PropertyBlock,
                 castShadows: ShadowCastingMode.On);
@@ -273,7 +277,7 @@ public class IndirectRenderer : IDisposable
                 submeshIndex: 0,
                 material: _meshProperties.Material,
                 bounds: _bounds,
-                bufferWithArgs: ShaderBuffers.LodArgs1, //ShaderBuffers.Args,
+                bufferWithArgs: _context.LodArgs1, //RendererDataContext.Args,
                 argsOffset: 0, //ARGS_BYTE_SIZE_PER_DRAW_CALL * 1,
                 properties: _meshProperties.Lod1PropertyBlock,
                 castShadows: ShadowCastingMode.On);
@@ -285,7 +289,7 @@ public class IndirectRenderer : IDisposable
             submeshIndex: 0,
             material: _meshProperties.Material,
             bounds: _bounds,
-            bufferWithArgs: ShaderBuffers.LodArgs2, //ShaderBuffers.Args,
+            bufferWithArgs: _context.LodArgs2, //RendererDataContext.Args,
             argsOffset: 0, //ARGS_BYTE_SIZE_PER_DRAW_CALL * 2,
             properties: _meshProperties.Lod2PropertyBlock,
             castShadows: ShadowCastingMode.On);
@@ -380,8 +384,8 @@ public class IndirectRenderer : IDisposable
     {
         var args = new uint[_numberOfInstanceTypes * NUMBER_OF_ARGS_PER_INSTANCE_TYPE];
         var shadowArgs = new uint[_numberOfInstanceTypes * NUMBER_OF_ARGS_PER_INSTANCE_TYPE];
-        ShaderBuffers.Args.GetData(args);
-        ShaderBuffers.ShadowsArgs.GetData(shadowArgs);
+        _context.Args.GetData(args);
+        _context.ShadowsArgs.GetData(shadowArgs);
         
         var instancesSB = new StringBuilder();
         var shadowsSB = new StringBuilder();
@@ -425,8 +429,8 @@ public class IndirectRenderer : IDisposable
     {
         var instancesIsVisible = new uint[_numberOfInstances];
         var shadowsIsVisible = new uint[_numberOfInstances];
-        ShaderBuffers.IsVisible.GetData(instancesIsVisible);
-        ShaderBuffers.IsShadowVisible.GetData(shadowsIsVisible);
+        _context.IsVisible.GetData(instancesIsVisible);
+        _context.IsShadowVisible.GetData(shadowsIsVisible);
         
         var instancesSB = new StringBuilder();
         var shadowsSB = new StringBuilder();
@@ -448,8 +452,8 @@ public class IndirectRenderer : IDisposable
     {
         var instancesScannedData = new uint[_numberOfInstances];
         var shadowsScannedData = new uint[_numberOfInstances];
-        ShaderBuffers.ScannedPredicates.GetData(instancesScannedData);
-        ShaderBuffers.ShadowsScannedPredicates.GetData(shadowsScannedData);
+        _context.ScannedPredicates.GetData(instancesScannedData);
+        _context.ShadowsScannedPredicates.GetData(shadowsScannedData);
         
         var instancesSB = new StringBuilder();
         var shadowsSB = new StringBuilder();
@@ -471,8 +475,8 @@ public class IndirectRenderer : IDisposable
     {
         var instancesScannedData = new uint[_numberOfInstances];
         var shadowsScannedData = new uint[_numberOfInstances];
-        ShaderBuffers.GroupSumsBuffer.GetData(instancesScannedData);
-        ShaderBuffers.ShadowsScannedGroupSums.GetData(shadowsScannedData); // Which group sums ???
+        _context.GroupSumsBuffer.GetData(instancesScannedData);
+        _context.ShadowsScannedGroupSums.GetData(shadowsScannedData); // Which group sums ???
         
         var instancesSB = new StringBuilder();
         var shadowsSB = new StringBuilder();
@@ -494,8 +498,8 @@ public class IndirectRenderer : IDisposable
     {
         var instancesScannedData = new uint[_numberOfInstances];
         var shadowsScannedData = new uint[_numberOfInstances];
-        ShaderBuffers.ScannedPredicates.GetData(instancesScannedData);
-        ShaderBuffers.ShadowsScannedPredicates.GetData(shadowsScannedData);
+        _context.ScannedPredicates.GetData(instancesScannedData);
+        _context.ShadowsScannedPredicates.GetData(shadowsScannedData);
         
         var instancesSB = new StringBuilder();
         var shadowsSB = new StringBuilder();
@@ -518,16 +522,16 @@ public class IndirectRenderer : IDisposable
         var instancesMatrix1 = new Indirect2x2Matrix[_numberOfInstances];
         var instancesMatrix2 = new Indirect2x2Matrix[_numberOfInstances];
         var instancesMatrix3 = new Indirect2x2Matrix[_numberOfInstances];
-        ShaderBuffers.CulledMatrixRows01.GetData(instancesMatrix1);
-        ShaderBuffers.CulledMatrixRows23.GetData(instancesMatrix2);
-        ShaderBuffers.CulledMatrixRows45.GetData(instancesMatrix3);
+        _context.CulledMatrixRows01.GetData(instancesMatrix1);
+        _context.CulledMatrixRows23.GetData(instancesMatrix2);
+        _context.CulledMatrixRows45.GetData(instancesMatrix3);
         
         var shadowsMatrix1 = new Indirect2x2Matrix[_numberOfInstances];
         var shadowsMatrix2 = new Indirect2x2Matrix[_numberOfInstances];
         var shadowsMatrix3 = new Indirect2x2Matrix[_numberOfInstances];
-        ShaderBuffers.ShadowsCulledMatrixRows01.GetData(shadowsMatrix1);
-        ShaderBuffers.ShadowsCulledMatrixRows23.GetData(shadowsMatrix2);
-        ShaderBuffers.ShadowsCulledMatrixRows45.GetData(shadowsMatrix3);
+        _context.ShadowsCulledMatrixRows01.GetData(shadowsMatrix1);
+        _context.ShadowsCulledMatrixRows23.GetData(shadowsMatrix2);
+        _context.ShadowsCulledMatrixRows45.GetData(shadowsMatrix3);
         
         var instancesSB = new StringBuilder();
         var shadowsSB = new StringBuilder();
