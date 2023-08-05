@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using IndirectRendering;
 
 public class InstancesCuller
 {
@@ -26,10 +27,6 @@ public class InstancesCuller
 
     public void Initialize(List<Vector3> positions, List<Vector3> scales, IndirectRendererSettings settings, HierarchicalDepthBufferConfig hiZBufferConfig)
     {
-        _context.IsVisible       = new ComputeBuffer(_numberOfInstances, sizeof(uint), ComputeBufferType.Default);
-        _context.IsShadowVisible = new ComputeBuffer(_numberOfInstances, sizeof(uint), ComputeBufferType.Default);
-        _context.BoundsData      = new ComputeBuffer(_numberOfInstances, BoundsData.Size, ComputeBufferType.Default);
-
         _boundsData = new List<BoundsData>();
         for (var i = 0; i < positions.Count; i++)
         {

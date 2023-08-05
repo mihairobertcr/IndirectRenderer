@@ -22,10 +22,6 @@ public class InstancesScanner
 
     public void Initialize()
     {
-        _context.GroupSumsBuffer          = new ComputeBuffer(_numberOfInstances, sizeof(uint), ComputeBufferType.Default);
-        _context.ShadowsGroupSumsBuffer   = new ComputeBuffer(_numberOfInstances, sizeof(uint), ComputeBufferType.Default);
-        _context.ScannedPredicates        = new ComputeBuffer(_numberOfInstances, sizeof(uint), ComputeBufferType.Default);
-        _context.ShadowsScannedPredicates = new ComputeBuffer(_numberOfInstances, sizeof(uint), ComputeBufferType.Default);
     }
 
     public void Dispatch()

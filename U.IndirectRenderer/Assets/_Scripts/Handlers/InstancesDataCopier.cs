@@ -7,58 +7,25 @@ public class InstancesDataCopier
     private readonly ComputeShader _computeShader;
     private readonly int _numberOfInstances;
     private readonly int _copyInstanceDataGroupX;
-    private readonly int _numberOfInstanceTypes;
 
     private readonly RendererDataContext _context;
 
     public InstancesDataCopier(ComputeShader computeShader, int numberOfInstances,
-        RendererDataContext context,
-        int numberOfInstanceTypes)
+        RendererDataContext context)
     {
         _computeShader = computeShader;
         _numberOfInstances = numberOfInstances;
         _context = context;
         
         _copyInstanceDataGroupX = Mathf.Max(1, numberOfInstances / (2 * SCAN_THREAD_GROUP_SIZE)); //TODO: Extract common method for groups;
-        _numberOfInstanceTypes = numberOfInstanceTypes;
     }
 
     public void Initialize(MeshProperties properties, IndirectRendererConfig config)
     {
-        
-        _context.CulledMatrixRows01 = new ComputeBuffer(_numberOfInstances, Indirect2x2Matrix.Size, ComputeBufferType.Default);
-        _context.CulledMatrixRows23 = new ComputeBuffer(_numberOfInstances, Indirect2x2Matrix.Size, ComputeBufferType.Default);
-        _context.CulledMatrixRows45 = new ComputeBuffer(_numberOfInstances, Indirect2x2Matrix.Size, ComputeBufferType.Default);
-        
-        _context.ShadowsCulledMatrixRows01 = new ComputeBuffer(_numberOfInstances, Indirect2x2Matrix.Size, ComputeBufferType.Default);
-        _context.ShadowsCulledMatrixRows23 = new ComputeBuffer(_numberOfInstances, Indirect2x2Matrix.Size, ComputeBufferType.Default);
-        _context.ShadowsCulledMatrixRows45 = new ComputeBuffer(_numberOfInstances, Indirect2x2Matrix.Size, ComputeBufferType.Default);
-
-        var args0 = new uint[] { 0, 0, 0, 0, 0 };
-        args0[0] = config.Lod0Mesh.GetIndexCount(0);
-        args0[2] = config.Lod0Mesh.GetIndexStart(0);
-        args0[3] = config.Lod0Mesh.GetBaseVertex(0);
-        _context.LodArgs0 = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
-        _context.LodArgs0.SetData(args0);
-        
-        var args1 = new uint[] { 0, 0, 0, 0, 0 };
-        args1[0] = config.Lod1Mesh.GetIndexCount(0);
-        args1[2] = config.Lod1Mesh.GetIndexStart(0);
-        args1[3] = config.Lod1Mesh.GetBaseVertex(0);
-        _context.LodArgs1 = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
-        _context.LodArgs1.SetData(args1);
-        
-        var args2 = new uint[] { 0, 0, 0, 0, 0 };
-        args2[0] = config.Lod2Mesh.GetIndexCount(0);
-        args2[2] = config.Lod2Mesh.GetIndexStart(0);
-        args2[3] = config.Lod2Mesh.GetBaseVertex(0);
-        _context.LodArgs2 = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
-        _context.LodArgs2.SetData(args2);
-        
         InitializeMaterialProperties(properties);
 
         
-        _computeShader.SetInt(ShaderProperties.NumberOfDrawCalls, _numberOfInstanceTypes * IndirectRenderer.NUMBER_OF_ARGS_PER_INSTANCE_TYPE);
+        _computeShader.SetInt(ShaderProperties.NumberOfDrawCalls, RendererDataContext.NUMBER_OF_ARGS_PER_INSTANCE_TYPE);
         
         _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.BoundsData,   _context.BoundsData);
         _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.MatrixRows01, _context.MatrixRows01);

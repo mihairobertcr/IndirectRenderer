@@ -21,9 +21,6 @@ public class GroupSumsScanner
 
     public void Initialize()
     {
-        _context.ScannedGroupSums        = new ComputeBuffer(_numberOfInstances, sizeof(uint), ComputeBufferType.Default);
-        _context.ShadowsScannedGroupSums = new ComputeBuffer(_numberOfInstances, sizeof(uint), ComputeBufferType.Default);
-        
         _computeShader.SetInt(ShaderProperties.NumberOfGroups, _numberOfInstances / (2 * SCAN_THREAD_GROUP_SIZE));
     }
 

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using UnityEngine;
+using IndirectRendering;
 
 public class MatricesInitializer
 {
@@ -22,7 +23,6 @@ public class MatricesInitializer
         _numberOfInstances = numberOfInstances;
         _context = context;
 
-        InitializeMatricesBuffers();
         InitializeTransformBuffers();
         InitializeComputeShader();
     }
@@ -77,13 +77,6 @@ public class MatricesInitializer
         }
     
         Debug.Log(stringBuilder.ToString());
-    }
-
-    private void InitializeMatricesBuffers()
-    {
-        _context.MatrixRows01 = new ComputeBuffer(_numberOfInstances, Indirect2x2Matrix.Size, ComputeBufferType.IndirectArguments);
-        _context.MatrixRows23 = new ComputeBuffer(_numberOfInstances, Indirect2x2Matrix.Size, ComputeBufferType.IndirectArguments);
-        _context.MatrixRows45 = new ComputeBuffer(_numberOfInstances, Indirect2x2Matrix.Size, ComputeBufferType.IndirectArguments);
     }
 
     private void InitializeTransformBuffers()
