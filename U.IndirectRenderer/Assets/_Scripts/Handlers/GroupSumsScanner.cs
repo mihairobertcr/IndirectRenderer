@@ -27,14 +27,14 @@ public class GroupSumsScanner
     public void Dispatch()
     {
         // Normal
-        _computeShader.SetBuffer(ShaderKernels.GroupSumsScanner, ShaderProperties.GroupSumsInput,  _context.GroupSumsBuffer);
-        _computeShader.SetBuffer(ShaderKernels.GroupSumsScanner, ShaderProperties.GroupSumsOutput, _context.ScannedGroupSums);
+        _computeShader.SetBuffer(ShaderKernels.GroupSumsScanner, ShaderProperties.GroupSumsInput,  _context.GroupSums.Meshes);
+        _computeShader.SetBuffer(ShaderKernels.GroupSumsScanner, ShaderProperties.GroupSumsOutput, _context.ScannedGroupSums.ScannedGroupSums);
         
         _computeShader.Dispatch(ShaderKernels.GroupSumsScanner, _threadGroupsX, 1, 1);
             
         // Shadows
-        _computeShader.SetBuffer(ShaderKernels.GroupSumsScanner, ShaderProperties.GroupSumsInput,  _context.ShadowsGroupSumsBuffer);
-        _computeShader.SetBuffer(ShaderKernels.GroupSumsScanner, ShaderProperties.GroupSumsOutput, _context.ShadowsScannedGroupSums);
+        _computeShader.SetBuffer(ShaderKernels.GroupSumsScanner, ShaderProperties.GroupSumsInput,  _context.GroupSums.Shadows);
+        _computeShader.SetBuffer(ShaderKernels.GroupSumsScanner, ShaderProperties.GroupSumsOutput, _context.ScannedGroupSums.ShadowsScannedGroupSums);
         
         _computeShader.Dispatch(ShaderKernels.GroupSumsScanner, _threadGroupsX, 1, 1);
     }

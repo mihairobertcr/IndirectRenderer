@@ -25,43 +25,43 @@ public class InstancesDataCopier
         InitializeMaterialProperties(properties);
 
         
-        _computeShader.SetInt(ShaderProperties.NumberOfDrawCalls, RendererDataContext.NUMBER_OF_ARGS_PER_INSTANCE_TYPE);
+        _computeShader.SetInt(ShaderProperties.NumberOfDrawCalls, ArgumentsBuffer.NUMBER_OF_ARGS_PER_INSTANCE_TYPE);
         
         _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.BoundsData,   _context.BoundsData);
-        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.MatrixRows01, _context.MatrixRows01);
-        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.MatrixRows23, _context.MatrixRows23);
-        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.MatrixRows45, _context.MatrixRows45);
-        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.SortingData,  _context.SortingData);
+        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.MatrixRows01, _context.Transform.MatrixRows01);
+        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.MatrixRows23, _context.Transform.MatrixRows23);
+        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.MatrixRows45, _context.Transform.MatrixRows45);
+        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.SortingData,  _context.Sorting.SortingData);
     }
 
     public void Dispatch()
     {
         // Normal
-        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.PredicatesInput,     _context.IsVisible);
-        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.GroupSums,           _context.ScannedGroupSums);
-        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.ScannedPredicates,   _context.ScannedPredicates);
-        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.CulledMatrixRows01,  _context.CulledMatrixRows01);
-        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.CulledMatrixRows23,  _context.CulledMatrixRows23);
-        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.CulledMatrixRows45,  _context.CulledMatrixRows45);
-        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.DrawCallsDataOutput, _context.Args);
+        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.PredicatesInput,     _context.Visibility.IsVisible);
+        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.GroupSums,           _context.ScannedGroupSums.ScannedGroupSums);
+        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.ScannedPredicates,   _context.ScannedPredicates.ScannedPredicates);
+        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.CulledMatrixRows01,  _context.Transform.CulledMatrixRows01);
+        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.CulledMatrixRows23,  _context.Transform.CulledMatrixRows23);
+        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.CulledMatrixRows45,  _context.Transform.CulledMatrixRows45);
+        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.DrawCallsDataOutput, _context.Arguments.Args);
 
         _computeShader.Dispatch(ShaderKernels.DataCopier, _copyInstanceDataGroupX, 1, 1);
         
         // Shadows
-        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.PredicatesInput,     _context.IsShadowVisible);
-        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.GroupSums,           _context.ShadowsScannedGroupSums);
-        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.ScannedPredicates,   _context.ShadowsScannedPredicates);
-        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.CulledMatrixRows01,  _context.ShadowsCulledMatrixRows01);
-        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.CulledMatrixRows23,  _context.ShadowsCulledMatrixRows23);
-        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.CulledMatrixRows45,  _context.ShadowsCulledMatrixRows45);
-        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.DrawCallsDataOutput, _context.ShadowsArgs);
+        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.PredicatesInput,     _context.Visibility.IsShadowVisible);
+        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.GroupSums,           _context.ScannedGroupSums.ShadowsScannedGroupSums);
+        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.ScannedPredicates,   _context.ScannedPredicates.ShadowsScannedPredicates);
+        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.CulledMatrixRows01,  _context.Transform.ShadowsCulledMatrixRows01);
+        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.CulledMatrixRows23,  _context.Transform.ShadowsCulledMatrixRows23);
+        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.CulledMatrixRows45,  _context.Transform.ShadowsCulledMatrixRows45);
+        _computeShader.SetBuffer(ShaderKernels.DataCopier, ShaderProperties.DrawCallsDataOutput, _context.Arguments.ShadowsArgs);
         
         _computeShader.Dispatch(ShaderKernels.DataCopier, _copyInstanceDataGroupX, 1, 1);
         
-        _computeShader.SetBuffer(ShaderKernels.ArgumentsSplitter, ShaderProperties.DrawCallsDataOutput, _context.Args);
-        _computeShader.SetBuffer(ShaderKernels.ArgumentsSplitter, ShaderProperties.LodArgs0, _context.LodArgs0);
-        _computeShader.SetBuffer(ShaderKernels.ArgumentsSplitter, ShaderProperties.LodArgs1, _context.LodArgs1);
-        _computeShader.SetBuffer(ShaderKernels.ArgumentsSplitter, ShaderProperties.LodArgs2, _context.LodArgs2);
+        _computeShader.SetBuffer(ShaderKernels.ArgumentsSplitter, ShaderProperties.DrawCallsDataOutput, _context.Arguments.Args);
+        _computeShader.SetBuffer(ShaderKernels.ArgumentsSplitter, ShaderProperties.LodArgs0, _context.Arguments.LodArgs0);
+        _computeShader.SetBuffer(ShaderKernels.ArgumentsSplitter, ShaderProperties.LodArgs1, _context.Arguments.LodArgs1);
+        _computeShader.SetBuffer(ShaderKernels.ArgumentsSplitter, ShaderProperties.LodArgs2, _context.Arguments.LodArgs2);
         
         _computeShader.Dispatch(ShaderKernels.ArgumentsSplitter, 1, 1, 1);
     }
@@ -80,36 +80,36 @@ public class InstancesDataCopier
         // properties.Lod1PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, RendererDataContext.Args);
         // properties.Lod2PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, RendererDataContext.Args);
         
-        properties.Lod0PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _context.LodArgs0);
-        properties.Lod1PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _context.LodArgs1);
-        properties.Lod2PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _context.LodArgs2);
+        properties.Lod0PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _context.Arguments.LodArgs0);
+        properties.Lod1PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _context.Arguments.LodArgs1);
+        properties.Lod2PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _context.Arguments.LodArgs2);
         
-        properties.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _context.ShadowsArgs);
-        properties.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _context.ShadowsArgs);
-        properties.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _context.ShadowsArgs);
+        properties.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _context.Arguments.ShadowsArgs);
+        properties.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _context.Arguments.ShadowsArgs);
+        properties.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _context.Arguments.ShadowsArgs);
         
-        properties.Lod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _context.CulledMatrixRows01);
-        properties.Lod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _context.CulledMatrixRows01);
-        properties.Lod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _context.CulledMatrixRows01);
+        properties.Lod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _context.Transform.CulledMatrixRows01);
+        properties.Lod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _context.Transform.CulledMatrixRows01);
+        properties.Lod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _context.Transform.CulledMatrixRows01);
             
-        properties.Lod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _context.CulledMatrixRows23);
-        properties.Lod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _context.CulledMatrixRows23);
-        properties.Lod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _context.CulledMatrixRows23);
+        properties.Lod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _context.Transform.CulledMatrixRows23);
+        properties.Lod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _context.Transform.CulledMatrixRows23);
+        properties.Lod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _context.Transform.CulledMatrixRows23);
             
-        properties.Lod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _context.CulledMatrixRows45);
-        properties.Lod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _context.CulledMatrixRows45);
-        properties.Lod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _context.CulledMatrixRows45);
+        properties.Lod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _context.Transform.CulledMatrixRows45);
+        properties.Lod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _context.Transform.CulledMatrixRows45);
+        properties.Lod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _context.Transform.CulledMatrixRows45);
         
-        properties.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _context.ShadowsCulledMatrixRows01);
-        properties.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _context.ShadowsCulledMatrixRows01);
-        properties.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _context.ShadowsCulledMatrixRows01);
+        properties.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _context.Transform.ShadowsCulledMatrixRows01);
+        properties.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _context.Transform.ShadowsCulledMatrixRows01);
+        properties.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _context.Transform.ShadowsCulledMatrixRows01);
             
-        properties.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _context.ShadowsCulledMatrixRows23);
-        properties.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _context.ShadowsCulledMatrixRows23);
-        properties.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _context.ShadowsCulledMatrixRows23);
+        properties.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _context.Transform.ShadowsCulledMatrixRows23);
+        properties.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _context.Transform.ShadowsCulledMatrixRows23);
+        properties.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _context.Transform.ShadowsCulledMatrixRows23);
             
-        properties.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _context.ShadowsCulledMatrixRows45);
-        properties.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _context.ShadowsCulledMatrixRows45);
-        properties.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _context.ShadowsCulledMatrixRows45);
+        properties.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _context.Transform.ShadowsCulledMatrixRows45);
+        properties.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _context.Transform.ShadowsCulledMatrixRows45);
+        properties.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _context.Transform.ShadowsCulledMatrixRows45);
     }
 }
