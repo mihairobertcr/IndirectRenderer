@@ -1,12 +1,10 @@
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using UnityEngine;
 using IndirectRendering;
 
 public class InstancesCuller
 {
     private readonly ComputeShader _computeShader;
-    private readonly int _numberOfInstances;
     
     private readonly Camera _camera;
     private readonly int _occlusionGroupX;
@@ -14,15 +12,13 @@ public class InstancesCuller
 
     private readonly RendererDataContext _context;
 
-    public InstancesCuller(ComputeShader computeShader, int numberOfInstances, RendererDataContext context,
-        Camera camera, Camera debugCamera = null)
+    public InstancesCuller(ComputeShader computeShader, RendererDataContext context, Camera camera)
     {
         _computeShader = computeShader;
-        _numberOfInstances = numberOfInstances;
         _context = context;
         
         _camera = camera;
-        _occlusionGroupX = Mathf.Max(1, _numberOfInstances / 64);
+        _occlusionGroupX = Mathf.Max(1, _context.MeshesCount / 64);
     }
 
     public void Initialize(List<Vector3> positions, List<Vector3> scales, IndirectRendererSettings settings, HierarchicalDepthBufferConfig hiZBufferConfig)
@@ -74,7 +70,6 @@ public class InstancesCuller
         var modelViewProjection = projectionMatrix * worldMatrix;
         var cameraPosition = _camera.transform.position;
         
-        // Input
         _computeShader.SetMatrix(ShaderProperties.MvpMatrix, modelViewProjection);
         _computeShader.SetVector(ShaderProperties.CameraPosition, cameraPosition);
               

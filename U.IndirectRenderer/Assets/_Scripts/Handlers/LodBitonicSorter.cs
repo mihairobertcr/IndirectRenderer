@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 using UnityEngine.Rendering;
 using IndirectRendering;
@@ -13,14 +12,12 @@ public class LodBitonicSorter
     
     private readonly ComputeShader _computeShader;
     private readonly CommandBuffer _commandBuffer;
-    private readonly int _numberOfInstances;
 
     private readonly RendererDataContext _context;
 
-    public LodBitonicSorter(ComputeShader computeShader, int numberOfInstances, RendererDataContext context)
+    public LodBitonicSorter(ComputeShader computeShader, RendererDataContext context)
     {
         _computeShader = computeShader;
-        _numberOfInstances = numberOfInstances;
         _context = context;
         _commandBuffer = new CommandBuffer { name = "AsyncGPUSorting" };
     }
@@ -50,13 +47,10 @@ public class LodBitonicSorter
         }
     }
     
-    // TODO: #EDITOR
-
-
     private void InitializeSorterBuffers(List<Vector3> positions, Vector3 cameraPosition)
     {
         var sortingData = new List<SortingData>();
-        for (var i = 0; i < _numberOfInstances; i++)
+        for (var i = 0; i < _context.MeshesCount; i++)
         {
             sortingData.Add(new SortingData
             {
@@ -72,7 +66,7 @@ public class LodBitonicSorter
     private void CreateSortingCommandBuffer()
     {
         // Parameters.
-        var elements = (uint)_numberOfInstances;
+        var elements = (uint)_context.MeshesCount;
         var width = BITONIC_BLOCK_SIZE;
         var height = elements / BITONIC_BLOCK_SIZE;
 

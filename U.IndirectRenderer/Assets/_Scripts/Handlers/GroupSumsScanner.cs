@@ -5,15 +5,13 @@ public class GroupSumsScanner
     private const int  SCAN_THREAD_GROUP_SIZE = 64; // TODO: Move to base class
 
     private readonly ComputeShader _computeShader;
-    private readonly int _numberOfInstances;
     private readonly int _threadGroupsX;
 
     private readonly RendererDataContext _context;
 
-    public GroupSumsScanner(ComputeShader computeShader, int numberOfInstances, RendererDataContext context)
+    public GroupSumsScanner(ComputeShader computeShader, RendererDataContext context)
     {
         _computeShader = computeShader;
-        _numberOfInstances = numberOfInstances;
         _threadGroupsX = 1;
 
         _context = context;
@@ -21,7 +19,7 @@ public class GroupSumsScanner
 
     public void Initialize()
     {
-        _computeShader.SetInt(ShaderProperties.NumberOfGroups, _numberOfInstances / (2 * SCAN_THREAD_GROUP_SIZE));
+        _computeShader.SetInt(ShaderProperties.NumberOfGroups, _context.MeshesCount / (2 * SCAN_THREAD_GROUP_SIZE));
     }
 
     public void Dispatch()

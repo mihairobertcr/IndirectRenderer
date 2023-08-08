@@ -49,12 +49,12 @@ public class IndirectRenderer : IDisposable
         ShaderKernels.Initialize(_config);
         _context = new RendererDataContext(_meshProperties, _numberOfInstances, _config);
 
-        _matricesInitializer = new MatricesInitializer(_config.MatricesInitializer, _numberOfInstances, _context); //, _meshProperties);
-        _lodBitonicSorter = new LodBitonicSorter(_config.LodBitonicSorter, _numberOfInstances, _context);
-        _instancesCuller = new InstancesCuller(_config.InstancesCuller, _numberOfInstances, _context, _config.RenderCamera);
-        _instancesScanner = new InstancesScanner(_config.InstancesScanner, _numberOfInstances, _context);
-        _groupSumsScanner = new GroupSumsScanner(_config.GroupSumsScanner, _numberOfInstances, _context);
-        _dataCopier = new InstancesDataCopier(_config.InstancesDataCopier, _numberOfInstances, _context);
+        _matricesInitializer = new MatricesInitializer(_config.MatricesInitializer, _context);
+        _lodBitonicSorter = new LodBitonicSorter(_config.LodBitonicSorter, _context);
+        _instancesCuller = new InstancesCuller(_config.InstancesCuller, _context, _config.RenderCamera);
+        _instancesScanner = new InstancesScanner(_config.InstancesScanner, _context);
+        _groupSumsScanner = new GroupSumsScanner(_config.GroupSumsScanner, _context);
+        _dataCopier = new InstancesDataCopier(_config.InstancesDataCopier, _context);
         
 
         Initialize(positions, rotations, scales);

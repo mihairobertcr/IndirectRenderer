@@ -5,19 +5,16 @@ public class InstancesScanner
     private const int SCAN_THREAD_GROUP_SIZE = 64; //TODO: Move to base class
     
     private readonly ComputeShader _computeShader;
-    private readonly int _numberOfInstances;
-    
     private readonly int _scanInstancesGroupX;
 
     private readonly RendererDataContext _context;
 
-    public InstancesScanner(ComputeShader computeShader, int numberOfInstances, RendererDataContext context)
+    public InstancesScanner(ComputeShader computeShader, RendererDataContext context)
     {
         _computeShader = computeShader;
-        _numberOfInstances = numberOfInstances;
         _context = context;
         
-        _scanInstancesGroupX = Mathf.Max(1, numberOfInstances / (2 * SCAN_THREAD_GROUP_SIZE)); //TODO: Extract common method for groups
+        _scanInstancesGroupX = Mathf.Max(1, _context.MeshesCount / (2 * SCAN_THREAD_GROUP_SIZE)); //TODO: Extract common method for groups
     }
 
     public void Initialize()
