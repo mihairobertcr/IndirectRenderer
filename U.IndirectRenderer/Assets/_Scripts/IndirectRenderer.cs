@@ -219,7 +219,7 @@ public class IndirectRenderer : IDisposable
                 submeshIndex: 0,
                 material: _meshProperties.Material,
                 bounds: _bounds,
-                bufferWithArgs: _context.Arguments.LodArgs0, //RendererDataContext.Args,
+                bufferWithArgs: _context.Arguments.LodArgs0, //RendererDataContext.Meshes,
                 argsOffset: 0,// ARGS_BYTE_SIZE_PER_DRAW_CALL * 0,
                 properties: _meshProperties.Lod0PropertyBlock,
                 castShadows: ShadowCastingMode.On);
@@ -230,7 +230,7 @@ public class IndirectRenderer : IDisposable
                 submeshIndex: 0,
                 material: _meshProperties.Material,
                 bounds: _bounds,
-                bufferWithArgs: _context.Arguments.LodArgs1, //RendererDataContext.Args,
+                bufferWithArgs: _context.Arguments.LodArgs1, //RendererDataContext.Meshes,
                 argsOffset: 0, //ARGS_BYTE_SIZE_PER_DRAW_CALL * 1,
                 properties: _meshProperties.Lod1PropertyBlock,
                 castShadows: ShadowCastingMode.On);
@@ -242,7 +242,7 @@ public class IndirectRenderer : IDisposable
             submeshIndex: 0,
             material: _meshProperties.Material,
             bounds: _bounds,
-            bufferWithArgs: _context.Arguments.LodArgs2, //RendererDataContext.Args,
+            bufferWithArgs: _context.Arguments.LodArgs2, //RendererDataContext.Meshes,
             argsOffset: 0, //ARGS_BYTE_SIZE_PER_DRAW_CALL * 2,
             properties: _meshProperties.Lod2PropertyBlock,
             castShadows: ShadowCastingMode.On);

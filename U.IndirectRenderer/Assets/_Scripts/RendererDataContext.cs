@@ -27,19 +27,18 @@ public class MatrixBuffer : IDisposable
 
 public class ArgumentsBuffer : IDisposable
 {
-    public ComputeBuffer Args { get; }
-    public ComputeBuffer ShadowsArgs { get; }
+    public ComputeBuffer Meshes { get; }
+    public ComputeBuffer Shadows { get; }
 
     public ComputeBuffer LodArgs0 { get; }
     public ComputeBuffer LodArgs1 { get; }
     public ComputeBuffer LodArgs2 { get; }
 
-    public const int NUMBER_OF_ARGS_PER_INSTANCE_TYPE = NUMBER_OF_DRAW_CALLS * NUMBER_OF_ARGS_PER_DRAW; // 3draws * 5args = 15args
+    public const int ARGS_PER_INSTANCE_TYPE_COUNT = DRAW_CALLS_COUNT * ARGS_PER_DRAW_COUNT;
 
-    private const int NUMBER_OF_DRAW_CALLS = 3; // (LOD00 + LOD01 + LOD02)
-    private const int NUMBER_OF_ARGS_PER_DRAW = 5; // (indexCount, instanceCount, startIndex, baseVertex, startInstance)
-
-    private const int ARGS_BYTE_SIZE_PER_DRAW_CALL = NUMBER_OF_ARGS_PER_DRAW * sizeof(uint); // 5args * 4bytes = 20 bytes
+    private const int DRAW_CALLS_COUNT = 3;
+    private const int ARGS_PER_DRAW_COUNT = 5;
+    private const int ARGS_BYTE_SIZE_PER_DRAW_CALL = ARGS_PER_DRAW_COUNT * sizeof(uint);
 
     private readonly MeshProperties _meshProperties;
     private readonly uint[] _args;
@@ -49,8 +48,8 @@ public class ArgumentsBuffer : IDisposable
         _meshProperties = meshProperties;
         _args = InitializeArgumentsBuffer();
 
-        Args = new ComputeBuffer(NUMBER_OF_ARGS_PER_INSTANCE_TYPE, sizeof(uint), ComputeBufferType.IndirectArguments);
-        ShadowsArgs = new ComputeBuffer(NUMBER_OF_ARGS_PER_INSTANCE_TYPE, sizeof(uint), ComputeBufferType.IndirectArguments);
+        Meshes = new ComputeBuffer(ARGS_PER_INSTANCE_TYPE_COUNT, sizeof(uint), ComputeBufferType.IndirectArguments);
+        Shadows = new ComputeBuffer(ARGS_PER_INSTANCE_TYPE_COUNT, sizeof(uint), ComputeBufferType.IndirectArguments);
         Reset();
 
         var args0 = new uint[] { 0, 0, 0, 0, 0 };
@@ -77,14 +76,14 @@ public class ArgumentsBuffer : IDisposable
 
     public void Reset()
     {
-        Args.SetData(_args);
-        ShadowsArgs.SetData(_args);
+        Meshes.SetData(_args);
+        Shadows.SetData(_args);
     }
 
     public void Dispose()
     {
-        Args?.Dispose();
-        ShadowsArgs?.Dispose();
+        Meshes?.Dispose();
+        Shadows?.Dispose();
         LodArgs0?.Dispose();
         LodArgs1?.Dispose();
         LodArgs2?.Dispose();
@@ -92,10 +91,10 @@ public class ArgumentsBuffer : IDisposable
 
     public void Log(string instancePrefix = "", string shadowPrefix = "")
     {
-        var args = new uint[NUMBER_OF_ARGS_PER_INSTANCE_TYPE];
-        var shadowArgs = new uint[NUMBER_OF_ARGS_PER_INSTANCE_TYPE];
-        Args.GetData(args);
-        ShadowsArgs.GetData(shadowArgs);
+        var args = new uint[ARGS_PER_INSTANCE_TYPE_COUNT];
+        var shadowArgs = new uint[ARGS_PER_INSTANCE_TYPE_COUNT];
+        Meshes.GetData(args);
+        Shadows.GetData(shadowArgs);
 
         var instancesSB = new StringBuilder();
         var shadowsSB = new StringBuilder();
@@ -120,7 +119,7 @@ public class ArgumentsBuffer : IDisposable
             instancesSB.AppendLine("");
             shadowsSB.AppendLine("");
 
-            if ((i + 1) >= args.Length || (i + 1) % NUMBER_OF_ARGS_PER_INSTANCE_TYPE != 0) continue;
+            if ((i + 1) >= args.Length || (i + 1) % ARGS_PER_INSTANCE_TYPE_COUNT != 0) continue;
             instancesSB.AppendLine("");
             shadowsSB.AppendLine("");
 
@@ -135,28 +134,28 @@ public class ArgumentsBuffer : IDisposable
 
     private uint[] InitializeArgumentsBuffer()
     {
-        var args = new uint[NUMBER_OF_ARGS_PER_INSTANCE_TYPE];
+        var args = new uint[ARGS_PER_INSTANCE_TYPE_COUNT];
 
         // Lod 0
         args[0] = _meshProperties.Lod0Indices; // 0 - index count per instance, 
-        args[1] = 0; // 1 - instance count
-        args[2] = 0; // 2 - start index location
-        args[3] = 0; // 3 - base vertex location
-        args[4] = 0; // 4 - start instance location
+        args[1] = 0;                           // 1 - instance count
+        args[2] = 0;                           // 2 - start index location
+        args[3] = 0;                           // 3 - base vertex location
+        args[4] = 0;                           // 4 - start instance location
 
         // Lod 1
         args[5] = _meshProperties.Lod1Indices; // 0 - index count per instance, 
-        args[6] = 0; // 1 - instance count
-        args[7] = args[0] + args[2]; // 2 - start index location
-        args[8] = 0; // 3 - base vertex location
-        args[9] = 0; // 4 - start instance location
+        args[6] = 0;                           // 1 - instance count
+        args[7] = args[0] + args[2];           // 2 - start index location
+        args[8] = 0;                           // 3 - base vertex location
+        args[9] = 0;                           // 4 - start instance location
 
         // Lod 2
         args[10] = _meshProperties.Lod2Indices; // 0 - index count per instance, 
-        args[11] = 0; // 1 - instance count
-        args[12] = args[5] + args[7]; // 2 - start index location
-        args[13] = 0; // 3 - base vertex location
-        args[14] = 0; // 4 - start instance location
+        args[11] = 0;                           // 1 - instance count
+        args[12] = args[5] + args[7];           // 2 - start index location
+        args[13] = 0;                           // 3 - base vertex location
+        args[14] = 0;                           // 4 - start instance location
 
         return args;
     }

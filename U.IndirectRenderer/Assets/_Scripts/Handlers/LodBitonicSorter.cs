@@ -60,7 +60,7 @@ public class LodBitonicSorter
         {
             sortingData.Add(new SortingData
             {
-                DrawCallInstanceIndex = (((uint)0 * ArgumentsBuffer.NUMBER_OF_ARGS_PER_INSTANCE_TYPE) << 16) + ((uint)i), // 0 might be the index of the type in this case
+                DrawCallInstanceIndex = (((uint)0 * ArgumentsBuffer.ARGS_PER_INSTANCE_TYPE_COUNT) << 16) + ((uint)i), // 0 might be the index of the type in this case
                 DistanceToCamera = Vector3.Distance(positions[i], cameraPosition)
             });
         }
