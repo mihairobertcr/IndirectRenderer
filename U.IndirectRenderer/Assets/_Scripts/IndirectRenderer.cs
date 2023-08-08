@@ -189,7 +189,7 @@ public class IndirectRenderer : IDisposable
         if (_config.LogCulledMatrices)
         {
             _config.LogCulledMatrices = false;
-            LogCulledInstancesDrawMatrices("LogCulledMatrices - Instances", "LogCulledMatrices - Shadows");
+            _context.Transform.LogCulledMatrices("LogCulledMatrices - Instances", "LogCulledMatrices - Shadows");
         }
         
         if (_config.LogArgsBufferAfterCopy)
@@ -295,56 +295,5 @@ public class IndirectRenderer : IDisposable
         return properties;
     }
 
-    private void LogCulledInstancesDrawMatrices(string instancePrefix = "", string shadowPrefix = "")
-    {
-        var instancesMatrix1 = new Indirect2x2Matrix[_numberOfInstances];
-        var instancesMatrix2 = new Indirect2x2Matrix[_numberOfInstances];
-        var instancesMatrix3 = new Indirect2x2Matrix[_numberOfInstances];
-        _context.Transform.CulledMatrixRows01.GetData(instancesMatrix1);
-        _context.Transform.CulledMatrixRows23.GetData(instancesMatrix2);
-        _context.Transform.CulledMatrixRows45.GetData(instancesMatrix3);
-        
-        var shadowsMatrix1 = new Indirect2x2Matrix[_numberOfInstances];
-        var shadowsMatrix2 = new Indirect2x2Matrix[_numberOfInstances];
-        var shadowsMatrix3 = new Indirect2x2Matrix[_numberOfInstances];
-        _context.Transform.ShadowsCulledMatrixRows01.GetData(shadowsMatrix1);
-        _context.Transform.ShadowsCulledMatrixRows23.GetData(shadowsMatrix2);
-        _context.Transform.ShadowsCulledMatrixRows45.GetData(shadowsMatrix3);
-        
-        var instancesSB = new StringBuilder();
-        var shadowsSB = new StringBuilder();
-        
-        if (!string.IsNullOrEmpty(instancePrefix)){ instancesSB.AppendLine(instancePrefix); }
-        if (!string.IsNullOrEmpty(shadowPrefix))  { shadowsSB.AppendLine(shadowPrefix); }
-        
-        for (int i = 0; i < instancesMatrix1.Length; i++)
-        {
-            instancesSB.AppendLine(
-                i + "\n" 
-                + instancesMatrix1[i].FirstRow + "\n"
-                + instancesMatrix1[i].SecondRow + "\n"
-                + instancesMatrix2[i].FirstRow + "\n"
-                + "\n\n"
-                + instancesMatrix2[i].SecondRow + "\n"
-                + instancesMatrix3[i].FirstRow + "\n"
-                + instancesMatrix3[i].SecondRow + "\n"
-                + "\n"
-            );
-            
-            shadowsSB.AppendLine(
-                i + "\n" 
-                + shadowsMatrix1[i].FirstRow + "\n"
-                + shadowsMatrix1[i].SecondRow + "\n"
-                + shadowsMatrix2[i].FirstRow + "\n"
-                + "\n\n"
-                + shadowsMatrix2[i].SecondRow + "\n"
-                + shadowsMatrix3[i].FirstRow + "\n"
-                + shadowsMatrix3[i].SecondRow + "\n"
-                + "\n"
-            );
-        }
-
-        Debug.Log(instancesSB.ToString());
-        Debug.Log(shadowsSB.ToString());
-    }
+ 
 }

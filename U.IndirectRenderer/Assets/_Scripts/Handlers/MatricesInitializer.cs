@@ -52,8 +52,8 @@ public class MatricesInitializer
         _computeShader.SetBuffer(ShaderKernels.MatricesInitializer, ShaderProperties.Positions, _context.Transform.PositionsBuffer);
         _computeShader.SetBuffer(ShaderKernels.MatricesInitializer, ShaderProperties.Rotations, _context.Transform.RotationsBuffer);
         _computeShader.SetBuffer(ShaderKernels.MatricesInitializer, ShaderProperties.Scales, _context.Transform.ScalesBuffer);
-        _computeShader.SetBuffer(ShaderKernels.MatricesInitializer, ShaderProperties.MatrixRows01, _context.Transform.MatrixRows01);
-        _computeShader.SetBuffer(ShaderKernels.MatricesInitializer, ShaderProperties.MatrixRows23, _context.Transform.MatrixRows23);
-        _computeShader.SetBuffer(ShaderKernels.MatricesInitializer, ShaderProperties.MatrixRows45, _context.Transform.MatrixRows45);
+        _computeShader.SetBuffer(ShaderKernels.MatricesInitializer, ShaderProperties.MatrixRows01, _context.Transform.Matrix.Rows01);
+        _computeShader.SetBuffer(ShaderKernels.MatricesInitializer, ShaderProperties.MatrixRows23, _context.Transform.Matrix.Rows23);
+        _computeShader.SetBuffer(ShaderKernels.MatricesInitializer, ShaderProperties.MatrixRows45, _context.Transform.Matrix.Rows45);
     }
 }
