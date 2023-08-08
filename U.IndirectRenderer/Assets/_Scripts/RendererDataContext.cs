@@ -13,14 +13,12 @@ public class ArgumentsBuffer : IDisposable
     public ComputeBuffer LodArgs1 { get; }
     public ComputeBuffer LodArgs2 { get; }
 
-    public const int
-        NUMBER_OF_ARGS_PER_INSTANCE_TYPE = NUMBER_OF_DRAW_CALLS * NUMBER_OF_ARGS_PER_DRAW; // 3draws * 5args = 15args
+    public const int NUMBER_OF_ARGS_PER_INSTANCE_TYPE = NUMBER_OF_DRAW_CALLS * NUMBER_OF_ARGS_PER_DRAW; // 3draws * 5args = 15args
 
     private const int NUMBER_OF_DRAW_CALLS = 3; // (LOD00 + LOD01 + LOD02)
     private const int NUMBER_OF_ARGS_PER_DRAW = 5; // (indexCount, instanceCount, startIndex, baseVertex, startInstance)
 
-    private const int
-        ARGS_BYTE_SIZE_PER_DRAW_CALL = NUMBER_OF_ARGS_PER_DRAW * sizeof(uint); // 5args * 4bytes = 20 bytes
+    private const int ARGS_BYTE_SIZE_PER_DRAW_CALL = NUMBER_OF_ARGS_PER_DRAW * sizeof(uint); // 5args * 4bytes = 20 bytes
 
     private readonly MeshProperties _meshProperties;
     private readonly uint[] _args;
@@ -31,8 +29,7 @@ public class ArgumentsBuffer : IDisposable
         _args = InitializeArgumentsBuffer();
 
         Args = new ComputeBuffer(NUMBER_OF_ARGS_PER_INSTANCE_TYPE, sizeof(uint), ComputeBufferType.IndirectArguments);
-        ShadowsArgs = new ComputeBuffer(NUMBER_OF_ARGS_PER_INSTANCE_TYPE, sizeof(uint),
-            ComputeBufferType.IndirectArguments);
+        ShadowsArgs = new ComputeBuffer(NUMBER_OF_ARGS_PER_INSTANCE_TYPE, sizeof(uint), ComputeBufferType.IndirectArguments);
         Reset();
 
         var args0 = new uint[] { 0, 0, 0, 0, 0 };
@@ -72,7 +69,7 @@ public class ArgumentsBuffer : IDisposable
         LodArgs2?.Dispose();
     }
 
-    public void LogArgumentsBuffers(string instancePrefix = "", string shadowPrefix = "")
+    public void Log(string instancePrefix = "", string shadowPrefix = "")
     {
         var args = new uint[NUMBER_OF_ARGS_PER_INSTANCE_TYPE];
         var shadowArgs = new uint[NUMBER_OF_ARGS_PER_INSTANCE_TYPE];
@@ -88,10 +85,8 @@ public class ArgumentsBuffer : IDisposable
         instancesSB.AppendLine("");
         shadowsSB.AppendLine("");
 
-        instancesSB.AppendLine(
-            "IndexCountPerInstance InstanceCount StartIndexLocation BaseVertexLocation StartInstanceLocation");
-        shadowsSB.AppendLine(
-            "IndexCountPerInstance InstanceCount StartIndexLocation BaseVertexLocation StartInstanceLocation");
+        instancesSB.AppendLine("IndexCountPerInstance InstanceCount StartIndexLocation BaseVertexLocation StartInstanceLocation");
+        shadowsSB.AppendLine("IndexCountPerInstance InstanceCount StartIndexLocation BaseVertexLocation StartInstanceLocation");
 
         instancesSB.AppendLine(_meshProperties.Mesh.name);
         shadowsSB.AppendLine(_meshProperties.Mesh.name);
@@ -164,6 +159,8 @@ public class TransformBuffer : IDisposable
     public ComputeBuffer ShadowsCulledMatrixRows23 { get; }
     public ComputeBuffer ShadowsCulledMatrixRows45 { get; }
 
+    private readonly int _count;
+
     public TransformBuffer(int count)
     {
         PositionsBuffer = new ComputeBuffer(count, Marshal.SizeOf(typeof(Vector3)), ComputeBufferType.Default);
@@ -181,6 +178,8 @@ public class TransformBuffer : IDisposable
         ShadowsCulledMatrixRows01 = new ComputeBuffer(count, Indirect2x2Matrix.Size, ComputeBufferType.Default);
         ShadowsCulledMatrixRows23 = new ComputeBuffer(count, Indirect2x2Matrix.Size, ComputeBufferType.Default);
         ShadowsCulledMatrixRows45 = new ComputeBuffer(count, Indirect2x2Matrix.Size, ComputeBufferType.Default);
+
+        _count = count;
     }
 
     public void Dispose()
@@ -198,53 +197,110 @@ public class TransformBuffer : IDisposable
         ShadowsCulledMatrixRows23?.Dispose();
         ShadowsCulledMatrixRows45?.Dispose();
     }
+    
+    public void LogMatrices(string prefix = "")
+    {
+        var matrix1 = new Indirect2x2Matrix[_count];
+        var matrix2 = new Indirect2x2Matrix[_count];
+        var matrix3 = new Indirect2x2Matrix[_count];
+
+        MatrixRows01.GetData(matrix1);
+        MatrixRows23.GetData(matrix2);
+        MatrixRows45.GetData(matrix3);
+
+        var stringBuilder = new StringBuilder();
+        if (!string.IsNullOrEmpty(prefix))
+        {
+            stringBuilder.AppendLine(prefix);
+        }
+
+        for (var i = 0; i < matrix1.Length; i++)
+        {
+            stringBuilder.AppendLine(
+                i + "\n"
+                  + matrix1[i].FirstRow + "\n"
+                  + matrix1[i].SecondRow + "\n"
+                  + matrix2[i].FirstRow + "\n"
+                  + "\n\n"
+                  + matrix2[i].SecondRow + "\n"
+                  + matrix3[i].FirstRow + "\n"
+                  + matrix3[i].SecondRow + "\n"
+                  + "\n"
+            );
+        }
+
+        Debug.Log(stringBuilder.ToString());
+    }
 }
 
 public class SortingBuffer : IDisposable
 {
-    public ComputeBuffer SortingData { get; }
-    public ComputeBuffer SortingDataTemp { get; }
+    public ComputeBuffer Data { get; }
+    public ComputeBuffer Temp { get; }
+
+    private readonly int _count;
 
     public SortingBuffer(int count)
     {
-        SortingData = new ComputeBuffer(count, IndirectRendering.SortingData.Size, ComputeBufferType.Default);
-        SortingDataTemp = new ComputeBuffer(count, IndirectRendering.SortingData.Size, ComputeBufferType.Default);
+        Data = new ComputeBuffer(count, IndirectRendering.SortingData.Size, ComputeBufferType.Default);
+        Temp = new ComputeBuffer(count, IndirectRendering.SortingData.Size, ComputeBufferType.Default);
+
+        _count = count;
     }
 
     public void Dispose()
     {
-        SortingData?.Dispose();
-        SortingDataTemp?.Dispose();
+        Data?.Dispose();
+        Temp?.Dispose();
+    }
+    
+    public void Log(string prefix = "")
+    {
+        var sortingData = new SortingData[_count];
+        Data.GetData(sortingData);
+        
+        var stringBuilder = new StringBuilder();
+        if (!string.IsNullOrEmpty(prefix))
+        {
+            stringBuilder.AppendLine(prefix);
+        }
+        
+        uint lastDrawCallIndex = 0;
+        for (var i = 0; i < sortingData.Length; i++)
+        {
+            var drawCallIndex = (sortingData[i].DrawCallInstanceIndex >> 16);
+            var instanceIndex = (sortingData[i].DrawCallInstanceIndex) & 0xFFFF;
+            if (i == 0)
+            {
+                lastDrawCallIndex = drawCallIndex;
+            }
+            
+            stringBuilder.AppendLine($"({drawCallIndex}) --> {sortingData[i].DistanceToCamera} instanceIndex:{instanceIndex}");
+
+            if (lastDrawCallIndex == drawCallIndex) continue;
+            
+            Debug.Log(stringBuilder.ToString());
+            stringBuilder = new StringBuilder();
+            lastDrawCallIndex = drawCallIndex;
+        }
+
+        Debug.Log(stringBuilder.ToString());
     }
 }
 
-public class VisibilityBuffer : IDisposable
-{
-    public ComputeBuffer IsVisible { get; }
-    public ComputeBuffer IsShadowVisible { get; }
-
-    public VisibilityBuffer(int count)
-    {
-        IsVisible = new ComputeBuffer(count, sizeof(uint), ComputeBufferType.Default);
-        IsShadowVisible = new ComputeBuffer(count, sizeof(uint), ComputeBufferType.Default);
-    }
-
-    public void Dispose()
-    {
-        IsVisible?.Dispose();
-        IsShadowVisible?.Dispose();
-    }
-}
-
-public class GroupSumsBuffer : IDisposable
+public class InstancesDataBuffer : IDisposable
 {
     public ComputeBuffer Meshes { get; }
     public ComputeBuffer Shadows { get; }
 
-    public GroupSumsBuffer(int count)
+    private readonly int _count;
+    
+    public InstancesDataBuffer(int count)
     {
         Meshes = new ComputeBuffer(count, sizeof(uint), ComputeBufferType.Default);
         Shadows = new ComputeBuffer(count, sizeof(uint), ComputeBufferType.Default);
+
+        _count = count;
     }
 
     public void Dispose()
@@ -252,41 +308,32 @@ public class GroupSumsBuffer : IDisposable
         Meshes?.Dispose();
         Shadows?.Dispose();
     }
-}
-
-public class ScannedPredicatesBuffer : IDisposable
-{
-    public ComputeBuffer ScannedPredicates { get; }
-    public ComputeBuffer ShadowsScannedPredicates { get; }
-
-    public ScannedPredicatesBuffer(int count)
+    
+    public virtual void Log(string meshPrefix = "", string shadowPrefix = "")
     {
-        ScannedPredicates = new ComputeBuffer(count, sizeof(uint), ComputeBufferType.Default);
-        ShadowsScannedPredicates = new ComputeBuffer(count, sizeof(uint), ComputeBufferType.Default);
-    }
+        var meshesData = new uint[_count];
+        var shadowsData = new uint[_count];
+        
+        Meshes.GetData(meshesData);
+        Shadows.GetData(shadowsData);
+        
+        var meshesLog = new StringBuilder();
+        var shadowsLog = new StringBuilder();
+        
+        if (!string.IsNullOrEmpty(meshPrefix)) 
+            meshesLog.AppendLine(meshPrefix);
+        
+        if (!string.IsNullOrEmpty(shadowPrefix)) 
+            shadowsLog.AppendLine(shadowPrefix); 
+        
+        for (var i = 0; i < meshesData.Length; i++)
+        {
+            meshesLog.AppendLine(i + ": " + meshesData[i]);
+            shadowsLog.AppendLine(i + ": " + shadowsData[i]);
+        }
 
-    public void Dispose()
-    {
-        ScannedPredicates?.Dispose();
-        ShadowsScannedPredicates?.Dispose();
-    }
-}
-
-public class ScannedGroupSumsBuffer : IDisposable
-{
-    public ComputeBuffer ScannedGroupSums { get; }
-    public ComputeBuffer ShadowsScannedGroupSums { get; }
-
-    public ScannedGroupSumsBuffer(int count)
-    {
-        ScannedGroupSums = new ComputeBuffer(count, sizeof(uint), ComputeBufferType.Default);
-        ShadowsScannedGroupSums = new ComputeBuffer(count, sizeof(uint), ComputeBufferType.Default);
-    }
-
-    public void Dispose()
-    {
-        ScannedGroupSums?.Dispose();
-        ShadowsScannedGroupSums?.Dispose();
+        Debug.Log(meshesLog.ToString());
+        Debug.Log(shadowsLog.ToString());
     }
 }
 
@@ -298,10 +345,10 @@ public class RendererDataContext
     public ArgumentsBuffer Arguments { get; }
     public TransformBuffer Transform { get; }
     public SortingBuffer Sorting { get; }
-    public VisibilityBuffer Visibility { get; }
-    public GroupSumsBuffer GroupSums { get; }
-    public ScannedPredicatesBuffer ScannedPredicates { get; }
-    public ScannedGroupSumsBuffer ScannedGroupSums { get; }
+    public InstancesDataBuffer Visibility { get; }
+    public InstancesDataBuffer GroupSums { get; }
+    public InstancesDataBuffer ScannedPredicates { get; }
+    public InstancesDataBuffer ScannedGroupSums { get; }
 
     public RendererDataContext(MeshProperties meshProperties, int meshesCount, IndirectRendererConfig config)
     {
@@ -311,14 +358,16 @@ public class RendererDataContext
         Arguments = new ArgumentsBuffer(meshProperties, config);
         Transform = new TransformBuffer(meshesCount);
         Sorting = new SortingBuffer(meshesCount);
-        Visibility = new VisibilityBuffer(meshesCount);
-        GroupSums = new GroupSumsBuffer(meshesCount);
-        ScannedPredicates = new ScannedPredicatesBuffer(meshesCount);
-        ScannedGroupSums = new ScannedGroupSumsBuffer(meshesCount);
+        Visibility = new InstancesDataBuffer(meshesCount);
+        GroupSums = new InstancesDataBuffer(meshesCount);
+        ScannedPredicates = new InstancesDataBuffer(meshesCount);
+        ScannedGroupSums = new InstancesDataBuffer(meshesCount);
     }
 
     public void Dispose()
     {
+        BoundsData?.Dispose();
+
         Arguments?.Dispose();
         Transform?.Dispose();
         Sorting?.Dispose();
@@ -326,7 +375,5 @@ public class RendererDataContext
         GroupSums?.Dispose();
         ScannedPredicates?.Dispose();
         ScannedGroupSums?.Dispose();
-
-        BoundsData?.Release();
     }
 }

@@ -51,38 +51,7 @@ public class LodBitonicSorter
     }
     
     // TODO: #EDITOR
-    public void LogSortingData(string prefix = "")
-    {
-        var sortingData = new SortingData[_numberOfInstances];
-        _context.Sorting.SortingData.GetData(sortingData);
-        
-        var stringBuilder = new StringBuilder();
-        if (!string.IsNullOrEmpty(prefix))
-        {
-            stringBuilder.AppendLine(prefix);
-        }
-        
-        uint lastDrawCallIndex = 0;
-        for (var i = 0; i < sortingData.Length; i++)
-        {
-            var drawCallIndex = (sortingData[i].DrawCallInstanceIndex >> 16);
-            var instanceIndex = (sortingData[i].DrawCallInstanceIndex) & 0xFFFF;
-            if (i == 0)
-            {
-                lastDrawCallIndex = drawCallIndex;
-            }
-            
-            stringBuilder.AppendLine($"({drawCallIndex}) --> {sortingData[i].DistanceToCamera} instanceIndex:{instanceIndex}");
 
-            if (lastDrawCallIndex == drawCallIndex) continue;
-            
-            Debug.Log(stringBuilder.ToString());
-            stringBuilder = new StringBuilder();
-            lastDrawCallIndex = drawCallIndex;
-        }
-
-        Debug.Log(stringBuilder.ToString());
-    }
 
     private void InitializeSorterBuffers(List<Vector3> positions, Vector3 cameraPosition)
     {
@@ -96,8 +65,8 @@ public class LodBitonicSorter
             });
         }
 
-        _context.Sorting.SortingData.SetData(sortingData);
-        _context.Sorting.SortingDataTemp.SetData(sortingData);
+        _context.Sorting.Data.SetData(sortingData);
+        _context.Sorting.Temp.SetData(sortingData);
     }
 
     private void CreateSortingCommandBuffer()
@@ -116,7 +85,7 @@ public class LodBitonicSorter
             SetGpuSortConstants(level, level, height, width);
 
             // Sort the row data
-            _commandBuffer.SetComputeBufferParam(_computeShader, ShaderKernels.LodSorter, ShaderProperties.Data, _context.Sorting.SortingData);
+            _commandBuffer.SetComputeBufferParam(_computeShader, ShaderKernels.LodSorter, ShaderProperties.Data, _context.Sorting.Data);
             _commandBuffer.DispatchCompute(_computeShader, ShaderKernels.LodSorter, (int)(elements / BITONIC_BLOCK_SIZE), 1, 1);
         }
 
@@ -129,22 +98,22 @@ public class LodBitonicSorter
             var mask = (l & ~elements) / BITONIC_BLOCK_SIZE;
             SetGpuSortConstants(level, mask, width, height);
 
-            _commandBuffer.SetComputeBufferParam(_computeShader, ShaderKernels.LodTransposedSorter, ShaderProperties.Input, _context.Sorting.SortingData);
-            _commandBuffer.SetComputeBufferParam(_computeShader, ShaderKernels.LodTransposedSorter, ShaderProperties.Data, _context.Sorting.SortingDataTemp);
+            _commandBuffer.SetComputeBufferParam(_computeShader, ShaderKernels.LodTransposedSorter, ShaderProperties.Input, _context.Sorting.Data);
+            _commandBuffer.SetComputeBufferParam(_computeShader, ShaderKernels.LodTransposedSorter, ShaderProperties.Data, _context.Sorting.Temp);
             _commandBuffer.DispatchCompute(_computeShader, ShaderKernels.LodTransposedSorter, (int)(width / TRANSPOSE_BLOCK_SIZE), (int)(height / TRANSPOSE_BLOCK_SIZE), 1);
 
             // Sort the transposed column data
-            _commandBuffer.SetComputeBufferParam(_computeShader, ShaderKernels.LodSorter, ShaderProperties.Data, _context.Sorting.SortingDataTemp);
+            _commandBuffer.SetComputeBufferParam(_computeShader, ShaderKernels.LodSorter, ShaderProperties.Data, _context.Sorting.Temp);
             _commandBuffer.DispatchCompute(_computeShader, ShaderKernels.LodSorter, (int)(elements / BITONIC_BLOCK_SIZE), 1, 1);
 
             // Transpose the data from buffer 2 back into buffer 1
             SetGpuSortConstants(BITONIC_BLOCK_SIZE, l, height, width);
-            _commandBuffer.SetComputeBufferParam(_computeShader, ShaderKernels.LodTransposedSorter, ShaderProperties.Input, _context.Sorting.SortingDataTemp);
-            _commandBuffer.SetComputeBufferParam(_computeShader, ShaderKernels.LodTransposedSorter, ShaderProperties.Data, _context.Sorting.SortingData);
+            _commandBuffer.SetComputeBufferParam(_computeShader, ShaderKernels.LodTransposedSorter, ShaderProperties.Input, _context.Sorting.Temp);
+            _commandBuffer.SetComputeBufferParam(_computeShader, ShaderKernels.LodTransposedSorter, ShaderProperties.Data, _context.Sorting.Data);
             _commandBuffer.DispatchCompute(_computeShader, ShaderKernels.LodTransposedSorter, (int)(height / TRANSPOSE_BLOCK_SIZE), (int)(width / TRANSPOSE_BLOCK_SIZE), 1);
 
             // Sort the row data
-            _commandBuffer.SetComputeBufferParam(_computeShader, ShaderKernels.LodSorter, ShaderProperties.Data, _context.Sorting.SortingData);
+            _commandBuffer.SetComputeBufferParam(_computeShader, ShaderKernels.LodSorter, ShaderProperties.Data, _context.Sorting.Data);
             _commandBuffer.DispatchCompute(_computeShader, ShaderKernels.LodSorter, (int)(elements / BITONIC_BLOCK_SIZE), 1, 1);
         }
     }

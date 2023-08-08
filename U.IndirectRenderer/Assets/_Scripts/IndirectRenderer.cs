@@ -132,7 +132,7 @@ public class IndirectRenderer : IDisposable
         if (_config.LogMatrices)
         {
             _config.LogMatrices = false;
-            _matricesInitializer.LogInstanceDrawMatrices("LogInstanceDrawMatrices");
+            _context.Transform.LogMatrices("LogInstanceDrawMatrices");
         }
         
         Profiler.BeginSample("Resetting args buffer");
@@ -141,7 +141,7 @@ public class IndirectRenderer : IDisposable
         if (_config.LogArgumentsBufferAfterReset)
         {
             _config.LogArgumentsBufferAfterReset = false;
-            _context.Arguments.LogArgumentsBuffers("LogArgsBuffers - Instances After Reset", "LogArgsBuffers - Shadows After Reset");
+            _context.Arguments.Log("LogArgsBuffers - Instances After Reset", "LogArgsBuffers - Shadows After Reset");
         }
         Profiler.EndSample();
         
@@ -150,13 +150,13 @@ public class IndirectRenderer : IDisposable
         if (_config.LogArgumentsAfterOcclusion)
         {
             _config.LogArgumentsAfterOcclusion = false;
-            _context.Arguments.LogArgumentsBuffers("LogArgsBuffers - Instances After Occlusion", "LogArgsBuffers - Shadows After Occlusion");
+            _context.Arguments.Log("LogArgsBuffers - Instances After Occlusion", "LogArgsBuffers - Shadows After Occlusion");
         }
         
         if (_config.LogInstancesIsVisibleBuffer)
         {
             _config.LogInstancesIsVisibleBuffer = false;
-            LogInstancesIsVisibleBuffers("LogInstancesIsVisibleBuffers - Instances", "LogInstancesIsVisibleBuffers - Shadows");
+            _context.Visibility.Log("LogInstancesIsVisibleBuffers - Instances", "LogInstancesIsVisibleBuffers - Shadows");
         }
         Profiler.EndSample();
         
@@ -165,13 +165,13 @@ public class IndirectRenderer : IDisposable
         if (_config.LogGroupSumsBuffer)
         {
             _config.LogGroupSumsBuffer = false;
-            LogGroupSumsBuffer("LogGroupSumsBuffer - Instances", "LogGroupSumsBuffer - Shadows");
+            _context.GroupSums.Log("LogGroupSumsBuffer - Instances", "LogGroupSumsBuffer - Shadows");
         }
         
         if (_config.LogScannedPredicates)
         {
             _config.LogScannedPredicates = false;
-            LogScannedPredicates("LogScannedPredicates - Instances", "LogScannedPredicates - Shadows");
+            _context.ScannedPredicates.Log("LogScannedPredicates - Instances", "LogScannedPredicates - Shadows");
         }
         Profiler.EndSample();
         
@@ -180,7 +180,7 @@ public class IndirectRenderer : IDisposable
         if (_config.LogScannedGroupSumsBuffer)
         {
             _config.LogScannedGroupSumsBuffer = false;
-            LogScannedGroupSumBuffer("LogScannedGroupSumBuffer - Instances", "LogScannedGroupSumBuffer - Shadows");
+            _context.ScannedGroupSums.Log("LogScannedGroupSumBuffer - Instances", "LogScannedGroupSumBuffer - Shadows");
         }
         Profiler.EndSample();
         
@@ -195,7 +195,7 @@ public class IndirectRenderer : IDisposable
         if (_config.LogArgsBufferAfterCopy)
         {
             _config.LogArgsBufferAfterCopy = false;
-            _context.Arguments.LogArgumentsBuffers("LogArgsBuffers - Instances After Copy", "LogArgsBuffers - Shadows After Copy");
+            _context.Arguments.Log("LogArgsBuffers - Instances After Copy", "LogArgsBuffers - Shadows After Copy");
         }
         Profiler.EndSample();
         
@@ -206,7 +206,7 @@ public class IndirectRenderer : IDisposable
         if (_config.LogSortingData)
         {
             _config.LogSortingData = false;
-            _lodBitonicSorter.LogSortingData("LogSortingData");
+            _context.Sorting.Log("LogSortingData");
         }
     }
 
@@ -295,98 +295,6 @@ public class IndirectRenderer : IDisposable
         return properties;
     }
 
-    private void LogInstancesIsVisibleBuffers(string instancePrefix = "", string shadowPrefix = "")
-    {
-        var instancesIsVisible = new uint[_numberOfInstances];
-        var shadowsIsVisible = new uint[_numberOfInstances];
-        _context.Visibility.IsVisible.GetData(instancesIsVisible);
-        _context.Visibility.IsShadowVisible.GetData(shadowsIsVisible);
-        
-        var instancesSB = new StringBuilder();
-        var shadowsSB = new StringBuilder();
-        
-        if (!string.IsNullOrEmpty(instancePrefix)) instancesSB.AppendLine(instancePrefix);
-        if (!string.IsNullOrEmpty(shadowPrefix)) shadowsSB.AppendLine(shadowPrefix);
-        
-        for (var i = 0; i < instancesIsVisible.Length; i++)
-        {
-            instancesSB.AppendLine(i + ": " + instancesIsVisible[i]);
-            shadowsSB.AppendLine(i + ": " + shadowsIsVisible[i]);
-        }
-        
-        Debug.Log(instancesSB.ToString());
-        Debug.Log(shadowsSB.ToString());
-    }
-    
-    private void LogScannedPredicates(string instancePrefix = "", string shadowPrefix = "")
-    {
-        var instancesScannedData = new uint[_numberOfInstances];
-        var shadowsScannedData = new uint[_numberOfInstances];
-        _context.ScannedPredicates.ScannedPredicates.GetData(instancesScannedData);
-        _context.ScannedPredicates.ShadowsScannedPredicates.GetData(shadowsScannedData);
-        
-        var instancesSB = new StringBuilder();
-        var shadowsSB = new StringBuilder();
-        
-        if (!string.IsNullOrEmpty(instancePrefix)) instancesSB.AppendLine(instancePrefix);
-        if (!string.IsNullOrEmpty(shadowPrefix)) shadowsSB.AppendLine(shadowPrefix);
-        
-        for (var i = 0; i < instancesScannedData.Length; i++)
-        {
-            instancesSB.AppendLine(i + ": " + instancesScannedData[i]);
-            shadowsSB.AppendLine(i + ": " + shadowsScannedData[i]);
-        }
-
-        Debug.Log(instancesSB.ToString());
-        Debug.Log(shadowsSB.ToString());
-    }
-    
-    private void LogGroupSumsBuffer(string instancePrefix = "", string shadowPrefix = "")
-    {
-        var instancesScannedData = new uint[_numberOfInstances];
-        var shadowsScannedData = new uint[_numberOfInstances];
-        _context.GroupSums.Meshes.GetData(instancesScannedData);
-        _context.ScannedGroupSums.ShadowsScannedGroupSums.GetData(shadowsScannedData); // Which group sums ???
-        
-        var instancesSB = new StringBuilder();
-        var shadowsSB = new StringBuilder();
-        
-        if (!string.IsNullOrEmpty(instancePrefix)) instancesSB.AppendLine(instancePrefix);
-        if (!string.IsNullOrEmpty(shadowPrefix)) shadowsSB.AppendLine(shadowPrefix); 
-        
-        for (var i = 0; i < instancesScannedData.Length; i++)
-        {
-            instancesSB.AppendLine(i + ": " + instancesScannedData[i]);
-            shadowsSB.AppendLine(i + ": " + shadowsScannedData[i]);
-        }
-
-        Debug.Log(instancesSB.ToString());
-        Debug.Log(shadowsSB.ToString());
-    }
-    
-    private void LogScannedGroupSumBuffer(string instancePrefix = "", string shadowPrefix = "")
-    {
-        var instancesScannedData = new uint[_numberOfInstances];
-        var shadowsScannedData = new uint[_numberOfInstances];
-        _context.ScannedPredicates.ScannedPredicates.GetData(instancesScannedData);
-        _context.ScannedPredicates.ShadowsScannedPredicates.GetData(shadowsScannedData);
-        
-        var instancesSB = new StringBuilder();
-        var shadowsSB = new StringBuilder();
-        
-        if (!string.IsNullOrEmpty(instancePrefix)) instancesSB.AppendLine(instancePrefix);
-        if (!string.IsNullOrEmpty(shadowPrefix)) shadowsSB.AppendLine(shadowPrefix);
-        
-        for (var i = 0; i < instancesScannedData.Length; i++)
-        {
-            instancesSB.AppendLine(i + ": " + instancesScannedData[i]);
-            shadowsSB.AppendLine(i + ": " + shadowsScannedData[i]);
-        }
-
-        Debug.Log(instancesSB.ToString());
-        Debug.Log(shadowsSB.ToString());
-    }
-    
     private void LogCulledInstancesDrawMatrices(string instancePrefix = "", string shadowPrefix = "")
     {
         var instancesMatrix1 = new Indirect2x2Matrix[_numberOfInstances];

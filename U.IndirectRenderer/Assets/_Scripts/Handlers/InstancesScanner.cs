@@ -27,16 +27,16 @@ public class InstancesScanner
     public void Dispatch()
     {
         // Normal
-        _computeShader.SetBuffer(ShaderKernels.InstancesScanner, ShaderProperties.PredicatesInput,   _context.Visibility.IsVisible);
+        _computeShader.SetBuffer(ShaderKernels.InstancesScanner, ShaderProperties.PredicatesInput,   _context.Visibility.Meshes);
         _computeShader.SetBuffer(ShaderKernels.InstancesScanner, ShaderProperties.GroupSums,         _context.GroupSums.Meshes);
-        _computeShader.SetBuffer(ShaderKernels.InstancesScanner, ShaderProperties.ScannedPredicates, _context.ScannedPredicates.ScannedPredicates);
+        _computeShader.SetBuffer(ShaderKernels.InstancesScanner, ShaderProperties.ScannedPredicates, _context.ScannedPredicates.Meshes);
         
         _computeShader.Dispatch(ShaderKernels.InstancesScanner, _scanInstancesGroupX, 1, 1);
             
         // Shadows
-        _computeShader.SetBuffer(ShaderKernels.InstancesScanner, ShaderProperties.PredicatesInput,   _context.Visibility.IsShadowVisible);
+        _computeShader.SetBuffer(ShaderKernels.InstancesScanner, ShaderProperties.PredicatesInput,   _context.Visibility.Shadows);
         _computeShader.SetBuffer(ShaderKernels.InstancesScanner, ShaderProperties.GroupSums,         _context.GroupSums.Shadows);
-        _computeShader.SetBuffer(ShaderKernels.InstancesScanner, ShaderProperties.ScannedPredicates, _context.ScannedPredicates.ShadowsScannedPredicates);
+        _computeShader.SetBuffer(ShaderKernels.InstancesScanner, ShaderProperties.ScannedPredicates, _context.ScannedPredicates.Shadows);
         
         _computeShader.Dispatch(ShaderKernels.InstancesScanner, _scanInstancesGroupX, 1, 1);
     }

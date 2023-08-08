@@ -59,10 +59,10 @@ public class InstancesCuller
         
         _computeShader.SetBuffer(ShaderKernels.InstancesCuller, ShaderProperties.ArgsBuffer,            _context.Arguments.Args);
         _computeShader.SetBuffer(ShaderKernels.InstancesCuller, ShaderProperties.ShadowArgsBuffer,      _context.Arguments.ShadowsArgs);
-        _computeShader.SetBuffer(ShaderKernels.InstancesCuller, ShaderProperties.IsVisibleBuffer,       _context.Visibility.IsVisible);
-        _computeShader.SetBuffer(ShaderKernels.InstancesCuller, ShaderProperties.IsShadowVisibleBuffer, _context.Visibility.IsShadowVisible);
+        _computeShader.SetBuffer(ShaderKernels.InstancesCuller, ShaderProperties.IsVisibleBuffer,       _context.Visibility.Meshes);
+        _computeShader.SetBuffer(ShaderKernels.InstancesCuller, ShaderProperties.IsShadowVisibleBuffer, _context.Visibility.Shadows);
         _computeShader.SetBuffer(ShaderKernels.InstancesCuller, ShaderProperties.BoundsData,            _context.BoundsData);
-        _computeShader.SetBuffer(ShaderKernels.InstancesCuller, ShaderProperties.SortingData,           _context.Sorting.SortingData);
+        _computeShader.SetBuffer(ShaderKernels.InstancesCuller, ShaderProperties.SortingData,           _context.Sorting.Data);
         
         _computeShader.SetTexture(ShaderKernels.InstancesCuller, ShaderProperties.HiZMap, hiZBufferConfig.Texture);
     }

@@ -41,39 +41,7 @@ public class MatricesInitializer
     }
 
     // TODO: #EDITOR
-    public void LogInstanceDrawMatrices(string prefix = "")
-    {
-        var matrix1 = new Indirect2x2Matrix[_numberOfInstances];
-        var matrix2 = new Indirect2x2Matrix[_numberOfInstances];
-        var matrix3 = new Indirect2x2Matrix[_numberOfInstances];
 
-        _context.Transform.MatrixRows01.GetData(matrix1);
-        _context.Transform.MatrixRows23.GetData(matrix2);
-        _context.Transform.MatrixRows45.GetData(matrix3);
-
-        var stringBuilder = new StringBuilder();
-        if (!string.IsNullOrEmpty(prefix))
-        {
-            stringBuilder.AppendLine(prefix);
-        }
-
-        for (var i = 0; i < matrix1.Length; i++)
-        {
-            stringBuilder.AppendLine(
-                i + "\n"
-                  + matrix1[i].FirstRow + "\n"
-                  + matrix1[i].SecondRow + "\n"
-                  + matrix2[i].FirstRow + "\n"
-                  + "\n\n"
-                  + matrix2[i].SecondRow + "\n"
-                  + matrix3[i].FirstRow + "\n"
-                  + matrix3[i].SecondRow + "\n"
-                  + "\n"
-            );
-        }
-
-        Debug.Log(stringBuilder.ToString());
-    }
 
     private void InitializeTransformBuffers()
     {
