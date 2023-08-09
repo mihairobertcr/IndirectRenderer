@@ -11,9 +11,8 @@ public class LodBitonicSorter
     public bool ComputeAsync { get; set; }
     
     private readonly ComputeShader _computeShader;
-    private readonly CommandBuffer _commandBuffer;
-
     private readonly RendererDataContext _context;
+    private readonly CommandBuffer _commandBuffer;
 
     public LodBitonicSorter(ComputeShader computeShader, RendererDataContext context)
     {
@@ -22,7 +21,7 @@ public class LodBitonicSorter
         _commandBuffer = new CommandBuffer { name = "AsyncGPUSorting" };
     }
     
-    // How do we dispose Handlers
+    // How do we dispose Handlers ?
     ~LodBitonicSorter()
     {
         _commandBuffer.Release();
@@ -54,7 +53,7 @@ public class LodBitonicSorter
         {
             sortingData.Add(new SortingData
             {
-                DrawCallInstanceIndex = (((uint)0 * ArgumentsBuffer.ARGS_PER_INSTANCE_TYPE_COUNT) << 16) + ((uint)i), // 0 might be the index of the type in this case
+                DrawCallInstanceIndex = (uint)i,
                 DistanceToCamera = Vector3.Distance(positions[i], cameraPosition)
             });
         }
@@ -65,7 +64,7 @@ public class LodBitonicSorter
 
     private void CreateSortingCommandBuffer()
     {
-        // Parameters.
+        // Parameters
         var elements = (uint)_context.MeshesCount;
         var width = BITONIC_BLOCK_SIZE;
         var height = elements / BITONIC_BLOCK_SIZE;

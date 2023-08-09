@@ -1,8 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Text;
-using IndirectRendering;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
@@ -89,7 +86,7 @@ public class IndirectRenderer : IDisposable
         
         _instancesScanner.Initialize();
         _groupSumsScanner.Initialize();
-        _dataCopier.Initialize(_meshProperties, _config);
+        _dataCopier.Initialize(_meshProperties);
     }
 
     public void BeginFrameRendering(ScriptableRenderContext context, Camera[] camera)
@@ -277,8 +274,7 @@ public class IndirectRenderer : IDisposable
             ShadowLod2PropertyBlock = new MaterialPropertyBlock()
         };
         
-        // properties.Mesh = new Mesh();
-        properties.Mesh.name = "Mesh"; // TODO: name it
+        properties.Mesh.name = "Mesh";
         var meshes = new CombineInstance[]
         {
             new() { mesh = _config.Lod0Mesh },

@@ -7,11 +7,13 @@ public class MatricesInitializer
 
     private readonly ComputeShader _computeShader;
     private readonly RendererDataContext _context;
+    private readonly int _threadGroupX;
 
     public MatricesInitializer(ComputeShader computeShader, RendererDataContext context)
     {
         _computeShader = computeShader;
         _context = context;
+        _threadGroupX = Mathf.Max(1, _context.MeshesCount / (2 * SCAN_THREAD_GROUP_SIZE));
 
         InitializeComputeShader();
     }
@@ -25,8 +27,7 @@ public class MatricesInitializer
 
     public void Dispatch()
     {
-        var groupX = Mathf.Max(1, _context.MeshesCount / (2 * SCAN_THREAD_GROUP_SIZE));
-        _computeShader.Dispatch(ShaderKernels.MatricesInitializer, groupX, 1, 1);
+        _computeShader.Dispatch(ShaderKernels.MatricesInitializer, _threadGroupX, 1, 1);
 
         // _positionsBuffer?.Release();
         // _rotationsBuffer?.Release();
