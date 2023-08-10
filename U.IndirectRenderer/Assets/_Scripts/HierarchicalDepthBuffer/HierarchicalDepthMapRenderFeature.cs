@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-public class HierarchicalDepthBufferRenderFeature : ScriptableRendererFeature
+public class HierarchicalDepthMapRenderFeature : ScriptableRendererFeature
 {
     private class RenderPass : ScriptableRenderPass
     {
@@ -12,9 +12,9 @@ public class HierarchicalDepthBufferRenderFeature : ScriptableRendererFeature
             Reduce
         }
         
-        private const int MAXIMUM_BUFFER_SIZE = 2048;
+        private const int MAXIMUM_BUFFER_SIZE = 1024;
 
-        private readonly HierarchicalDepthBufferConfig _config;
+        private readonly HierarchicalDepthMap _config;
         private readonly Material _hizMaterial;
         
         private int _cameraHeight;
@@ -23,7 +23,7 @@ public class HierarchicalDepthBufferRenderFeature : ScriptableRendererFeature
         private int[] _temporaries;
         private int _size;
 
-        public RenderPass(HierarchicalDepthBufferConfig config) : base()
+        public RenderPass(HierarchicalDepthMap config) : base()
         {
             _config = config;
             _hizMaterial = CoreUtils.CreateEngineMaterial(_config.Shader);
@@ -125,7 +125,7 @@ public class HierarchicalDepthBufferRenderFeature : ScriptableRendererFeature
         private int CalculateLoadCount(int size) => (int)Mathf.Floor(Mathf.Log(size, 2f));
     }
 
-    [SerializeField] private HierarchicalDepthBufferConfig _hizConfig;
+    [SerializeField] private HierarchicalDepthMap _hizConfig;
     
     private RenderPass _pass;
     private Material _hizMaterial;

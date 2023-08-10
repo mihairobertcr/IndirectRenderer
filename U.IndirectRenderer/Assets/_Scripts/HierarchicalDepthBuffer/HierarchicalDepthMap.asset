@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f5408d24e34a49228a1900333635850c, type: 3}
-  m_Name: HierarchicalDepthBufferConfig
+  m_Name: HierarchicalDepthMap
   m_EditorClassIdentifier: 
   _shader: {fileID: 4800000, guid: 483ebfd3207614b6692e71936dfc9844, type: 3}
   <Texture>k__BackingField: {fileID: 0}

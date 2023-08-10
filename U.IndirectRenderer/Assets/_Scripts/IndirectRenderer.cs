@@ -8,7 +8,7 @@ public class IndirectRenderer : IDisposable
 {
     private readonly IndirectRendererConfig _config;
     private readonly IndirectRendererSettings _settings;
-    private readonly HierarchicalDepthBufferConfig _hierarchicalDepthBufferConfig;
+    private readonly HierarchicalDepthMap _hierarchicalDepthMap;
     private readonly MeshProperties _meshProperties;
     
     private readonly MatricesInitializer _matricesInitializer;
@@ -31,19 +31,18 @@ public class IndirectRenderer : IDisposable
 
     public IndirectRenderer(IndirectRendererConfig config, 
         IndirectRendererSettings settings, 
-        HierarchicalDepthBufferConfig hierarchicalDepthBufferConfig,
+        HierarchicalDepthMap hierarchicalDepthMap,
         List<Vector3> positions, 
         List<Vector3> rotations, 
         List<Vector3> scales)
     {
         _config = config;
         _settings = settings;
-        _hierarchicalDepthBufferConfig = hierarchicalDepthBufferConfig;
+        _hierarchicalDepthMap = hierarchicalDepthMap;
         
         _meshProperties = CreateMeshProperties();
         _bounds.extents = Vector3.one * 10000; // ???
         
-        ShaderKernels.Initialize(_config);
         _context = new RendererDataContext(_meshProperties, _numberOfInstances, _config);
 
         _matricesInitializer = new MatricesInitializer(_config.MatricesInitializer, _context);
@@ -83,7 +82,7 @@ public class IndirectRenderer : IDisposable
         
         _instancesCuller.SetSettings(_settings);
         _instancesCuller.SetBoundsData(positions, scales);
-        _instancesCuller.SetDepthMap(_hierarchicalDepthBufferConfig);
+        _instancesCuller.SetDepthMap(_hierarchicalDepthMap);
         _instancesCuller.SetCullingBuffers();
 
         _groupSumsScanner.Initialize();

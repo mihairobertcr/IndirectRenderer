@@ -68,10 +68,10 @@ public class InstancesCuller : ComputeShaderDispatcher
         _boundsDataBuffer.SetData(_boundsData);
     }
 
-    public void SetDepthMap(HierarchicalDepthBufferConfig hiZBufferConfig)
+    public void SetDepthMap(HierarchicalDepthMap hiZMap)
     {
-        ComputeShader.SetVector(ShaderProperties.HiZTextureSize, hiZBufferConfig.TextureSize);
-        ComputeShader.SetTexture(_kernel, ShaderProperties.HiZMap, hiZBufferConfig.Texture);
+        ComputeShader.SetVector(ShaderProperties.HiZTextureSize, hiZMap.TextureSize);
+        ComputeShader.SetTexture(_kernel, ShaderProperties.HiZMap, hiZMap.Texture);
     }
     
     public void SetCullingBuffers()

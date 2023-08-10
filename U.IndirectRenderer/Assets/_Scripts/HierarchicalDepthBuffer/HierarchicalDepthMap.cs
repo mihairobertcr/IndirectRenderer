@@ -1,9 +1,9 @@
 using UnityEngine;
 
 [CreateAssetMenu(
-    fileName = "HierarchicalDepthBufferConfig", 
-    menuName = "Indirect Renderer/HierarchicalDepthBufferConfig")]
-public class HierarchicalDepthBufferConfig : ScriptableObject
+    fileName = "HierarchicalDepthMap", 
+    menuName = "Indirect Renderer/HierarchicalDepthMap")]
+public class HierarchicalDepthMap : ScriptableObject
 {
     [SerializeField] private Shader _shader;
     public Shader Shader => _shader;
