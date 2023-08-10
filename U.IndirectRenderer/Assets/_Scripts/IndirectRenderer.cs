@@ -86,7 +86,6 @@ public class IndirectRenderer : IDisposable
         _instancesCuller.SetDepthMap(_hierarchicalDepthBufferConfig);
         _instancesCuller.SetCullingBuffers();
 
-        _instancesScanner.Initialize();
         _groupSumsScanner.Initialize();
         _dataCopier.Initialize(_meshProperties);
     }

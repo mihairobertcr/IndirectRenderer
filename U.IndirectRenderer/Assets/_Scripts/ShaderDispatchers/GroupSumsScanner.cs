@@ -1,12 +1,9 @@
 using UnityEngine;
 
-public class GroupSumsScanner
+public class GroupSumsScanner : ComputeShaderDispatcher
 {
-    private const int  SCAN_THREAD_GROUP_SIZE = 64; // TODO: Move to base class
-
-    private readonly ComputeShader _computeShader;
-    private readonly RendererDataContext _context;
-
+    private readonly int _kernel;
+    
     private readonly ComputeBuffer _meshesGroupSums;
     private readonly ComputeBuffer _meshesScannedGroupSums;
 
@@ -14,34 +11,34 @@ public class GroupSumsScanner
     private readonly ComputeBuffer _shadowsScannedGroupSums;
 
     public GroupSumsScanner(ComputeShader computeShader, RendererDataContext context)
+        : base(computeShader, context)
     {
-        _computeShader = computeShader;
-        _context = context;
+        _kernel = GetKernel("CSMain");
+        
+        _meshesGroupSums = context.GroupSums.Meshes;
+        _meshesScannedGroupSums = context.ScannedGroupSums.Meshes;
 
-        _meshesGroupSums = _context.GroupSums.Meshes;
-        _meshesScannedGroupSums = _context.ScannedGroupSums.Meshes;
-
-        _shadowsGroupSums = _context.GroupSums.Shadows;
-        _shadowsScannedGroupSums = _context.ScannedGroupSums.Shadows;
+        _shadowsGroupSums = context.GroupSums.Shadows;
+        _shadowsScannedGroupSums = context.ScannedGroupSums.Shadows;
     }
 
     public void Initialize()
     {
-        _computeShader.SetInt(ShaderProperties.NumberOfGroups, _context.MeshesCount / (2 * SCAN_THREAD_GROUP_SIZE));
+        ComputeShader.SetInt(ShaderProperties.NumberOfGroups, Context.MeshesCount / (2 * SCAN_THREAD_GROUP_SIZE));
     }
 
-    public void Dispatch()
+    public override void Dispatch()
     {
         // Normal
-        _computeShader.SetBuffer(ShaderKernels.GroupSumsScanner, ShaderProperties.GroupSumsInput, _meshesGroupSums);
-        _computeShader.SetBuffer(ShaderKernels.GroupSumsScanner, ShaderProperties.GroupSumsOutput, _meshesScannedGroupSums);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.GroupSumsInput, _meshesGroupSums);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.GroupSumsOutput, _meshesScannedGroupSums);
         
-        _computeShader.Dispatch(ShaderKernels.GroupSumsScanner, 1, 1, 1);
+        ComputeShader.Dispatch(_kernel, 1, 1, 1);
             
         // Shadows
-        _computeShader.SetBuffer(ShaderKernels.GroupSumsScanner, ShaderProperties.GroupSumsInput, _shadowsGroupSums);
-        _computeShader.SetBuffer(ShaderKernels.GroupSumsScanner, ShaderProperties.GroupSumsOutput, _shadowsScannedGroupSums);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.GroupSumsInput, _shadowsGroupSums);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.GroupSumsOutput, _shadowsScannedGroupSums);
         
-        _computeShader.Dispatch(ShaderKernels.GroupSumsScanner, 1, 1, 1);
+        ComputeShader.Dispatch(_kernel, 1, 1, 1);
     }
 }

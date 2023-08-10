@@ -30,7 +30,7 @@ public class MatricesInitializer : ComputeShaderDispatcher
 
     public override void Dispatch()
     {
-        ComputeShader.Dispatch(ShaderKernels.MatricesInitializer, _threadGroupX, 1, 1);
+        ComputeShader.Dispatch(_kernel, _threadGroupX, 1, 1);
 
         _positionsBuffer?.Release();
         _rotationsBuffer?.Release();
