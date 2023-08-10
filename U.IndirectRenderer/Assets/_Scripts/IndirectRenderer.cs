@@ -87,7 +87,8 @@ public class IndirectRenderer : IDisposable
         _instancesCuller.SetCullingBuffers();
 
         _groupSumsScanner.Initialize();
-        _dataCopier.Initialize(_meshProperties);
+        _dataCopier.SetCopingBuffers();
+        _dataCopier.InitializeMaterialProperties(_meshProperties);
     }
 
     public void BeginFrameRendering(ScriptableRenderContext context, Camera[] camera)
