@@ -76,14 +76,16 @@ public class IndirectRenderer : IDisposable
     {
         _matricesInitializer.SetTransformData(positions, rotations, scales);
         _matricesInitializer.Dispatch();
-        
 
         var cameraPosition = _config.RenderCamera.transform.position;
         _lodBitonicSorter.Initialize(positions, cameraPosition);
         _lodBitonicSorter.ComputeAsync = _settings.ComputeAsync;
         
-        _instancesCuller.Initialize(positions, scales, _settings, _hierarchicalDepthBufferConfig);
-        
+        _instancesCuller.SetSettings(_settings);
+        _instancesCuller.SetBoundsData(positions, scales);
+        _instancesCuller.SetDepthMap(_hierarchicalDepthBufferConfig);
+        _instancesCuller.SetCullingBuffers();
+
         _instancesScanner.Initialize();
         _groupSumsScanner.Initialize();
         _dataCopier.Initialize(_meshProperties);
