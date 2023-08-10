@@ -165,7 +165,7 @@ inline uint IsVisibleAfterOcclusionCulling(float clipMinX, float clipMaxX, float
         
         return false;
     }
-    //*/
+    // *****/
 }
 
 inline uint IsVisibleAfterFrustumCulling(float4 clipPos)

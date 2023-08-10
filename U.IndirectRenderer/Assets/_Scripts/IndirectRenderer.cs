@@ -74,7 +74,7 @@ public class IndirectRenderer : IDisposable
     
     private void Initialize(List<Vector3> positions, List<Vector3> rotations, List<Vector3> scales)
     {
-        _matricesInitializer.Initialize(positions, rotations, scales);
+        _matricesInitializer.SetTransformData(positions, rotations, scales);
         _matricesInitializer.Dispatch();
         
 
