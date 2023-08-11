@@ -7,9 +7,6 @@ public class InstancesCuller : ComputeShaderDispatcher
     private readonly int _kernel;
     private readonly int _threadGroupX;
     
-    private readonly Camera _camera;
-    private List<BoundsData> _boundsData; //TODO: Convert to array
-
     private readonly ComputeBuffer _meshesArgumentsBuffer;
     private readonly ComputeBuffer _shadowsArgumentsBuffer;
     private readonly ComputeBuffer _meshesVisibilityBuffer;
@@ -17,12 +14,12 @@ public class InstancesCuller : ComputeShaderDispatcher
     private readonly ComputeBuffer _boundsDataBuffer;
     private readonly ComputeBuffer _sortingDataBuffer;
 
-    
-    public InstancesCuller(ComputeShader computeShader, RendererDataContext context, Camera camera)
+    private BoundsData[] _boundsData;
+
+    public InstancesCuller(ComputeShader computeShader, RendererDataContext context)
         : base(computeShader, context)
     {
         _kernel = GetKernel("CSMain");
-        _camera = camera;
         _threadGroupX = Mathf.Max(1, context.MeshesCount / 64);
         
         InitializeCullingBuffers(
@@ -34,7 +31,7 @@ public class InstancesCuller : ComputeShaderDispatcher
             out _sortingDataBuffer);
     }
 
-    public void SetSettings(IndirectRendererSettings settings)
+    public InstancesCuller SetSettings(IndirectRendererSettings settings)
     {
         ComputeShader.SetInt(ShaderProperties.ShouldFrustumCull, settings.EnableFrustumCulling ? 1 : 0);
         ComputeShader.SetInt(ShaderProperties.ShouldOcclusionCull, settings.EnableOcclusionCulling ? 1 : 0);
@@ -44,12 +41,14 @@ public class InstancesCuller : ComputeShaderDispatcher
 
         ComputeShader.SetFloat(ShaderProperties.ShadowDistance, QualitySettings.shadowDistance);
         ComputeShader.SetFloat(ShaderProperties.DetailCullingScreenPercentage, settings.DetailCullingPercentage);
+
+        return this;
     }
     
-    public void SetBoundsData(List<Vector3> positions, List<Vector3> scales)
+    public InstancesCuller SetBoundsData(Vector3[] positions, Vector3[] scales)
     {
-        _boundsData = new List<BoundsData>();
-        for (var i = 0; i < positions.Count; i++)
+        _boundsData = new BoundsData[Context.MeshesCount];
+        for (var i = 0; i < positions.Length; i++)
         {
             //TODO: Create bounding boxes
             var bounds = new Bounds();
@@ -58,23 +57,26 @@ public class InstancesCuller : ComputeShaderDispatcher
             size.Scale(scales[i]);
             bounds.size = size;
 
-            _boundsData.Add(new BoundsData
+            _boundsData[i] = new BoundsData
             {
                 BoundsCenter = bounds.center,
                 BoundsExtents = bounds.extents,
-            });
+            };
         }
         
         _boundsDataBuffer.SetData(_boundsData);
+        return this;
     }
 
-    public void SetDepthMap(HierarchicalDepthMap hiZMap)
+    public InstancesCuller SetDepthMap(HierarchicalDepthMap depthMap)
     {
-        ComputeShader.SetVector(ShaderProperties.HiZTextureSize, hiZMap.TextureSize);
-        ComputeShader.SetTexture(_kernel, ShaderProperties.HiZMap, hiZMap.Texture);
+        ComputeShader.SetVector(ShaderProperties.HiZTextureSize, depthMap.TextureSize);
+        ComputeShader.SetTexture(_kernel, ShaderProperties.HiZMap, depthMap.Texture);
+        
+        return this;
     }
     
-    public void SetCullingBuffers()
+    public void SubmitCullingData()
     {
         ComputeShader.SetBuffer(_kernel, ShaderProperties.ArgsBuffer, _meshesArgumentsBuffer);
         ComputeShader.SetBuffer(_kernel, ShaderProperties.ShadowArgsBuffer, _shadowsArgumentsBuffer);
@@ -84,23 +86,26 @@ public class InstancesCuller : ComputeShaderDispatcher
         ComputeShader.SetBuffer(_kernel, ShaderProperties.SortingData, _sortingDataBuffer);
     }
 
-    public override void Dispatch()
+    public InstancesCuller SubmitCameraData(Camera camera)
     {
-        var cameraPosition = _camera.transform.position;
-        var worldMatrix = _camera.worldToCameraMatrix;
-        var projectionMatrix = _camera.projectionMatrix;
+        var cameraPosition = camera.transform.position;
+        var worldMatrix = camera.worldToCameraMatrix;
+        var projectionMatrix = camera.projectionMatrix;
         var modelViewProjection = projectionMatrix * worldMatrix;
 
         ComputeShader.SetMatrix(ShaderProperties.MvpMatrix, modelViewProjection);
         ComputeShader.SetVector(ShaderProperties.CameraPosition, cameraPosition);
-        ComputeShader.Dispatch(_kernel, _threadGroupX, 1, 1);
+        
+        return this;
     }
+
+    public override void Dispatch() => ComputeShader.Dispatch(_kernel, _threadGroupX, 1, 1);
 
     // TODO: #EDITOR
     public void DrawGizmos()
     {
         Gizmos.color = new Color(1f, 0f, 0f, 0.333f);
-        for (int i = 0; i < _boundsData.Count; i++)
+        for (var i = 0; i < _boundsData.Length; i++)
         {
             Gizmos.DrawWireCube(_boundsData[i].BoundsCenter, _boundsData[i].BoundsExtents * 2f);
         }

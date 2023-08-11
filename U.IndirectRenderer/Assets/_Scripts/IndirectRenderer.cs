@@ -47,13 +47,13 @@ public class IndirectRenderer : IDisposable
 
         _matricesInitializer = new MatricesInitializer(_config.MatricesInitializer, _context);
         _lodBitonicSorter = new LodBitonicSorter(_config.LodBitonicSorter, _context);
-        _instancesCuller = new InstancesCuller(_config.InstancesCuller, _context, _config.RenderCamera);
+        _instancesCuller = new InstancesCuller(_config.InstancesCuller, _context);
         _instancesScanner = new InstancesScanner(_config.InstancesScanner, _context);
         _groupSumsScanner = new GroupSumsScanner(_config.GroupSumsScanner, _context);
         _dataCopier = new InstancesDataCopier(_config.InstancesDataCopier, _context);
         
 
-        Initialize(positions, rotations, scales);
+        Initialize(positions.ToArray(), rotations.ToArray(), scales.ToArray());
         RenderPipelineManager.beginFrameRendering += BeginFrameRendering;
     }
 
@@ -71,21 +71,25 @@ public class IndirectRenderer : IDisposable
         }
     }
     
-    private void Initialize(List<Vector3> positions, List<Vector3> rotations, List<Vector3> scales)
+    private void Initialize(Vector3[] positions, Vector3[] rotations, Vector3[] scales)
     {
-        _matricesInitializer.SetTransformData(positions, rotations, scales);
-        _matricesInitializer.Dispatch();
+        _matricesInitializer
+            .SetTransformData(positions, rotations, scales)
+            .SubmitTransformsData()
+            .Dispatch();
 
-        var cameraPosition = _config.RenderCamera.transform.position;
-        _lodBitonicSorter.Initialize(positions, cameraPosition);
-        _lodBitonicSorter.ComputeAsync = _settings.ComputeAsync;
+        _lodBitonicSorter
+            .SetSortingData(positions, _config.RenderCamera)
+            .SetupSortingCommand()
+            .EnabledAsyncComputing(true);
         
-        _instancesCuller.SetSettings(_settings);
-        _instancesCuller.SetBoundsData(positions, scales);
-        _instancesCuller.SetDepthMap(_hierarchicalDepthMap);
-        _instancesCuller.SetCullingBuffers();
+        _instancesCuller
+            .SetSettings(_settings)
+            .SetBoundsData(positions, scales)
+            .SetDepthMap(_hierarchicalDepthMap)
+            .SubmitCullingData();
 
-        _groupSumsScanner.Initialize();
+        _groupSumsScanner.SubmitGroupCount();
         _dataCopier.SetCopingBuffers();
         _dataCopier.InitializeMaterialProperties(_meshProperties);
     }
@@ -144,7 +148,7 @@ public class IndirectRenderer : IDisposable
         Profiler.EndSample();
         
         Profiler.BeginSample("Occlusion");
-        _instancesCuller.Dispatch();
+        _instancesCuller.SubmitCameraData(_config.RenderCamera).Dispatch();
         if (_config.LogArgumentsAfterOcclusion)
         {
             _config.LogArgumentsAfterOcclusion = false;
@@ -159,7 +163,8 @@ public class IndirectRenderer : IDisposable
         Profiler.EndSample();
         
         Profiler.BeginSample("Scan Instances");
-        _instancesScanner.Dispatch();
+        _instancesScanner.SubmitMeshesData().Dispatch();
+        _instancesScanner.SubmitShadowsData().Dispatch();
         if (_config.LogGroupSumsBuffer)
         {
             _config.LogGroupSumsBuffer = false;
@@ -174,7 +179,8 @@ public class IndirectRenderer : IDisposable
         Profiler.EndSample();
         
         Profiler.BeginSample("Scan Thread Groups");
-        _groupSumsScanner.Dispatch();
+        _groupSumsScanner.SubmitMeshData().Dispatch();
+        _groupSumsScanner.SubmitShadowsData().Dispatch();
         if (_config.LogScannedGroupSumsBuffer)
         {
             _config.LogScannedGroupSumsBuffer = false;

@@ -17,31 +17,47 @@ public class InstancesScanner : ComputeShaderDispatcher
         : base(computeShader, context)
     {
         _kernel = GetKernel("CSMain");
-        _threadGroupX = Mathf.Max(1, context.MeshesCount / (2 * SCAN_THREAD_GROUP_SIZE)); //TODO: Extract common method for groups
-
-        _meshesVisibility = context.Visibility.Meshes;
-        _meshesGroupSums = context.GroupSums.Meshes;
-        _meshesScannedPredicates = context.ScannedPredicates.Meshes;
-
-        _shadowsVisibility = context.Visibility.Shadows;
-        _shadowsGroupSums = context.GroupSums.Shadows;
-        _shadowsScannedPredicates = context.ScannedPredicates.Shadows;
+        _threadGroupX = Mathf.Max(1, context.MeshesCount / (2 * SCAN_THREAD_GROUP_SIZE));
+        
+        InitializeScanningBuffers(
+            out _meshesVisibility,
+            out _meshesGroupSums,
+            out _meshesScannedPredicates,
+            out _shadowsVisibility,
+            out _shadowsGroupSums,
+            out _shadowsScannedPredicates);
     }
 
-    public override void Dispatch()
+    public InstancesScanner SubmitMeshesData()
     {
-        // Normal
         ComputeShader.SetBuffer(_kernel, ShaderProperties.PredicatesInput, _meshesVisibility);
         ComputeShader.SetBuffer(_kernel, ShaderProperties.GroupSums, _meshesGroupSums);
         ComputeShader.SetBuffer(_kernel, ShaderProperties.ScannedPredicates, _meshesScannedPredicates);
-        
-        ComputeShader.Dispatch(_kernel, _threadGroupX, 1, 1);
 
-        // Shadows
+        return this;
+    }
+
+    public InstancesScanner SubmitShadowsData()
+    {
         ComputeShader.SetBuffer(_kernel, ShaderProperties.PredicatesInput, _shadowsVisibility);
         ComputeShader.SetBuffer(_kernel, ShaderProperties.GroupSums, _shadowsGroupSums);
         ComputeShader.SetBuffer(_kernel, ShaderProperties.ScannedPredicates, _shadowsScannedPredicates);
         
-        ComputeShader.Dispatch(_kernel, _threadGroupX, 1, 1);
+        return this;
+    }
+
+    public override void Dispatch() => ComputeShader.Dispatch(_kernel, _threadGroupX, 1, 1);
+
+    private void InitializeScanningBuffers(out ComputeBuffer meshesVisibility, out ComputeBuffer meshesGroupSums, 
+        out ComputeBuffer meshesScannedPredicates, out ComputeBuffer shadowsVisibility, 
+        out ComputeBuffer shadowsGroupSums, out ComputeBuffer shadowsScannedPredicates)
+    {
+        meshesVisibility = Context.Visibility.Meshes;
+        meshesGroupSums = Context.GroupSums.Meshes;
+        meshesScannedPredicates = Context.ScannedPredicates.Meshes;
+
+        shadowsVisibility = Context.Visibility.Shadows;
+        shadowsGroupSums = Context.GroupSums.Shadows;
+        shadowsScannedPredicates = Context.ScannedPredicates.Shadows;
     }
 }
