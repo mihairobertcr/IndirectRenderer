@@ -37,36 +37,40 @@ public class InstancesDataCopier : ComputeShaderDispatcher
     {
         _dataCopierKernel = GetKernel("CSMain");
         _argumentsSplitterKernel = GetKernel("SplitArguments");
-        _threadGroupX = Mathf.Max(1, context.MeshesCount / (2 * SCAN_THREAD_GROUP_SIZE)); //TODO: Extract common method for groups;
+        _threadGroupX = Mathf.Max(1, context.MeshesCount / (2 * SCAN_THREAD_GROUP_SIZE));
 
-        _matricesRows01 = Context.Transform.Matrix.Rows01;
-        _matricesRows23 = Context.Transform.Matrix.Rows23;
-        _matricesRows45 = Context.Transform.Matrix.Rows45;
-        _sortingData = Context.Sorting.Data;
-        _boundsData = Context.BoundsData;
-
-        _meshesVisibility = Context.Visibility.Meshes;
-        _meshesScannedGroupSums = Context.ScannedGroupSums.Meshes;
-        _meshesScannedPredicates = Context.ScannedPredicates.Meshes;
-        _meshesCulledMatricesRows01 = Context.Transform.CulledMatrix.Rows01;
-        _meshesCulledMatricesRows23 = Context.Transform.CulledMatrix.Rows23;
-        _meshesCulledMatricesRows45 = Context.Transform.CulledMatrix.Rows45;
-        _meshesArguments = Context.Arguments.Meshes;
+        InitializeCopingBuffers(
+            out _matricesRows01, 
+            out _matricesRows23, 
+            out _matricesRows45,
+            out _sortingData,
+            out _boundsData);
         
-        _shadowsVisibility = Context.Visibility.Shadows;
-        _shadowsScannedGroupSums = Context.ScannedGroupSums.Shadows;
-        _shadowsScannedPredicates = Context.ScannedPredicates.Shadows;
-        _shadowsCulledMatricesRows01 = Context.Transform.ShadowsCulledMatrix.Rows01;
-        _shadowsCulledMatricesRows23 = Context.Transform.ShadowsCulledMatrix.Rows23;
-        _shadowsCulledMatricesRows45 = Context.Transform.ShadowsCulledMatrix.Rows45;
-        _shadowsArguments = Context.Arguments.Shadows;
+        InitializeMeshesBuffer(
+            out _meshesVisibility,
+            out _meshesScannedGroupSums,
+            out _meshesScannedPredicates,
+            out _meshesCulledMatricesRows01,
+            out _meshesCulledMatricesRows23,
+            out _meshesCulledMatricesRows45,
+            out _meshesArguments);
 
-        _lodArgs0 = Context.Arguments.LodArgs0;
-        _lodArgs1 = Context.Arguments.LodArgs1;
-        _lodArgs2 = Context.Arguments.LodArgs2;
+        InitializeShadowsBuffer(
+            out _shadowsVisibility,
+            out _shadowsScannedGroupSums,
+            out _shadowsScannedPredicates,
+            out _shadowsCulledMatricesRows01,
+            out _shadowsCulledMatricesRows23,
+            out _shadowsCulledMatricesRows45,
+            out _shadowsArguments);
+
+        InitializeLodArgsBuffers(
+            out _lodArgs0,
+            out _lodArgs1,
+            out _lodArgs2);
     }
 
-    public void SetCopingBuffers()
+    public void SubmitCopingBuffers()
     {
         ComputeShader.SetInt(ShaderProperties.NumberOfDrawCalls, ArgumentsBuffer.ARGS_PER_INSTANCE_TYPE_COUNT);
 
@@ -77,7 +81,7 @@ public class InstancesDataCopier : ComputeShaderDispatcher
         ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.BoundsData, _boundsData);
     }
     
-    public void InitializeMaterialProperties(MeshProperties properties)
+    public void BindMaterialProperties(MeshProperties properties)
     {
         properties.Lod0PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 4); //See if all 3 of them are required
         properties.Lod1PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 4);
@@ -124,9 +128,8 @@ public class InstancesDataCopier : ComputeShaderDispatcher
         properties.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _shadowsCulledMatricesRows45);
     }
 
-    public override void Dispatch()
+    public InstancesDataCopier SubmitMeshesData()
     {
-        // Normal
         ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.PredicatesInput, _meshesVisibility);
         ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.GroupSums, _meshesScannedGroupSums);
         ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.ScannedPredicates, _meshesScannedPredicates);
@@ -134,10 +137,12 @@ public class InstancesDataCopier : ComputeShaderDispatcher
         ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.CulledMatrixRows23, _meshesCulledMatricesRows23);
         ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.CulledMatrixRows45, _meshesCulledMatricesRows45);
         ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.DrawCallsDataOutput, _meshesArguments);
+        
+        return this;
+    }
 
-        ComputeShader.Dispatch(_dataCopierKernel, _threadGroupX, 1, 1);
-
-        // Shadows
+    public InstancesDataCopier SubmitShadowsData()
+    {
         ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.PredicatesInput, _shadowsVisibility);
         ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.GroupSums, _shadowsScannedGroupSums);
         ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.ScannedPredicates, _shadowsScannedPredicates);
@@ -146,13 +151,67 @@ public class InstancesDataCopier : ComputeShaderDispatcher
         ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.CulledMatrixRows45, _shadowsCulledMatricesRows45);
         ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.DrawCallsDataOutput, _shadowsArguments);
 
-        ComputeShader.Dispatch(_dataCopierKernel, _threadGroupX, 1, 1);
+        return this;
+    }
 
+    public InstancesDataCopier SubmitArgumentsData()
+    {
         ComputeShader.SetBuffer(_argumentsSplitterKernel, ShaderProperties.DrawCallsDataOutput, _meshesArguments);
         ComputeShader.SetBuffer(_argumentsSplitterKernel, ShaderProperties.LodArgs0, _lodArgs0);
         ComputeShader.SetBuffer(_argumentsSplitterKernel, ShaderProperties.LodArgs1, _lodArgs1);
         ComputeShader.SetBuffer(_argumentsSplitterKernel, ShaderProperties.LodArgs2, _lodArgs2);
 
-        ComputeShader.Dispatch(_argumentsSplitterKernel, 1, 1, 1);
+        return this;
+    }
+
+    public override void Dispatch() => ComputeShader.Dispatch(_dataCopierKernel, _threadGroupX, 1, 1);
+    public void DispatchArgumentsSplitter() => ComputeShader.Dispatch(_argumentsSplitterKernel, 1, 1, 1);
+
+    private void InitializeCopingBuffers(out ComputeBuffer matricesRows01, 
+        out ComputeBuffer matricesRows23, out ComputeBuffer matricesRows45,
+        out ComputeBuffer sortingData, out ComputeBuffer boundsData)
+    {
+        matricesRows01 = Context.Transform.Matrix.Rows01;
+        matricesRows23 = Context.Transform.Matrix.Rows23;
+        matricesRows45 = Context.Transform.Matrix.Rows45;
+        sortingData = Context.Sorting.Data;
+        boundsData = Context.BoundsData;
+    }
+
+    private void InitializeMeshesBuffer(out ComputeBuffer meshesVisibility,
+        out ComputeBuffer meshesScannedGroupSums, out ComputeBuffer meshesScannedPredicates,
+        out ComputeBuffer meshesCulledMatricesRows01, out ComputeBuffer meshesCulledMatricesRows23,
+        out ComputeBuffer meshesCulledMatricesRows45, out ComputeBuffer meshesArguments)
+    {
+        meshesVisibility = Context.Visibility.Meshes;
+        meshesScannedGroupSums = Context.ScannedGroupSums.Meshes;
+        meshesScannedPredicates = Context.ScannedPredicates.Meshes;
+        meshesCulledMatricesRows01 = Context.Transform.CulledMatrix.Rows01;
+        meshesCulledMatricesRows23 = Context.Transform.CulledMatrix.Rows23;
+        meshesCulledMatricesRows45 = Context.Transform.CulledMatrix.Rows45;
+        meshesArguments = Context.Arguments.Meshes;
+    }
+    
+    private void InitializeShadowsBuffer(out ComputeBuffer shadowsVisibility,
+        out ComputeBuffer shadowsScannedGroupSums, out ComputeBuffer shadowsScannedPredicates,
+        out ComputeBuffer shadowsCulledMatricesRows01, out ComputeBuffer shadowsCulledMatricesRows23,
+        out ComputeBuffer shadowsCulledMatricesRows45, out ComputeBuffer shadowsArguments)
+    {
+        shadowsVisibility = Context.Visibility.Shadows;
+        shadowsScannedGroupSums = Context.ScannedGroupSums.Shadows;
+        shadowsScannedPredicates = Context.ScannedPredicates.Shadows;
+        shadowsCulledMatricesRows01 = Context.Transform.ShadowsCulledMatrix.Rows01;
+        shadowsCulledMatricesRows23 = Context.Transform.ShadowsCulledMatrix.Rows23;
+        shadowsCulledMatricesRows45 = Context.Transform.ShadowsCulledMatrix.Rows45;
+        shadowsArguments = Context.Arguments.Shadows;
+    }
+
+    //TODO: Move to dedicated class
+    private void InitializeLodArgsBuffers(out ComputeBuffer lodArgs0, 
+        out ComputeBuffer lodArgs1, out ComputeBuffer lodArgs2)
+    {
+        lodArgs0 = Context.Arguments.LodArgs0;
+        lodArgs1 = Context.Arguments.LodArgs1;
+        lodArgs2 = Context.Arguments.LodArgs2;
     }
 }

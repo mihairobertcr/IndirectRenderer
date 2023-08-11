@@ -90,8 +90,8 @@ public class IndirectRenderer : IDisposable
             .SubmitCullingData();
 
         _groupSumsScanner.SubmitGroupCount();
-        _dataCopier.SetCopingBuffers();
-        _dataCopier.InitializeMaterialProperties(_meshProperties);
+        _dataCopier.SubmitCopingBuffers();
+        _dataCopier.BindMaterialProperties(_meshProperties);
     }
 
     public void BeginFrameRendering(ScriptableRenderContext context, Camera[] camera)
@@ -189,7 +189,10 @@ public class IndirectRenderer : IDisposable
         Profiler.EndSample();
         
         Profiler.BeginSample("Copy Instance Data");
-        _dataCopier.Dispatch();
+        _dataCopier.SubmitMeshesData().Dispatch();
+        _dataCopier.SubmitShadowsData().Dispatch();
+        _dataCopier.SubmitArgumentsData().DispatchArgumentsSplitter();
+
         if (_config.LogCulledMatrices)
         {
             _config.LogCulledMatrices = false;
