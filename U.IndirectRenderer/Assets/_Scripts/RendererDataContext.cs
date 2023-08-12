@@ -30,15 +30,15 @@ public class ArgumentsBuffer : IDisposable
     public ComputeBuffer Meshes { get; }
     public ComputeBuffer Shadows { get; }
 
-    public ComputeBuffer LodArgs0 { get; }
-    public ComputeBuffer LodArgs1 { get; }
-    public ComputeBuffer LodArgs2 { get; }
+    // public ComputeBuffer LodArgs0 { get; }
+    // public ComputeBuffer LodArgs1 { get; }
+    // public ComputeBuffer LodArgs2 { get; }
 
     public const int ARGS_PER_INSTANCE_TYPE_COUNT = DRAW_CALLS_COUNT * ARGS_PER_DRAW_COUNT;
 
     private const int DRAW_CALLS_COUNT = 3;
     private const int ARGS_PER_DRAW_COUNT = 5;
-    private const int ARGS_BYTE_SIZE_PER_DRAW_CALL = ARGS_PER_DRAW_COUNT * sizeof(uint);
+    public const int ARGS_BYTE_SIZE_PER_DRAW_CALL = ARGS_PER_DRAW_COUNT * sizeof(uint);
 
     private readonly MeshProperties _meshProperties;
     private readonly uint[] _args;
@@ -52,26 +52,26 @@ public class ArgumentsBuffer : IDisposable
         Shadows = new ComputeBuffer(ARGS_PER_INSTANCE_TYPE_COUNT, sizeof(uint), ComputeBufferType.IndirectArguments);
         Reset();
 
-        var args0 = new uint[] { 0, 0, 0, 0, 0 };
-        args0[0] = config.Lod0Mesh.GetIndexCount(0);
-        args0[2] = config.Lod0Mesh.GetIndexStart(0);
-        args0[3] = config.Lod0Mesh.GetBaseVertex(0);
-        LodArgs0 = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
-        LodArgs0.SetData(args0);
-
-        var args1 = new uint[] { 0, 0, 0, 0, 0 };
-        args1[0] = config.Lod1Mesh.GetIndexCount(0);
-        args1[2] = config.Lod1Mesh.GetIndexStart(0);
-        args1[3] = config.Lod1Mesh.GetBaseVertex(0);
-        LodArgs1 = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
-        LodArgs1.SetData(args1);
-
-        var args2 = new uint[] { 0, 0, 0, 0, 0 };
-        args2[0] = config.Lod2Mesh.GetIndexCount(0);
-        args2[2] = config.Lod2Mesh.GetIndexStart(0);
-        args2[3] = config.Lod2Mesh.GetBaseVertex(0);
-        LodArgs2 = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
-        LodArgs2.SetData(args2);
+        // var args0 = new uint[] { 0, 0, 0, 0, 0 };
+        // args0[0] = config.Lod0Mesh.GetIndexCount(0);
+        // args0[2] = config.Lod0Mesh.GetIndexStart(0);
+        // args0[3] = config.Lod0Mesh.GetBaseVertex(0);
+        // LodArgs0 = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
+        // LodArgs0.SetData(args0);
+        //
+        // var args1 = new uint[] { 0, 0, 0, 0, 0 };
+        // args1[0] = config.Lod1Mesh.GetIndexCount(0);
+        // args1[2] = config.Lod1Mesh.GetIndexStart(0);
+        // args1[3] = config.Lod1Mesh.GetBaseVertex(0);
+        // LodArgs1 = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
+        // LodArgs1.SetData(args1);
+        //
+        // var args2 = new uint[] { 0, 0, 0, 0, 0 };
+        // args2[0] = config.Lod2Mesh.GetIndexCount(0);
+        // args2[2] = config.Lod2Mesh.GetIndexStart(0);
+        // args2[3] = config.Lod2Mesh.GetBaseVertex(0);
+        // LodArgs2 = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
+        // LodArgs2.SetData(args2);
     }
 
     public void Reset()
@@ -84,9 +84,9 @@ public class ArgumentsBuffer : IDisposable
     {
         Meshes?.Dispose();
         Shadows?.Dispose();
-        LodArgs0?.Dispose();
-        LodArgs1?.Dispose();
-        LodArgs2?.Dispose();
+        // LodArgs0?.Dispose();
+        // LodArgs1?.Dispose();
+        // LodArgs2?.Dispose();
     }
 
     public void Log(string instancePrefix = "", string shadowPrefix = "")

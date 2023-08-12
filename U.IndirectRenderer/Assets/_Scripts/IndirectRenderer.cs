@@ -191,7 +191,7 @@ public class IndirectRenderer : IDisposable
         Profiler.BeginSample("Copy Instance Data");
         _dataCopier.SubmitMeshesData().Dispatch();
         _dataCopier.SubmitShadowsData().Dispatch();
-        _dataCopier.SubmitArgumentsData().DispatchArgumentsSplitter();
+        // _dataCopier.SubmitArgumentsData().DispatchArgumentsSplitter();
 
         if (_config.LogCulledMatrices)
         {
@@ -222,35 +222,35 @@ public class IndirectRenderer : IDisposable
         if (_settings.EnableLod)
         {
             Graphics.DrawMeshInstancedIndirect(
-                mesh: _config.Lod0Mesh, //_meshProperties.Mesh,
+                mesh: _meshProperties.Mesh,
                 submeshIndex: 0,
                 material: _meshProperties.Material,
                 bounds: _bounds,
-                bufferWithArgs: _context.Arguments.LodArgs0, //RendererDataContext.Meshes,
-                argsOffset: 0,// ARGS_BYTE_SIZE_PER_DRAW_CALL * 0,
+                bufferWithArgs: _context.Arguments.Meshes,
+                argsOffset: ArgumentsBuffer.ARGS_BYTE_SIZE_PER_DRAW_CALL * 0,
                 properties: _meshProperties.Lod0PropertyBlock,
                 castShadows: ShadowCastingMode.On);
                 //camera: _config.RenderCamera);
 
             Graphics.DrawMeshInstancedIndirect(
-                mesh: _config.Lod1Mesh, //_meshProperties.Mesh,
+                mesh: _meshProperties.Mesh,
                 submeshIndex: 0,
                 material: _meshProperties.Material,
                 bounds: _bounds,
-                bufferWithArgs: _context.Arguments.LodArgs1, //RendererDataContext.Meshes,
-                argsOffset: 0, //ARGS_BYTE_SIZE_PER_DRAW_CALL * 1,
+                bufferWithArgs: _context.Arguments.Meshes,
+                argsOffset: ArgumentsBuffer.ARGS_BYTE_SIZE_PER_DRAW_CALL * 1,
                 properties: _meshProperties.Lod1PropertyBlock,
                 castShadows: ShadowCastingMode.On);
                 //camera: _config.RenderCamera);
         }
 
         Graphics.DrawMeshInstancedIndirect(
-            mesh: _config.Lod2Mesh, //_meshProperties.Mesh,
+            mesh: _meshProperties.Mesh,
             submeshIndex: 0,
             material: _meshProperties.Material,
             bounds: _bounds,
-            bufferWithArgs: _context.Arguments.LodArgs2, //RendererDataContext.Meshes,
-            argsOffset: 0, //ARGS_BYTE_SIZE_PER_DRAW_CALL * 2,
+            bufferWithArgs: _context.Arguments.Meshes,
+            argsOffset: ArgumentsBuffer.ARGS_BYTE_SIZE_PER_DRAW_CALL * 2,
             properties: _meshProperties.Lod2PropertyBlock,
             castShadows: ShadowCastingMode.On);
     }
