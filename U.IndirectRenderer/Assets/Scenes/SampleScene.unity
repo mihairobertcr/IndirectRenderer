@@ -636,7 +636,7 @@ MonoBehaviour:
     LogMatrices: 0
     LogArgumentsBufferAfterReset: 0
     LogArgumentsAfterOcclusion: 0
-    LogInstancesIsVisibleBuffer: 1
+    LogInstancesIsVisibleBuffer: 0
     LogGroupSumsBuffer: 0
     LogScannedPredicates: 0
     LogScannedGroupSumsBuffer: 0

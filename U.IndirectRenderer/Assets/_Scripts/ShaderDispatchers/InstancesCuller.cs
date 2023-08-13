@@ -7,8 +7,8 @@ public class InstancesCuller : ComputeShaderDispatcher
     private readonly int _kernel;
     private readonly int _threadGroupX;
     
-    private readonly ComputeBuffer _meshesArgumentsBuffer;
-    private readonly ComputeBuffer _shadowsArgumentsBuffer;
+    private readonly GraphicsBuffer _meshesArgumentsBuffer;
+    private readonly GraphicsBuffer _shadowsArgumentsBuffer;
     private readonly ComputeBuffer _meshesVisibilityBuffer;
     private readonly ComputeBuffer _shadowsVisibilityBuffer;
     private readonly ComputeBuffer _boundsDataBuffer;
@@ -111,12 +111,12 @@ public class InstancesCuller : ComputeShaderDispatcher
         }
     }
 
-    private void InitializeCullingBuffers(out ComputeBuffer meshesArgs, out ComputeBuffer shadowsArgs, 
+    private void InitializeCullingBuffers(out GraphicsBuffer meshesArgs, out GraphicsBuffer shadowsArgs, 
         out ComputeBuffer meshesVisibility, out ComputeBuffer shadowsVisibility, 
         out ComputeBuffer bounds, out ComputeBuffer sortingData)
     {
-        meshesArgs = Context.Arguments.Meshes;
-        shadowsArgs = Context.Arguments.Shadows;
+        meshesArgs = Context.Arguments.MeshesBuffer;
+        shadowsArgs = Context.Arguments.ShadowsBuffer;
         meshesVisibility = Context.Visibility.Meshes;
         shadowsVisibility = Context.Visibility.Shadows;
         bounds = Context.BoundsData;

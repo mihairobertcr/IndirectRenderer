@@ -18,7 +18,7 @@ public class InstancesDataCopier : ComputeShaderDispatcher
     private readonly ComputeBuffer _meshesCulledMatricesRows01;
     private readonly ComputeBuffer _meshesCulledMatricesRows23;
     private readonly ComputeBuffer _meshesCulledMatricesRows45;
-    private readonly ComputeBuffer _meshesArguments;
+    private readonly GraphicsBuffer _meshesArguments;
 
     private readonly ComputeBuffer _shadowsVisibility;
     private readonly ComputeBuffer _shadowsScannedGroupSums;
@@ -26,7 +26,7 @@ public class InstancesDataCopier : ComputeShaderDispatcher
     private readonly ComputeBuffer _shadowsCulledMatricesRows01;
     private readonly ComputeBuffer _shadowsCulledMatricesRows23;
     private readonly ComputeBuffer _shadowsCulledMatricesRows45;
-    private readonly ComputeBuffer _shadowsArguments;
+    private readonly GraphicsBuffer _shadowsArguments;
     
     private readonly ComputeBuffer _lodArgs0;
     private readonly ComputeBuffer _lodArgs1;
@@ -181,7 +181,7 @@ public class InstancesDataCopier : ComputeShaderDispatcher
     private void InitializeMeshesBuffer(out ComputeBuffer meshesVisibility,
         out ComputeBuffer meshesScannedGroupSums, out ComputeBuffer meshesScannedPredicates,
         out ComputeBuffer meshesCulledMatricesRows01, out ComputeBuffer meshesCulledMatricesRows23,
-        out ComputeBuffer meshesCulledMatricesRows45, out ComputeBuffer meshesArguments)
+        out ComputeBuffer meshesCulledMatricesRows45, out GraphicsBuffer meshesArguments)
     {
         meshesVisibility = Context.Visibility.Meshes;
         meshesScannedGroupSums = Context.ScannedGroupSums.Meshes;
@@ -189,13 +189,13 @@ public class InstancesDataCopier : ComputeShaderDispatcher
         meshesCulledMatricesRows01 = Context.Transform.CulledMatrix.Rows01;
         meshesCulledMatricesRows23 = Context.Transform.CulledMatrix.Rows23;
         meshesCulledMatricesRows45 = Context.Transform.CulledMatrix.Rows45;
-        meshesArguments = Context.Arguments.Meshes;
+        meshesArguments = Context.Arguments.MeshesBuffer;
     }
     
     private void InitializeShadowsBuffer(out ComputeBuffer shadowsVisibility,
         out ComputeBuffer shadowsScannedGroupSums, out ComputeBuffer shadowsScannedPredicates,
         out ComputeBuffer shadowsCulledMatricesRows01, out ComputeBuffer shadowsCulledMatricesRows23,
-        out ComputeBuffer shadowsCulledMatricesRows45, out ComputeBuffer shadowsArguments)
+        out ComputeBuffer shadowsCulledMatricesRows45, out GraphicsBuffer shadowsArguments)
     {
         shadowsVisibility = Context.Visibility.Shadows;
         shadowsScannedGroupSums = Context.ScannedGroupSums.Shadows;
@@ -203,7 +203,7 @@ public class InstancesDataCopier : ComputeShaderDispatcher
         shadowsCulledMatricesRows01 = Context.Transform.ShadowsCulledMatrix.Rows01;
         shadowsCulledMatricesRows23 = Context.Transform.ShadowsCulledMatrix.Rows23;
         shadowsCulledMatricesRows45 = Context.Transform.ShadowsCulledMatrix.Rows45;
-        shadowsArguments = Context.Arguments.Shadows;
+        shadowsArguments = Context.Arguments.ShadowsBuffer;
     }
 
     //TODO: Move to dedicated class

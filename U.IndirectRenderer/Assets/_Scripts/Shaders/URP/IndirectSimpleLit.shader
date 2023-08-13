@@ -94,6 +94,8 @@ Shader "IndirectRendering/URP/IndirectSimpleLit"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
 
+            #define UNITY_INDIRECT_DRAW_ARGS IndirectDrawIndexedArgs
+
             // Structs
             struct Attributes
             {
