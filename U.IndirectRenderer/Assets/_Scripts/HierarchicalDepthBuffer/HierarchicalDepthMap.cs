@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -27,12 +28,21 @@ public class HierarchicalDepthMap : ScriptableObject
 
     public Material Material { get; private set; }
     public int Size { get; private set; }
+
+    private bool _initialized = false;
+    private Action<(Material, RenderTexture, int)> _onInitializeCallback;
+    public void OnInitialize(Action<(Material, RenderTexture, int)> callback) => _onInitializeCallback = callback;
     
     public void Initialize(int cameraWidth, int cameraHeight)
     {
+        if (_initialized) return;
+        
         Material = CreateMaterial();
         Size = CalculateTextureResolution(cameraWidth, cameraHeight);
         Texture = CreateRenderTexture();
+        
+        _onInitializeCallback?.Invoke((Material, Texture, Size));
+        _initialized = true;
     }
     
     private Material CreateMaterial() => CoreUtils.CreateEngineMaterial(_shader);

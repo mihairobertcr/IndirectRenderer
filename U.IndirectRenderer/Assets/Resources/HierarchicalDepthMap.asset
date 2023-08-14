@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f5408d24e34a49228a1900333635850c, type: 3}
   m_Name: HierarchicalDepthMap
   m_EditorClassIdentifier: 
-  _resolution: 1024
+  _maximumResolution: 1024
   _shader: {fileID: 4800000, guid: 483ebfd3207614b6692e71936dfc9844, type: 3}
   <Texture>k__BackingField: {fileID: 0}
-  <TextureSize>k__BackingField: {x: 1024, y: 1024}
+  <Resolution>k__BackingField: {x: 0, y: 0}
