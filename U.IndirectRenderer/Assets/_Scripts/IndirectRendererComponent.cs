@@ -87,7 +87,7 @@ public class IndirectRendererComponent : MonoBehaviour
 {
     [SerializeField] private IndirectRendererConfig _config;
     [SerializeField] private IndirectRendererSettings _settings;
-    [FormerlySerializedAs("_hizBufferConfig")] [SerializeField] private HierarchicalDepthMap hizMap;
+    [SerializeField] private HierarchicalDepthMap _hizMap;
 
     private IndirectRenderer _renderer;
     
@@ -97,6 +97,8 @@ public class IndirectRendererComponent : MonoBehaviour
 
     private void Start()
     {
+        _hizMap.Initialize(_config.RenderCamera.pixelWidth, _config.RenderCamera.pixelHeight);
+        
         for (var i = 0; i < 128; i++)
         {
             for (var j = 0; j < 128; j++)
@@ -124,7 +126,7 @@ public class IndirectRendererComponent : MonoBehaviour
             }
         }
         
-        _renderer = new IndirectRenderer(_config, _settings, hizMap, _positions, _rotations, _scales);
+        _renderer = new IndirectRenderer(_config, _settings, _hizMap, _positions, _rotations, _scales);
     }
 
     private void OnDestroy()

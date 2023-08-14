@@ -15,7 +15,7 @@ public class HierarchicalDepthMapRenderFeature : ScriptableRendererFeature
         private const int MAXIMUM_BUFFER_SIZE = 1024;
 
         private readonly HierarchicalDepthMap _config;
-        private readonly Material _hizMaterial;
+        private readonly Material _material;
         
         private int _cameraHeight;
         private int _cameraWidth;
@@ -26,29 +26,20 @@ public class HierarchicalDepthMapRenderFeature : ScriptableRendererFeature
         public RenderPass(HierarchicalDepthMap config) : base()
         {
             _config = config;
-            _hizMaterial = CoreUtils.CreateEngineMaterial(_config.Shader);
+            _material = config.Material;
         }
         
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             if (renderingData.cameraData.cameraType != CameraType.Game) return;
             
-            _cameraHeight = renderingData.cameraData.camera.pixelHeight;
-            _cameraWidth = renderingData.cameraData.camera.pixelWidth;
+            // _cameraHeight = renderingData.cameraData.camera.pixelHeight;
+            // _cameraWidth = renderingData.cameraData.camera.pixelWidth;
             
-            _config.TextureSize = CalculateTextureSize(out _size);
+            _size = _config.Size;
             _lodCount = CalculateLoadCount(_size);
             
             _temporaries = new int[_lodCount];
-
-            if (_config.Texture != null) return;
-
-            _config.Texture = new RenderTexture(_size, _size, 0, RenderTextureFormat.RGHalf, RenderTextureReadWrite.Linear);
-            _config.Texture.filterMode = FilterMode.Point;
-            _config.Texture.useMipMap = true;
-            _config.Texture.autoGenerateMips = false;
-            _config.Texture.Create();
-            _config.Texture.hideFlags = HideFlags.HideAndDontSave;
         }
 
         // Here you can implement the rendering logic.
@@ -63,7 +54,7 @@ public class HierarchicalDepthMapRenderFeature : ScriptableRendererFeature
             using (new ProfilingScope(cmd, new ProfilingSampler("Indirect Camera Depth Buffer")))
             {
                 var id = new RenderTargetIdentifier(_config.Texture);
-                Blit(cmd, BuiltinRenderTextureType.None, id, _hizMaterial, (int)Pass.Blit);
+                Blit(cmd, BuiltinRenderTextureType.None, id, _material, (int)Pass.Blit);
             
                 for (var i = 0; i < _lodCount; ++i)
                 {
@@ -75,11 +66,11 @@ public class HierarchicalDepthMapRenderFeature : ScriptableRendererFeature
                     cmd.GetTemporaryRT(_temporaries[i], _size, _size, 0, FilterMode.Point, RenderTextureFormat.RGHalf, RenderTextureReadWrite.Linear);
                     if (i == 0)
                     {
-                        Blit(cmd, id, _temporaries[0], _hizMaterial, (int)Pass.Reduce);
+                        Blit(cmd, id, _temporaries[0], _material, (int)Pass.Reduce);
                     }
                     else
                     {
-                        Blit(cmd, _temporaries[i - 1], _temporaries[i], _hizMaterial, (int)Pass.Reduce);
+                        Blit(cmd, _temporaries[i - 1], _temporaries[i], _material, (int)Pass.Reduce);
                     }
                 
                     cmd.CopyTexture(_temporaries[i], 0, 0, id, 0, i + 1);
@@ -107,19 +98,7 @@ public class HierarchicalDepthMapRenderFeature : ScriptableRendererFeature
         
         public void Dispose()
         {
-            CoreUtils.Destroy(_hizMaterial);
-        }
-        
-        private Vector2 CalculateTextureSize(out int size)
-        {
-            size = Mathf.Max(_cameraWidth, _cameraHeight);
-            size = (int)Mathf.Min((float)Mathf.NextPowerOfTwo(size), MAXIMUM_BUFFER_SIZE);
-        
-            return new Vector2
-            {
-                x = size,
-                y = size
-            };
+            CoreUtils.Destroy(_material);
         }
 
         private int CalculateLoadCount(int size) => (int)Mathf.Floor(Mathf.Log(size, 2f));
