@@ -15,7 +15,7 @@ public class HierarchicalDepthMapRenderFeature : ScriptableRendererFeature
         
         private const int MAXIMUM_BUFFER_SIZE = 1024;
 
-        private readonly HierarchicalDepthMap _config;
+        // private readonly HierarchicalDepthMap _config;
         private Material _material;
         
         private int _cameraHeight;
@@ -26,8 +26,8 @@ public class HierarchicalDepthMapRenderFeature : ScriptableRendererFeature
 
         public RenderPass(HierarchicalDepthMap config) : base()
         {
-            _config = config;
-            _config.OnInitialize(ctx =>
+            // _config = config;
+            HierarchicalDepthMap.OnInitialize(ctx =>
             {
                 _material = ctx.Item1;
             });
@@ -40,8 +40,8 @@ public class HierarchicalDepthMapRenderFeature : ScriptableRendererFeature
             _cameraHeight = renderingData.cameraData.camera.pixelHeight;
             _cameraWidth = renderingData.cameraData.camera.pixelWidth;
             
-            _config.Initialize(_cameraWidth, _cameraHeight);
-            _size = _config.Size;
+            HierarchicalDepthMap.Initialize(_cameraWidth, _cameraHeight);
+            _size = HierarchicalDepthMap.Instance.Size;
             _lodCount = CalculateLoadCount(_size);
             
             _temporaries = new int[_lodCount];
@@ -54,7 +54,7 @@ public class HierarchicalDepthMapRenderFeature : ScriptableRendererFeature
             var cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, new ProfilingSampler("Indirect Camera Depth Buffer")))
             {
-                var id = new RenderTargetIdentifier(_config.Texture);
+                var id = new RenderTargetIdentifier(HierarchicalDepthMap.Instance.Texture);
                 Blit(cmd, BuiltinRenderTextureType.None, id, _material, (int)Pass.Blit);
             
                 for (var i = 0; i < _lodCount; ++i)
@@ -99,10 +99,10 @@ public class HierarchicalDepthMapRenderFeature : ScriptableRendererFeature
 
     public override void Create()
     {
-        if (_depthMap == null)
-        {
-            _depthMap = Resources.Load("HierarchicalDepthMap") as HierarchicalDepthMap;
-        }
+        // if (_depthMap == null)
+        // {
+        //     _depthMap = Resources.Load("HierarchicalDepthMap") as HierarchicalDepthMap;
+        // }
         
         _pass = new RenderPass(_depthMap);
         _pass.renderPassEvent = RenderPassEvent.AfterRenderingOpaques;

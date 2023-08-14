@@ -1,4 +1,5 @@
 using System;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -20,6 +21,23 @@ public enum PowersOfTwo
     menuName = "Indirect Renderer/HierarchicalDepthMap")]
 public class HierarchicalDepthMap : ScriptableObject
 {
+    public static HierarchicalDepthMap Instance { get; private set; }
+    private static bool s_Initialized = false;
+    
+    private static Action<(Material, RenderTexture, int)> s_OnInitializeCallback;
+    public static void OnInitialize(Action<(Material, RenderTexture, int)> callback) => s_OnInitializeCallback = callback;
+
+    public static void Initialize(int cameraWidth, int cameraHeight)
+    {
+        if (s_Initialized) return;
+
+        Instance = Resources.Load("HierarchicalDepthMap") as HierarchicalDepthMap;
+        Instance.InitializeInternal(cameraWidth, cameraHeight);
+        
+        s_OnInitializeCallback?.Invoke((Instance.Material, Instance.Texture, Instance.Size));
+        s_Initialized = true;
+    }
+
     [SerializeField] private PowersOfTwo _maximumResolution;
     [SerializeField] private Shader _shader;
     
@@ -28,23 +46,14 @@ public class HierarchicalDepthMap : ScriptableObject
 
     public Material Material { get; private set; }
     public int Size { get; private set; }
-
-    private bool _initialized = false;
-    private Action<(Material, RenderTexture, int)> _onInitializeCallback;
-    public void OnInitialize(Action<(Material, RenderTexture, int)> callback) => _onInitializeCallback = callback;
     
-    public void Initialize(int cameraWidth, int cameraHeight)
+    private void InitializeInternal(int cameraWidth, int cameraHeight)
     {
-        if (_initialized) return;
-        
         Material = CreateMaterial();
         Size = CalculateTextureResolution(cameraWidth, cameraHeight);
         Texture = CreateRenderTexture();
-        
-        _onInitializeCallback?.Invoke((Material, Texture, Size));
-        _initialized = true;
     }
-    
+
     private Material CreateMaterial() => CoreUtils.CreateEngineMaterial(_shader);
     
     private int CalculateTextureResolution(int cameraWidth, int cameraHeight)
