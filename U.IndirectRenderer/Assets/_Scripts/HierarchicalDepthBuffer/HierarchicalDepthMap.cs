@@ -1,5 +1,4 @@
 using System;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -29,13 +28,16 @@ public class HierarchicalDepthMap : ScriptableObject
 
     public static void Initialize(int cameraWidth, int cameraHeight)
     {
-        if (s_Initialized) return;
-
-        Instance = Resources.Load("HierarchicalDepthMap") as HierarchicalDepthMap;
-        Instance.InitializeInternal(cameraWidth, cameraHeight);
+        if (!s_Initialized)
+        {
+            Instance = Resources.Load("HierarchicalDepthMap") as HierarchicalDepthMap;
+            Instance.InitializeInternal(cameraWidth, cameraHeight);
         
+            s_Initialized = true;
+        }
+
         s_OnInitializeCallback?.Invoke((Instance.Material, Instance.Texture, Instance.Size));
-        s_Initialized = true;
+
     }
 
     [SerializeField] private PowersOfTwo _maximumResolution;

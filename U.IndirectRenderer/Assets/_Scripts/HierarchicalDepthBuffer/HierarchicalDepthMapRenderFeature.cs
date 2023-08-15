@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.Serialization;
 
 public class HierarchicalDepthMapRenderFeature : ScriptableRendererFeature
 {
@@ -13,23 +12,23 @@ public class HierarchicalDepthMapRenderFeature : ScriptableRendererFeature
             Reduce
         }
         
-        private const int MAXIMUM_BUFFER_SIZE = 1024;
-
-        // private readonly HierarchicalDepthMap _config;
         private Material _material;
+        private RenderTexture _texture;
+        private int _size;
         
-        private int _cameraHeight;
-        private int _cameraWidth;
         private int _lodCount;
         private int[] _temporaries;
-        private int _size;
 
-        public RenderPass(HierarchicalDepthMap config) : base()
+        public RenderPass()
         {
-            // _config = config;
             HierarchicalDepthMap.OnInitialize(ctx =>
             {
                 _material = ctx.Item1;
+                _texture = ctx.Item2;
+                _size = ctx.Item3;
+                
+                _lodCount = CalculateLoadCount(_size);
+                _temporaries = new int[_lodCount];
             });
         }
         
@@ -37,74 +36,62 @@ public class HierarchicalDepthMapRenderFeature : ScriptableRendererFeature
         {
             if (renderingData.cameraData.cameraType != CameraType.Game) return;
             
-            _cameraHeight = renderingData.cameraData.camera.pixelHeight;
-            _cameraWidth = renderingData.cameraData.camera.pixelWidth;
-            
-            HierarchicalDepthMap.Initialize(_cameraWidth, _cameraHeight);
-            _size = HierarchicalDepthMap.Instance.Size;
-            _lodCount = CalculateLoadCount(_size);
-            
-            _temporaries = new int[_lodCount];
+            var cameraHeight = renderingData.cameraData.camera.pixelHeight;
+            var cameraWidth = renderingData.cameraData.camera.pixelWidth;
+            HierarchicalDepthMap.Initialize(cameraHeight, cameraWidth);
         }
         
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             if (renderingData.cameraData.cameraType != CameraType.Game) return;
             
-            var cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, new ProfilingSampler("Indirect Camera Depth Buffer")))
+            var command = CommandBufferPool.Get();
+            using (new ProfilingScope(command, new ProfilingSampler("Indirect Camera Depth Buffer")))
             {
-                var id = new RenderTargetIdentifier(HierarchicalDepthMap.Instance.Texture);
-                Blit(cmd, BuiltinRenderTextureType.None, id, _material, (int)Pass.Blit);
-            
+                var id = new RenderTargetIdentifier(_texture);
+                Blit(command, BuiltinRenderTextureType.None, id, _material, (int)Pass.Blit);
+
+                var size = _size;
                 for (var i = 0; i < _lodCount; ++i)
                 {
                     _temporaries[i] = Shader.PropertyToID($"_09659d57_Temporaries{i}");
             
-                    _size >>= 1;
-                    _size = Mathf.Max(_size, 1);
-            
-                    cmd.GetTemporaryRT(_temporaries[i], _size, _size, 0, FilterMode.Point, RenderTextureFormat.RGHalf, RenderTextureReadWrite.Linear);
+                    size >>= 1;
+                    size = Mathf.Max(size, 1);
+                    command.GetTemporaryRT(_temporaries[i], size, size, 0, FilterMode.Point, RenderTextureFormat.RGHalf, RenderTextureReadWrite.Linear);
                     if (i == 0)
                     {
-                        Blit(cmd, id, _temporaries[0], _material, (int)Pass.Reduce);
+                        Blit(command, id, _temporaries[0], _material, (int)Pass.Reduce);
                     }
                     else
                     {
-                        Blit(cmd, _temporaries[i - 1], _temporaries[i], _material, (int)Pass.Reduce);
+                        Blit(command, _temporaries[i - 1], _temporaries[i], _material, (int)Pass.Reduce);
                     }
                 
-                    cmd.CopyTexture(_temporaries[i], 0, 0, id, 0, i + 1);
+                    command.CopyTexture(_temporaries[i], 0, 0, id, 0, i + 1);
                     if (i >= 1)
                     {
-                        cmd.ReleaseTemporaryRT(_temporaries[i - 1]);
+                        command.ReleaseTemporaryRT(_temporaries[i - 1]);
                     }
                 }
 
-                cmd.ReleaseTemporaryRT(_temporaries[_lodCount - 1]);
+                command.ReleaseTemporaryRT(_temporaries[_lodCount - 1]);
             }
             
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
+            context.ExecuteCommandBuffer(command);
+            command.Clear();
 
-            CommandBufferPool.Release(cmd);
+            CommandBufferPool.Release(command);
         }
 
         private int CalculateLoadCount(int size) => (int)Mathf.Floor(Mathf.Log(size, 2f));
     }
 
-    [SerializeField] private HierarchicalDepthMap _depthMap;
-    
     private RenderPass _pass;
 
     public override void Create()
     {
-        // if (_depthMap == null)
-        // {
-        //     _depthMap = Resources.Load("HierarchicalDepthMap") as HierarchicalDepthMap;
-        // }
-        
-        _pass = new RenderPass(_depthMap);
+        _pass = new RenderPass();
         _pass.renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
     }
     
