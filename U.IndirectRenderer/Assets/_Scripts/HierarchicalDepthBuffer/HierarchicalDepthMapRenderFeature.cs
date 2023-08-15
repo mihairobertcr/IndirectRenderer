@@ -13,7 +13,7 @@ public class HierarchicalDepthMapRenderFeature : ScriptableRendererFeature
         }
         
         private Material _material;
-        private RenderTexture _texture;
+        private RenderTargetIdentifier _textureId;
         private int _size;
         
         private int _lodCount;
@@ -23,11 +23,10 @@ public class HierarchicalDepthMapRenderFeature : ScriptableRendererFeature
         {
             HierarchicalDepthMap.OnInitialize(ctx =>
             {
-                _material = ctx.Item1;
-                _texture = ctx.Item2;
-                _size = ctx.Item3;
-                
-                _lodCount = CalculateLoadCount(_size);
+                _material = ctx.material;
+                _textureId = new RenderTargetIdentifier(ctx.texture);
+                _size = ctx.size;
+                _lodCount = ctx.lods;
                 _temporaries = new int[_lodCount];
             });
         }
@@ -48,10 +47,8 @@ public class HierarchicalDepthMapRenderFeature : ScriptableRendererFeature
             var command = CommandBufferPool.Get();
             using (new ProfilingScope(command, new ProfilingSampler("Indirect Camera Depth Buffer")))
             {
-                var id = new RenderTargetIdentifier(_texture);
-                Blit(command, BuiltinRenderTextureType.None, id, _material, (int)Pass.Blit);
-
                 var size = _size;
+                Blit(command, BuiltinRenderTextureType.None, _textureId, _material, (int)Pass.Blit);
                 for (var i = 0; i < _lodCount; ++i)
                 {
                     _temporaries[i] = Shader.PropertyToID($"_09659d57_Temporaries{i}");
@@ -61,14 +58,14 @@ public class HierarchicalDepthMapRenderFeature : ScriptableRendererFeature
                     command.GetTemporaryRT(_temporaries[i], size, size, 0, FilterMode.Point, RenderTextureFormat.RGHalf, RenderTextureReadWrite.Linear);
                     if (i == 0)
                     {
-                        Blit(command, id, _temporaries[0], _material, (int)Pass.Reduce);
+                        Blit(command, _textureId, _temporaries[0], _material, (int)Pass.Reduce);
                     }
                     else
                     {
                         Blit(command, _temporaries[i - 1], _temporaries[i], _material, (int)Pass.Reduce);
                     }
                 
-                    command.CopyTexture(_temporaries[i], 0, 0, id, 0, i + 1);
+                    command.CopyTexture(_temporaries[i], 0, 0, _textureId, 0, i + 1);
                     if (i >= 1)
                     {
                         command.ReleaseTemporaryRT(_temporaries[i - 1]);
@@ -83,8 +80,6 @@ public class HierarchicalDepthMapRenderFeature : ScriptableRendererFeature
 
             CommandBufferPool.Release(command);
         }
-
-        private int CalculateLoadCount(int size) => (int)Mathf.Floor(Mathf.Log(size, 2f));
     }
 
     private RenderPass _pass;

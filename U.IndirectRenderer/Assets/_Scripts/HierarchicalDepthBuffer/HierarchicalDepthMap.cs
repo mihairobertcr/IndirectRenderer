@@ -2,19 +2,6 @@ using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public enum PowersOfTwo
-{
-    _1024 = 1024,
-    _2048 = 2048,
-    _4096 = 4096,
-    _8192 = 8192,
-    _16384 = 16384,
-    _32768 = 32768,
-    _65536 = 65536,
-    _131072 = 131072,
-    _262144 = 262144
-}
-
 [CreateAssetMenu(
     fileName = "HierarchicalDepthMap", 
     menuName = "Indirect Renderer/HierarchicalDepthMap")]
@@ -23,8 +10,9 @@ public class HierarchicalDepthMap : ScriptableObject
     public static HierarchicalDepthMap Instance { get; private set; }
     private static bool s_Initialized = false;
     
-    private static Action<(Material, RenderTexture, int)> s_OnInitializeCallback;
-    public static void OnInitialize(Action<(Material, RenderTexture, int)> callback) => s_OnInitializeCallback = callback;
+    private static Action<(Material material, RenderTexture texture, int size, int lods)> s_OnInitializeCallback;
+    public static void OnInitialize(Action<(Material material, RenderTexture texture, int size, int lods)> callback) => 
+        s_OnInitializeCallback = callback;
 
     public static void Initialize(int cameraWidth, int cameraHeight)
     {
@@ -36,10 +24,9 @@ public class HierarchicalDepthMap : ScriptableObject
             s_Initialized = true;
         }
 
-        s_OnInitializeCallback?.Invoke((Instance.Material, Instance.Texture, Instance.Size));
-
+        s_OnInitializeCallback?.Invoke((Instance.Material, Instance.Texture, Instance.Size, Instance.LodCount));
     }
-
+    
     [SerializeField] private PowersOfTwo _maximumResolution;
     [SerializeField] private Shader _shader;
     
@@ -49,6 +36,8 @@ public class HierarchicalDepthMap : ScriptableObject
     public Material Material { get; private set; }
     public int Size { get; private set; }
     
+    public int LodCount => (int)Mathf.Floor(Mathf.Log(Size, 2f));
+
     private void InitializeInternal(int cameraWidth, int cameraHeight)
     {
         Material = CreateMaterial();
