@@ -190,10 +190,10 @@ public class ArgumentsBuffer : IDisposable
         var parameters = new GraphicsBuffer.IndirectDrawIndexedArgs[3];
         parameters[0] = new GraphicsBuffer.IndirectDrawIndexedArgs
         {
-            indexCountPerInstance = _meshProperties.Lod0Indices,
+            indexCountPerInstance = _config.Lod0Mesh.GetIndexCount(0),
             instanceCount = 0,
-            startIndex = 0,
-            baseVertexIndex = 0,
+            startIndex = _config.Lod0Mesh.GetIndexStart(0),
+            baseVertexIndex = _config.Lod0Mesh.GetBaseVertex(0),
             startInstance = 0
         };
         
