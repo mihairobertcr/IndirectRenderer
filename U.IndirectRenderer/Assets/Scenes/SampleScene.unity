@@ -135,6 +135,7 @@ GameObject:
   - component: {fileID: 330585545}
   - component: {fileID: 330585544}
   - component: {fileID: 330585547}
+  - component: {fileID: 330585548}
   m_Layer: 0
   m_Name: RenderCamera
   m_TagString: MainCamera
@@ -260,6 +261,28 @@ MonoBehaviour:
     mipBias: 0
     varianceClampScale: 0.9
     contrastAdaptiveSharpening: 0
+--- !u!114 &330585548
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbae595255c4748d09fb4f86ba96546d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  eventSystem: {fileID: 0}
+  lockXRotation: 0
+  minSpeed: 0.5
+  mainSpeed: 10
+  shiftMultiplier: 2
+  maxShift: 100000
+  camSens: 0.35
+  clickToMove: 1
+  unitsAboveTerrain: 4
+  isFrozen: 0
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -641,7 +664,7 @@ MonoBehaviour:
     LogScannedPredicates: 0
     LogScannedGroupSumsBuffer: 0
     LogCulledMatrices: 0
-    LogArgsBufferAfterCopy: 0
+    LogArgsBufferAfterCopy: 1
     LogSortingData: 0
     DebugBounds: 1
   _settings:

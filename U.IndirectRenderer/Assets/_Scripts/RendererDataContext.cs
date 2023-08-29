@@ -32,9 +32,9 @@ public class ArgumentsBuffer : IDisposable
     public GraphicsBuffer ShadowsBuffer { get; }
     public GraphicsBuffer.IndirectDrawIndexedArgs[] ShadowsCommand { get; }
 
-    // public ComputeBuffer LodArgs0 { get; }
-    // public ComputeBuffer LodArgs1 { get; }
-    // public ComputeBuffer LodArgs2 { get; }
+    public GraphicsBuffer LodArgs0 { get; }
+    public GraphicsBuffer LodArgs1 { get; }
+    public GraphicsBuffer LodArgs2 { get; }
 
     public const int ARGS_PER_INSTANCE_TYPE_COUNT = DRAW_CALLS_COUNT * ARGS_PER_DRAW_COUNT;
     public const int ARGS_BYTE_SIZE_PER_DRAW_CALL = ARGS_PER_DRAW_COUNT * sizeof(uint);
@@ -46,11 +46,17 @@ public class ArgumentsBuffer : IDisposable
     // private readonly uint[] _args;
     private readonly GraphicsBuffer.IndirectDrawIndexedArgs[] _parameters;
 
+    private readonly IndirectRendererConfig _config;
+
     public ArgumentsBuffer(MeshProperties meshProperties, IndirectRendererConfig config)
     {
+        _config = config;
+
+        
         _meshProperties = meshProperties;
         // _args = InitializeArgumentsBuffer();
         _parameters = InitializeArgumentsBuffer();
+
 
         MeshesBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, 3, GraphicsBuffer.IndirectDrawIndexedArgs.size);
         MeshesCommand = new GraphicsBuffer.IndirectDrawIndexedArgs[3];
@@ -58,26 +64,41 @@ public class ArgumentsBuffer : IDisposable
         ShadowsCommand = new GraphicsBuffer.IndirectDrawIndexedArgs[3];
         Reset();
 
-        // var args0 = new uint[] { 0, 0, 0, 0, 0 };
-        // args0[0] = config.Lod0Mesh.GetIndexCount(0);
-        // args0[2] = config.Lod0Mesh.GetIndexStart(0);
-        // args0[3] = config.Lod0Mesh.GetBaseVertex(0);
-        // LodArgs0 = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
-        // LodArgs0.SetData(args0);
-        //
-        // var args1 = new uint[] { 0, 0, 0, 0, 0 };
-        // args1[0] = config.Lod1Mesh.GetIndexCount(0);
-        // args1[2] = config.Lod1Mesh.GetIndexStart(0);
-        // args1[3] = config.Lod1Mesh.GetBaseVertex(0);
-        // LodArgs1 = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
-        // LodArgs1.SetData(args1);
-        //
-        // var args2 = new uint[] { 0, 0, 0, 0, 0 };
-        // args2[0] = config.Lod2Mesh.GetIndexCount(0);
-        // args2[2] = config.Lod2Mesh.GetIndexStart(0);
-        // args2[3] = config.Lod2Mesh.GetBaseVertex(0);
-        // LodArgs2 = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
-        // LodArgs2.SetData(args2);
+        var args0 = new GraphicsBuffer.IndirectDrawIndexedArgs[1];
+        args0[0] = new GraphicsBuffer.IndirectDrawIndexedArgs
+        {
+            indexCountPerInstance = config.Lod0Mesh.GetIndexCount(0),
+            instanceCount = 0,
+            startIndex = config.Lod0Mesh.GetIndexStart(0),
+            baseVertexIndex = config.Lod0Mesh.GetBaseVertex(0),
+            startInstance = 0
+        };
+        LodArgs0 = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, 1, GraphicsBuffer.IndirectDrawIndexedArgs.size);
+        LodArgs0.SetData(args0);
+        
+        var args1 = new GraphicsBuffer.IndirectDrawIndexedArgs[1];
+        args1[0] = new GraphicsBuffer.IndirectDrawIndexedArgs
+        {
+            indexCountPerInstance = config.Lod1Mesh.GetIndexCount(0),
+            instanceCount = 0,
+            startIndex = config.Lod1Mesh.GetIndexStart(0),
+            baseVertexIndex = config.Lod1Mesh.GetBaseVertex(0),
+            startInstance = 0
+        };
+        LodArgs1 = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, 1, GraphicsBuffer.IndirectDrawIndexedArgs.size);
+        LodArgs1.SetData(args1);
+        
+        var args2 = new GraphicsBuffer.IndirectDrawIndexedArgs[1];
+        args2[0] = new GraphicsBuffer.IndirectDrawIndexedArgs
+        {
+            indexCountPerInstance = config.Lod2Mesh.GetIndexCount(0),
+            instanceCount = 0,
+            startIndex = config.Lod2Mesh.GetIndexStart(0),
+            baseVertexIndex = config.Lod2Mesh.GetBaseVertex(0),
+            startInstance = 0
+        };
+        LodArgs2 = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, 1, GraphicsBuffer.IndirectDrawIndexedArgs.size);
+        LodArgs2.SetData(args2);
     }
 
     public void Reset()
@@ -90,9 +111,9 @@ public class ArgumentsBuffer : IDisposable
     {
         MeshesBuffer?.Dispose();
         ShadowsBuffer?.Dispose();
-        // LodArgs0?.Dispose();
-        // LodArgs1?.Dispose();
-        // LodArgs2?.Dispose();
+        LodArgs0?.Dispose();
+        LodArgs1?.Dispose();
+        LodArgs2?.Dispose();
     }
 
     //TODO: Change to GraphicsBuffer
@@ -180,7 +201,7 @@ public class ArgumentsBuffer : IDisposable
         {
             indexCountPerInstance = _meshProperties.Lod1Indices,
             instanceCount = 0,
-            startIndex = 0, //parameters[0].indexCountPerInstance + parameters[0].startIndex,
+            startIndex = parameters[0].indexCountPerInstance + parameters[0].startIndex,
             baseVertexIndex = 0,
             startInstance = 0
         };
@@ -189,7 +210,7 @@ public class ArgumentsBuffer : IDisposable
         {
             indexCountPerInstance = _meshProperties.Lod2Indices,
             instanceCount = 0,
-            startIndex = 0, //parameters[1].indexCountPerInstance + parameters[1].startIndex,
+            startIndex = parameters[1].indexCountPerInstance + parameters[1].startIndex,
             baseVertexIndex = 0,
             startInstance = 0
         };

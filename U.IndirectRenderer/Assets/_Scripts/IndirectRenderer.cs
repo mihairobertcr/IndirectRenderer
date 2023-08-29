@@ -188,7 +188,7 @@ public class IndirectRenderer : IDisposable
         Profiler.BeginSample("Copy Instance Data");
         _dataCopier.SubmitMeshesData().Dispatch();
         _dataCopier.SubmitShadowsData().Dispatch();
-        // _dataCopier.SubmitArgumentsData().DispatchArgumentsSplitter();
+        _dataCopier.SubmitArgumentsData().DispatchArgumentsSplitter();
 
         if (_config.LogCulledMatrices)
         {
@@ -218,6 +218,10 @@ public class IndirectRenderer : IDisposable
     {
         var rp = new RenderParams(_meshProperties.Material);
         rp.worldBounds = _bounds;
+        rp.shadowCastingMode = ShadowCastingMode.On;
+
+        // var args = new uint[15];
+        // _context.Arguments.MeshesBuffer.GetData(args);
         
         if (_settings.EnableLod)
         {
@@ -244,10 +248,10 @@ public class IndirectRenderer : IDisposable
             //     //camera: _config.RenderCamera);
             
             rp.matProps = _meshProperties.Lod0PropertyBlock;
-            Graphics.RenderMeshIndirect(rp, _config.Lod0Mesh, _context.Arguments.MeshesBuffer, 1, 0);
+            Graphics.RenderMeshIndirect(rp, _config.Lod0Mesh, _context.Arguments.LodArgs0, 1, 0);
             
             rp.matProps = _meshProperties.Lod1PropertyBlock;
-            Graphics.RenderMeshIndirect(rp, _config.Lod1Mesh, _context.Arguments.MeshesBuffer, 1, 1);
+            Graphics.RenderMeshIndirect(rp, _config.Lod1Mesh, _context.Arguments.LodArgs1, 1, 0);
         }
 
         // Graphics.DrawMeshInstancedIndirect(
@@ -262,7 +266,7 @@ public class IndirectRenderer : IDisposable
         
         
         rp.matProps = _meshProperties.Lod2PropertyBlock;
-        Graphics.RenderMeshIndirect(rp, _config.Lod2Mesh, _context.Arguments.MeshesBuffer, 1, 2);
+        Graphics.RenderMeshIndirect(rp, _config.Lod2Mesh, _context.Arguments.LodArgs2, 1, 0);
     }
     
     private void DrawShadows()
