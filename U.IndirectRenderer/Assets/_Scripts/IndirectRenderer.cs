@@ -190,7 +190,7 @@ public class IndirectRenderer : IDisposable
         Profiler.BeginSample("Copy Instance Data");
         _dataCopier.SubmitMeshesData().Dispatch();
         _dataCopier.SubmitShadowsData().Dispatch();
-        _dataCopier.SubmitArgumentsData().DispatchArgumentsSplitter();
+        // _dataCopier.SubmitArgumentsData().DispatchArgumentsSplitter();
 
         if (_config.LogCulledMatrices)
         {
