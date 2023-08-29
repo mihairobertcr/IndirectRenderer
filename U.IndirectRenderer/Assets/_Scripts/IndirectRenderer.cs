@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
@@ -106,14 +108,14 @@ public class IndirectRenderer : IDisposable
             DrawInstances();
             Profiler.EndSample();
         }
-        
+
         // if (_settings.DrawShadows)
         // {
         //     Profiler.BeginSample("DrawInstanceShadows");
         //     DrawShadows();
         //     Profiler.EndSample();
         // }
-        
+
         // if (debugDrawHiZ)
         // {
         //     Vector3 pos = transform.position;
@@ -225,48 +227,24 @@ public class IndirectRenderer : IDisposable
         
         if (_settings.EnableLod)
         {
-            // Graphics.DrawMeshInstancedIndirect(
-            //     mesh: _meshProperties.Mesh,
-            //     submeshIndex: 0,
-            //     material: _meshProperties.Material,
-            //     bounds: _bounds,
-            //     bufferWithArgs: _context.Arguments.MeshesBuffer,
-            //     argsOffset: ArgumentsBuffer.ARGS_BYTE_SIZE_PER_DRAW_CALL * 0,
-            //     properties: _meshProperties.Lod0PropertyBlock,
-            //     castShadows: ShadowCastingMode.On);
-            //     //camera: _config.RenderCamera);
+            // rp.matProps = _meshProperties.Lod0PropertyBlock;
+            // Graphics.RenderMeshIndirect(rp, _config.Lod0Mesh, _context.Arguments.LodArgs0, 1, 0);
             //
-            // Graphics.DrawMeshInstancedIndirect(
-            //     mesh: _meshProperties.Mesh,
-            //     submeshIndex: 0,
-            //     material: _meshProperties.Material,
-            //     bounds: _bounds,
-            //     bufferWithArgs: _context.Arguments.MeshesBuffer,
-            //     argsOffset: ArgumentsBuffer.ARGS_BYTE_SIZE_PER_DRAW_CALL * 1,
-            //     properties: _meshProperties.Lod1PropertyBlock,
-            //     castShadows: ShadowCastingMode.On);
-            //     //camera: _config.RenderCamera);
+            // rp.matProps = _meshProperties.Lod1PropertyBlock;
+            // Graphics.RenderMeshIndirect(rp, _config.Lod1Mesh, _context.Arguments.LodArgs1, 1, 0);
             
             rp.matProps = _meshProperties.Lod0PropertyBlock;
-            Graphics.RenderMeshIndirect(rp, _config.Lod0Mesh, _context.Arguments.LodArgs0, 1, 0);
+            Graphics.RenderMeshIndirect(rp, _meshProperties.Mesh, _context.Arguments.MeshesBuffer, 1, 0);
             
             rp.matProps = _meshProperties.Lod1PropertyBlock;
-            Graphics.RenderMeshIndirect(rp, _config.Lod1Mesh, _context.Arguments.LodArgs1, 1, 0);
+            Graphics.RenderMeshIndirect(rp, _meshProperties.Mesh, _context.Arguments.MeshesBuffer, 1, 1);
         }
 
-        // Graphics.DrawMeshInstancedIndirect(
-        //     mesh: _meshProperties.Mesh,
-        //     submeshIndex: 0,
-        //     material: _meshProperties.Material,
-        //     bounds: _bounds,
-        //     bufferWithArgs: _context.Arguments.MeshesBuffer,
-        //     argsOffset: ArgumentsBuffer.ARGS_BYTE_SIZE_PER_DRAW_CALL * 2,
-        //     properties: _meshProperties.Lod2PropertyBlock,
-        //     castShadows: ShadowCastingMode.On);
-        
+        // rp.matProps = _meshProperties.Lod2PropertyBlock;
+        // Graphics.RenderMeshIndirect(rp, _config.Lod2Mesh, _context.Arguments.LodArgs2, 1, 0);
         
         rp.matProps = _meshProperties.Lod2PropertyBlock;
-        Graphics.RenderMeshIndirect(rp, _config.Lod2Mesh, _context.Arguments.LodArgs2, 1, 0);
+        Graphics.RenderMeshIndirect(rp, _meshProperties.Mesh, _context.Arguments.MeshesBuffer, 1, 2);
     }
     
     private void DrawShadows()

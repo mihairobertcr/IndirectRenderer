@@ -84,20 +84,20 @@ public class InstancesDataCopier : ComputeShaderDispatcher
     public void BindMaterialProperties(MeshProperties properties)
     {
         properties.Lod0PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 4); //See if all 3 of them are required
-        properties.Lod1PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 4);
-        properties.Lod2PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 4);
+        properties.Lod1PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 9);
+        properties.Lod2PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 14);
 
         properties.ShadowLod0PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 4);
-        properties.ShadowLod1PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 4);
-        properties.ShadowLod2PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 4);
+        properties.ShadowLod1PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 9);
+        properties.ShadowLod2PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 14);
 
-        // properties.Lod0PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _meshesArguments);
-        // properties.Lod1PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _meshesArguments);
-        // properties.Lod2PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _meshesArguments);
+        properties.Lod0PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _meshesArguments);
+        properties.Lod1PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _meshesArguments);
+        properties.Lod2PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _meshesArguments);
 
-        properties.Lod0PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _lodArgs0);
-        properties.Lod1PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _lodArgs1);
-        properties.Lod2PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _lodArgs2);
+        // properties.Lod0PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _lodArgs0);
+        // properties.Lod1PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _lodArgs1);
+        // properties.Lod2PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _lodArgs2);
 
         properties.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _shadowsArguments);
         properties.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _shadowsArguments);

@@ -645,7 +645,7 @@ MonoBehaviour:
     RenderCamera: {fileID: 330585545}
     DebugCamera: {fileID: 0}
     Material: {fileID: 2100000, guid: a8248d39566b4478591457de205c621e, type: 2}
-    Lod0Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+    Lod0Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
     Lod1Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
     Lod2Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
     MatricesInitializer: {fileID: 7200000, guid: 08d7ec0392f7748948199728f40cbc7f,
