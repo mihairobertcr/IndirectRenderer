@@ -190,28 +190,28 @@ public class ArgumentsBuffer : IDisposable
         var parameters = new GraphicsBuffer.IndirectDrawIndexedArgs[3];
         parameters[0] = new GraphicsBuffer.IndirectDrawIndexedArgs
         {
-            indexCountPerInstance = _config.Lod0Mesh.GetIndexCount(0),
+            indexCountPerInstance = _meshProperties.Mesh.GetIndexCount(0),
             instanceCount = 0,
-            startIndex = _config.Lod0Mesh.GetIndexStart(0),
-            baseVertexIndex = _config.Lod0Mesh.GetBaseVertex(0),
+            startIndex = _meshProperties.Mesh.GetIndexStart(0),
+            baseVertexIndex = _meshProperties.Mesh.GetBaseVertex(0),
             startInstance = 0
         };
         
         parameters[1] = new GraphicsBuffer.IndirectDrawIndexedArgs
         {
-            indexCountPerInstance = _meshProperties.Lod1Indices,
+            indexCountPerInstance = _meshProperties.Mesh.GetIndexCount(1),
             instanceCount = 0,
-            startIndex = parameters[0].indexCountPerInstance + parameters[0].startIndex,
-            baseVertexIndex = 0,
+            startIndex = _meshProperties.Mesh.GetIndexStart(1),
+            baseVertexIndex = _meshProperties.Mesh.GetBaseVertex(1),
             startInstance = 0
         };
         
         parameters[2] = new GraphicsBuffer.IndirectDrawIndexedArgs
         {
-            indexCountPerInstance = _meshProperties.Lod2Indices,
+            indexCountPerInstance = _meshProperties.Mesh.GetIndexCount(2),
             instanceCount = 0,
-            startIndex = parameters[1].indexCountPerInstance + parameters[1].startIndex,
-            baseVertexIndex = 0,
+            startIndex = _meshProperties.Mesh.GetIndexStart(2),
+            baseVertexIndex = _meshProperties.Mesh.GetBaseVertex(2),
             startInstance = 0
         };
         

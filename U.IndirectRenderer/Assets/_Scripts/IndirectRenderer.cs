@@ -286,7 +286,7 @@ public class IndirectRenderer : IDisposable
         
         properties.Mesh.CombineMeshes(
             combine: meshes,
-            mergeSubMeshes: true,
+            mergeSubMeshes: false,
             useMatrices: false,
             hasLightmapData: false);
 

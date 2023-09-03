@@ -779,9 +779,9 @@ MonoBehaviour:
     DrawInstances: 1
     DrawShadows: 1
     ComputeAsync: 1
-    EnableFrustumCulling: 0
-    EnableOcclusionCulling: 0
-    EnableDetailCulling: 0
+    EnableFrustumCulling: 1
+    EnableOcclusionCulling: 1
+    EnableDetailCulling: 1
     EnableLod: 1
     EnableOnlyLod2Shadows: 0
     DetailCullingPercentage: 0.005
