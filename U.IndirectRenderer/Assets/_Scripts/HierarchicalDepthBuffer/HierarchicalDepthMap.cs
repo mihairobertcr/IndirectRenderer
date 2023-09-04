@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -7,43 +6,81 @@ using UnityEngine.Rendering;
     menuName = "Indirect Renderer/HierarchicalDepthMap")]
 public class HierarchicalDepthMap : ScriptableObject
 {
-    public static HierarchicalDepthMap Instance { get; private set; }
-    private static bool s_Initialized = false;
-    
-    private static Action<(Material material, RenderTexture texture, int size, int lods)> s_OnInitializeCallback;
-    public static void OnInitialize(Action<(Material material, RenderTexture texture, int size, int lods)> callback) => 
-        s_OnInitializeCallback = callback;
-
-    public static void Initialize()
+    public static RenderTexture Texture
     {
-        if (!s_Initialized)
+        get
         {
-            Instance = Resources.Load("HierarchicalDepthMap") as HierarchicalDepthMap;
-            Instance.InitializeInternal();
-        
-            s_Initialized = true;
+            if (s_Instance != null)
+                return s_Instance._texture;
+            
+            Initialize();
+            return s_Instance._texture;
         }
+    }
 
-        s_OnInitializeCallback?.Invoke((Instance.Material, Instance.Texture, Instance.Size, Instance.LodCount));
+    public static Material Material 
+    {
+        get
+        {
+            if (s_Instance != null)
+                return s_Instance._material;
+            
+            Initialize();
+            return s_Instance._material;
+        }
     }
     
+    public static Vector2 Resolution 
+    {
+        get
+        {
+            if (s_Instance != null)
+                return s_Instance._resolution;
+            
+            Initialize();
+            return s_Instance._resolution;
+        }
+    }
+    
+    public static int Size 
+    {
+        get
+        {
+            if (s_Instance != null)
+                return s_Instance._size;
+            
+            Initialize();
+            return s_Instance._size;
+        }
+    }
+    
+    public static int LodCount => (int)Mathf.Floor(Mathf.Log(Size, 2f));
+    
+    private static HierarchicalDepthMap s_Instance;
+
+    private static void Initialize()
+    {
+        s_Instance = Resources.Load("HierarchicalDepthMap") as HierarchicalDepthMap;
+        s_Instance.InitializeInternal();
+    }
+
     [SerializeField] private PowersOfTwo _maximumResolution;
     [SerializeField] private Shader _shader;
-    
-    [field: SerializeField] public RenderTexture Texture { get; private set; }
-    [field: SerializeField] public Vector2 Resolution { get; private set; }
+    [SerializeField] private RenderTexture _texture;
+    [SerializeField] private Vector2 _resolution;
 
-    public Material Material { get; private set; }
-    public int Size { get; private set; }
+    private Material _material;
+    private int _size;
     
-    public int LodCount => (int)Mathf.Floor(Mathf.Log(Size, 2f));
-
     private void InitializeInternal()
     {
-        Material = CreateMaterial();
-        Size = CalculateTextureResolution();
-        Texture = CreateRenderTexture();
+        _material = CreateMaterial();
+        _size = CalculateTextureResolution();
+        _texture = CreateRenderTexture();
     }
+
+    //TODO: Check if _texture gets properly disposed.
+    private void OnDestroy() => _texture.Release();
 
     private Material CreateMaterial() => CoreUtils.CreateEngineMaterial(_shader);
     
@@ -52,7 +89,7 @@ public class HierarchicalDepthMap : ScriptableObject
         var size = Mathf.Max(Screen.width, Screen.height);
         size = (int)Mathf.Min((float)Mathf.NextPowerOfTwo(size), (int)_maximumResolution);
         
-        Resolution = new Vector2
+        _resolution = new Vector2
         {
             x = size,
             y = size
@@ -63,7 +100,7 @@ public class HierarchicalDepthMap : ScriptableObject
 
     private RenderTexture CreateRenderTexture()
     {
-        var texture = new RenderTexture(Size, Size, 0, RenderTextureFormat.RGHalf, RenderTextureReadWrite.Linear);
+        var texture = new RenderTexture(_size, _size, 0, RenderTextureFormat.RGHalf, RenderTextureReadWrite.Linear);
         
         texture.filterMode = FilterMode.Point;
         texture.useMipMap = true;

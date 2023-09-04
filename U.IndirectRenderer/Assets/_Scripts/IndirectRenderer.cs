@@ -83,7 +83,7 @@ public class IndirectRenderer : IDisposable
         
         _instancesCuller.SetSettings(_settings)
             .SetBoundsData(positions, scales)
-            .SetDepthMap(_hierarchicalDepthMap)
+            .SetDepthMap()
             .SubmitCullingData();
 
         _groupSumsScanner.SubmitGroupCount();

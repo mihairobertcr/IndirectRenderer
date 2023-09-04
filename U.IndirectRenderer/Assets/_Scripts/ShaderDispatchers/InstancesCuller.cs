@@ -68,10 +68,10 @@ public class InstancesCuller : ComputeShaderDispatcher
         return this;
     }
 
-    public InstancesCuller SetDepthMap(HierarchicalDepthMap depthMap)
+    public InstancesCuller SetDepthMap()
     {
-        ComputeShader.SetVector(ShaderProperties.HiZTextureSize, depthMap.Resolution);
-        ComputeShader.SetTexture(_kernel, ShaderProperties.HiZMap, depthMap.Texture);
+        ComputeShader.SetVector(ShaderProperties.HiZTextureSize, HierarchicalDepthMap.Resolution);
+        ComputeShader.SetTexture(_kernel, ShaderProperties.HiZMap, HierarchicalDepthMap.Texture);
         
         return this;
     }
