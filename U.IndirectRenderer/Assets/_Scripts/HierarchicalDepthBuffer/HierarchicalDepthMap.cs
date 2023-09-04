@@ -14,12 +14,12 @@ public class HierarchicalDepthMap : ScriptableObject
     public static void OnInitialize(Action<(Material material, RenderTexture texture, int size, int lods)> callback) => 
         s_OnInitializeCallback = callback;
 
-    public static void Initialize(int cameraWidth, int cameraHeight)
+    public static void Initialize()
     {
         if (!s_Initialized)
         {
             Instance = Resources.Load("HierarchicalDepthMap") as HierarchicalDepthMap;
-            Instance.InitializeInternal(cameraWidth, cameraHeight);
+            Instance.InitializeInternal();
         
             s_Initialized = true;
         }
@@ -38,18 +38,18 @@ public class HierarchicalDepthMap : ScriptableObject
     
     public int LodCount => (int)Mathf.Floor(Mathf.Log(Size, 2f));
 
-    private void InitializeInternal(int cameraWidth, int cameraHeight)
+    private void InitializeInternal()
     {
         Material = CreateMaterial();
-        Size = CalculateTextureResolution(cameraWidth, cameraHeight);
+        Size = CalculateTextureResolution();
         Texture = CreateRenderTexture();
     }
 
     private Material CreateMaterial() => CoreUtils.CreateEngineMaterial(_shader);
     
-    private int CalculateTextureResolution(int cameraWidth, int cameraHeight)
+    private int CalculateTextureResolution()
     {
-        var size = Mathf.Max(cameraWidth, cameraHeight);
+        var size = Mathf.Max(Screen.width, Screen.height);
         size = (int)Mathf.Min((float)Mathf.NextPowerOfTwo(size), (int)_maximumResolution);
         
         Resolution = new Vector2

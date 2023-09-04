@@ -12,32 +12,27 @@ public class HierarchicalDepthMapRenderFeature : ScriptableRendererFeature
             Reduce
         }
         
-        private Material _material;
         private RenderTargetIdentifier _textureId;
-        private int _size;
+        private Material _material;
         
+        private int _size;
         private int _lodCount;
         private int[] _temporaries;
 
         public RenderPass()
         {
-            HierarchicalDepthMap.OnInitialize(ctx =>
-            {
-                _material = ctx.material;
-                _textureId = new RenderTargetIdentifier(ctx.texture);
-                _size = ctx.size;
-                _lodCount = ctx.lods;
-                _temporaries = new int[_lodCount];
-            });
+            HierarchicalDepthMap.Initialize();
+            
+            _textureId = new RenderTargetIdentifier(HierarchicalDepthMap.Instance.Texture);
+            _material = HierarchicalDepthMap.Instance.Material;
+            _size = HierarchicalDepthMap.Instance.Size;
+            _lodCount = HierarchicalDepthMap.Instance.LodCount;
+            _temporaries = new int[_lodCount];
         }
         
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             if (renderingData.cameraData.cameraType != CameraType.Game) return;
-            
-            var cameraHeight = renderingData.cameraData.camera.pixelHeight;
-            var cameraWidth = renderingData.cameraData.camera.pixelWidth;
-            HierarchicalDepthMap.Initialize(cameraHeight, cameraWidth);
         }
         
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
