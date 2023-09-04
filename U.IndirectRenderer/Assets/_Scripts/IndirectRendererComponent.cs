@@ -97,8 +97,6 @@ public class IndirectRendererComponent : MonoBehaviour
 
     private void Start()
     {
-        // HierarchicalDepthMap.Initialize(_config.RenderCamera.pixelWidth, _config.RenderCamera.pixelHeight);
-        
         for (var i = 0; i < 128; i++)
         {
             for (var j = 0; j < 128; j++)
