@@ -32,10 +32,6 @@ public class ArgumentsBuffer : IDisposable
     public GraphicsBuffer ShadowsBuffer { get; }
     public GraphicsBuffer.IndirectDrawIndexedArgs[] ShadowsCommand { get; }
 
-    // public ComputeBuffer LodArgs0 { get; }
-    // public ComputeBuffer LodArgs1 { get; }
-    // public ComputeBuffer LodArgs2 { get; }
-
     public const int ARGS_PER_INSTANCE_TYPE_COUNT = DRAW_CALLS_COUNT * ARGS_PER_DRAW_COUNT;
     public const int ARGS_BYTE_SIZE_PER_DRAW_CALL = ARGS_PER_DRAW_COUNT * sizeof(uint);
 
@@ -43,13 +39,11 @@ public class ArgumentsBuffer : IDisposable
     private const int ARGS_PER_DRAW_COUNT = 5;
 
     private readonly MeshProperties _meshProperties;
-    // private readonly uint[] _args;
     private readonly GraphicsBuffer.IndirectDrawIndexedArgs[] _parameters;
 
     public ArgumentsBuffer(MeshProperties meshProperties, IndirectRendererConfig config)
     {
         _meshProperties = meshProperties;
-        // _args = InitializeArgumentsBuffer();
         _parameters = InitializeArgumentsBuffer();
 
         MeshesBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, 3, GraphicsBuffer.IndirectDrawIndexedArgs.size);
@@ -57,27 +51,6 @@ public class ArgumentsBuffer : IDisposable
         ShadowsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, 3, GraphicsBuffer.IndirectDrawIndexedArgs.size);
         ShadowsCommand = new GraphicsBuffer.IndirectDrawIndexedArgs[3];
         Reset();
-
-        // var args0 = new uint[] { 0, 0, 0, 0, 0 };
-        // args0[0] = config.Lod0Mesh.GetIndexCount(0);
-        // args0[2] = config.Lod0Mesh.GetIndexStart(0);
-        // args0[3] = config.Lod0Mesh.GetBaseVertex(0);
-        // LodArgs0 = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
-        // LodArgs0.SetData(args0);
-        //
-        // var args1 = new uint[] { 0, 0, 0, 0, 0 };
-        // args1[0] = config.Lod1Mesh.GetIndexCount(0);
-        // args1[2] = config.Lod1Mesh.GetIndexStart(0);
-        // args1[3] = config.Lod1Mesh.GetBaseVertex(0);
-        // LodArgs1 = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
-        // LodArgs1.SetData(args1);
-        //
-        // var args2 = new uint[] { 0, 0, 0, 0, 0 };
-        // args2[0] = config.Lod2Mesh.GetIndexCount(0);
-        // args2[2] = config.Lod2Mesh.GetIndexStart(0);
-        // args2[3] = config.Lod2Mesh.GetBaseVertex(0);
-        // LodArgs2 = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
-        // LodArgs2.SetData(args2);
     }
 
     public void Reset()
@@ -90,9 +63,6 @@ public class ArgumentsBuffer : IDisposable
     {
         MeshesBuffer?.Dispose();
         ShadowsBuffer?.Dispose();
-        // LodArgs0?.Dispose();
-        // LodArgs1?.Dispose();
-        // LodArgs2?.Dispose();
     }
 
     //TODO: Change to GraphicsBuffer
@@ -141,56 +111,31 @@ public class ArgumentsBuffer : IDisposable
 
     private GraphicsBuffer.IndirectDrawIndexedArgs[] InitializeArgumentsBuffer()
     {
-        // var args = new uint[ARGS_PER_INSTANCE_TYPE_COUNT];
-        //
-        // // Lod 0
-        // args[0] = _meshProperties.Lod0Indices; // 0 - index count per instance, 
-        // args[1] = 0;                           // 1 - instance count
-        // args[2] = 0;                           // 2 - start index location
-        // args[3] = 0;                           // 3 - base vertex location
-        // args[4] = 0;                           // 4 - start instance location
-        //
-        // // Lod 1
-        // args[5] = _meshProperties.Lod1Indices; // 0 - index count per instance, 
-        // args[6] = 0;                           // 1 - instance count
-        // args[7] = args[0] + args[2];           // 2 - start index location
-        // args[8] = 0;                           // 3 - base vertex location
-        // args[9] = 0;                           // 4 - start instance location
-        //
-        // // Lod 2
-        // args[10] = _meshProperties.Lod2Indices; // 0 - index count per instance, 
-        // args[11] = 0;                           // 1 - instance count
-        // args[12] = args[5] + args[7];           // 2 - start index location
-        // args[13] = 0;                           // 3 - base vertex location
-        // args[14] = 0;                           // 4 - start instance location
-        //
-        // return args;
-
         var parameters = new GraphicsBuffer.IndirectDrawIndexedArgs[3];
         parameters[0] = new GraphicsBuffer.IndirectDrawIndexedArgs
         {
-            indexCountPerInstance = _meshProperties.Lod0Indices,
+            indexCountPerInstance = _meshProperties.Mesh.GetIndexCount(0),
             instanceCount = 0,
-            startIndex = 0,
-            baseVertexIndex = 0,
+            startIndex = _meshProperties.Mesh.GetIndexStart(0),
+            baseVertexIndex = _meshProperties.Mesh.GetBaseVertex(0),
             startInstance = 0
         };
         
         parameters[1] = new GraphicsBuffer.IndirectDrawIndexedArgs
         {
-            indexCountPerInstance = _meshProperties.Lod1Indices,
+            indexCountPerInstance = _meshProperties.Mesh.GetIndexCount(1),
             instanceCount = 0,
-            startIndex = 0, //parameters[0].indexCountPerInstance + parameters[0].startIndex,
-            baseVertexIndex = 0,
+            startIndex = _meshProperties.Mesh.GetIndexStart(1),
+            baseVertexIndex = _meshProperties.Mesh.GetBaseVertex(1),
             startInstance = 0
         };
         
         parameters[2] = new GraphicsBuffer.IndirectDrawIndexedArgs
         {
-            indexCountPerInstance = _meshProperties.Lod2Indices,
+            indexCountPerInstance = _meshProperties.Mesh.GetIndexCount(2),
             instanceCount = 0,
-            startIndex = 0, //parameters[1].indexCountPerInstance + parameters[1].startIndex,
-            baseVertexIndex = 0,
+            startIndex = _meshProperties.Mesh.GetIndexStart(2),
+            baseVertexIndex = _meshProperties.Mesh.GetBaseVertex(2),
             startInstance = 0
         };
         

@@ -124,7 +124,7 @@ public class IndirectRendererComponent : MonoBehaviour
             }
         }
         
-        _renderer = new IndirectRenderer(_config, _settings, _hizMap, _positions, _rotations, _scales);
+        _renderer = new IndirectRenderer(_config, _settings, _positions, _rotations, _scales);
     }
 
     private void OnDestroy()

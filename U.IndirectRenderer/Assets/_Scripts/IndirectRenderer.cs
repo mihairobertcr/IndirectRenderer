@@ -8,7 +8,6 @@ public class IndirectRenderer : IDisposable
 {
     private readonly IndirectRendererConfig _config;
     private readonly IndirectRendererSettings _settings;
-    private readonly HierarchicalDepthMap _hierarchicalDepthMap;
     private readonly MeshProperties _meshProperties;
     
     private readonly MatricesInitializer _matricesInitializer;
@@ -31,14 +30,12 @@ public class IndirectRenderer : IDisposable
 
     public IndirectRenderer(IndirectRendererConfig config, 
         IndirectRendererSettings settings, 
-        HierarchicalDepthMap hierarchicalDepthMap,
         List<Vector3> positions, 
         List<Vector3> rotations, 
         List<Vector3> scales)
     {
         _config = config;
         _settings = settings;
-        _hierarchicalDepthMap = hierarchicalDepthMap;
         
         _meshProperties = CreateMeshProperties();
         _bounds.extents = Vector3.one * 10000; // ???
@@ -244,10 +241,10 @@ public class IndirectRenderer : IDisposable
             //     //camera: _config.RenderCamera);
             
             rp.matProps = _meshProperties.Lod0PropertyBlock;
-            Graphics.RenderMeshIndirect(rp, _config.Lod0Mesh, _context.Arguments.MeshesBuffer, 1, 0);
+            Graphics.RenderMeshIndirect(rp, _meshProperties.Mesh, _context.Arguments.MeshesBuffer, 1, 0);
             
             rp.matProps = _meshProperties.Lod1PropertyBlock;
-            Graphics.RenderMeshIndirect(rp, _config.Lod1Mesh, _context.Arguments.MeshesBuffer, 1, 1);
+            Graphics.RenderMeshIndirect(rp, _meshProperties.Mesh, _context.Arguments.MeshesBuffer, 1, 1);
         }
 
         // Graphics.DrawMeshInstancedIndirect(
@@ -262,7 +259,7 @@ public class IndirectRenderer : IDisposable
         
         
         rp.matProps = _meshProperties.Lod2PropertyBlock;
-        Graphics.RenderMeshIndirect(rp, _config.Lod2Mesh, _context.Arguments.MeshesBuffer, 1, 2);
+        Graphics.RenderMeshIndirect(rp, _meshProperties.Mesh, _context.Arguments.MeshesBuffer, 1, 2);
     }
     
     private void DrawShadows()
@@ -304,7 +301,7 @@ public class IndirectRenderer : IDisposable
         
         properties.Mesh.CombineMeshes(
             combine: meshes,
-            mergeSubMeshes: true,
+            mergeSubMeshes: false,
             useMatrices: false,
             hasLightmapData: false);
 
