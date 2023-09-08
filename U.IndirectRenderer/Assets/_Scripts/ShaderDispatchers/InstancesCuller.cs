@@ -45,17 +45,20 @@ public class InstancesCuller : ComputeShaderDispatcher
         return this;
     }
     
-    public InstancesCuller SetBoundsData(Vector3[] positions, Vector3[] scales)
+    public InstancesCuller SetBoundsData(Mesh mesh, Vector3[] positions)
     {
         _boundsData = new BoundsData[Context.MeshesCount];
-        for (var i = 0; i < positions.Length; i++)
+        for (var i = 0; i < Context.MeshesCount; i++)
         {
-            //TODO: Create bounding boxes
-            var bounds = new Bounds();
+            // //TODO: Create bounding boxes
+            // var mesh = new Bounds();
+            
+            mesh.RecalculateBounds();
+            var bounds = mesh.bounds;
             bounds.center = positions[i];
-            var size = Vector3.one; // TODO: Properly calculate or pass the size of aabbs
-            size.Scale(scales[i]);
-            bounds.size = size;
+            // var size = Vector3.one; // TODO: Properly calculate or pass the size of aabbs
+            // size.Scale(scales[i]);
+            // mesh.size = size;
 
             _boundsData[i] = new BoundsData
             {
