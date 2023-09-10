@@ -34,6 +34,7 @@ public class IndirectRendererConfig
 [Serializable]
 public class IndirectMesh
 {
+    public GameObject Prefab;
     public Material Material;
     
     public Mesh Lod0Mesh;

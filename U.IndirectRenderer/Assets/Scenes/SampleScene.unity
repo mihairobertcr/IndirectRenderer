@@ -653,10 +653,14 @@ MonoBehaviour:
     DetailCullingPercentage: 0.005
   _hizMap: {fileID: 11400000, guid: 52c4863dafa8f4277bdfa114810bee3c, type: 2}
   _instances:
-  - Material: {fileID: 2100000, guid: a8248d39566b4478591457de205c621e, type: 2}
-    Lod0Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
-    Lod1Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
-    Lod2Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  - Prefab: {fileID: 919132149155446097, guid: 0c420aef2b3c2be40b49892355d80991, type: 3}
+    Material: {fileID: 2100000, guid: a8248d39566b4478591457de205c621e, type: 2}
+    Lod0Mesh: {fileID: 7537633883582861140, guid: 0c420aef2b3c2be40b49892355d80991,
+      type: 3}
+    Lod1Mesh: {fileID: 3997043725991330010, guid: 0c420aef2b3c2be40b49892355d80991,
+      type: 3}
+    Lod2Mesh: {fileID: -1528503161650279355, guid: 0c420aef2b3c2be40b49892355d80991,
+      type: 3}
     Positions: []
     Rotations: []
     Scales: []
