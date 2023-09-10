@@ -32,18 +32,18 @@ void BitonicSort(
     GroupMemoryBarrierWithGroupSync();
 
     // Sort the shared data
-    for (uint j = _Level >> 1; j > 0; j >>= 1)
+    for (uint i = _Level >> 1; i > 0; i >>= 1)
     {
         SortingData result = _SharedData[_groupIndex];
-        SortingData first  = _SharedData[_groupIndex & ~j];
-        SortingData second = _SharedData[_groupIndex | j];
+        SortingData first  = _SharedData[_groupIndex & ~i];
+        SortingData second = _SharedData[_groupIndex | i];
         
         float firstDistance  = (first.DrawCallInstanceIndex >> 16) * 5000 + first.DistanceToCamera;
         float secondDistance = (second.DrawCallInstanceIndex >> 16) * 5000 + second.DistanceToCamera;
         
         if ((firstDistance <= secondDistance) == ((bool)(_LevelMask & threadID)))
         {
-            result = _SharedData[_groupIndex ^ j];
+            result = _SharedData[_groupIndex ^ i];
         }
         
         GroupMemoryBarrierWithGroupSync();
@@ -68,6 +68,6 @@ void MatrixTranspose(
     _SharedTransposeData[_groupIndex] = _Input[_dispatchThreadId.y * _Width + _dispatchThreadId.x];
     GroupMemoryBarrierWithGroupSync();
 
-    uint2 XY = _dispatchThreadId.yx - _groupThreadId.yx + _groupThreadId.xy;
-    _Data[XY.y * _Height + XY.x] = _SharedTransposeData[_groupThreadId.x * TRANSPOSE_BLOCK_SIZE + _groupThreadId.y];
+    uint2 xy = _dispatchThreadId.yx - _groupThreadId.yx + _groupThreadId.xy;
+    _Data[xy.y * _Height + xy.x] = _SharedTransposeData[_groupThreadId.x * TRANSPOSE_BLOCK_SIZE + _groupThreadId.y];
 }

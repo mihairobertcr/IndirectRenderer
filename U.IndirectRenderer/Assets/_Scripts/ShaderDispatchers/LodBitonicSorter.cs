@@ -5,6 +5,7 @@ using IndirectRendering;
 
 public class LodBitonicSorter : ComputeShaderDispatcher
 {
+    private const uint NUMBER_OF_ARGS_PER_INSTANCE_TYPE = 15;
     private const uint BITONIC_BLOCK_SIZE = 256;
     private const uint TRANSPOSE_BLOCK_SIZE = 8;
 
@@ -15,7 +16,7 @@ public class LodBitonicSorter : ComputeShaderDispatcher
     private readonly ComputeBuffer _dataBuffer;
     private readonly ComputeBuffer _tempBuffer;
     
-    public bool _computeAsync;
+    private bool _computeAsync;
 
     public LodBitonicSorter(ComputeShader computeShader, RendererDataContext context)
         : base(computeShader, context)
@@ -28,17 +29,25 @@ public class LodBitonicSorter : ComputeShaderDispatcher
     
     ~LodBitonicSorter() => _command.Release();
 
-    public LodBitonicSorter SetSortingData(Vector3[] positions, Camera camera)
+    public LodBitonicSorter SetSortingData(IndirectMesh[] meshes, Camera camera)
     {
         var cameraPosition = camera.transform.position;
-        var sortingData = new SortingData[Context.MeshesCount];
-        for (var i = 0; i < Context.MeshesCount; i++)
+        var sortingData = new List<SortingData>();
+
+        var instancesCount = 0;
+        for (var i = 0; i < meshes.Length; i++)
         {
-            sortingData[i] = new SortingData
+            var mesh = meshes[i];
+            for (var k = 0; k < Context.MeshesCount; k++)
             {
-                DrawCallInstanceIndex = (uint)i,
-                DistanceToCamera = Vector3.Distance(positions[i], cameraPosition)
-            };
+                sortingData.Add(new SortingData
+                {
+                    DrawCallInstanceIndex = (((uint)i * NUMBER_OF_ARGS_PER_INSTANCE_TYPE) << 16) + (uint)instancesCount,
+                    DistanceToCamera = Vector3.Distance(mesh.Positions[k], cameraPosition)
+                });
+
+                instancesCount++;
+            }
         }
 
         Context.Sorting.Data.SetData(sortingData);

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class MatricesInitializer : ComputeShaderDispatcher
@@ -23,8 +24,23 @@ public class MatricesInitializer : ComputeShaderDispatcher
             out _matrixBuffer);
     }
 
-    public MatricesInitializer SetTransformData(Vector3[] positions, Vector3[] rotations, Vector3[] scales)
+    public MatricesInitializer SetTransformData(IndirectMesh[] meshes)
     {
+        var positions = new List<Vector3>();
+        var rotations = new List<Vector3>();
+        var scales = new List<Vector3>();
+
+        for (var i = 0; i < meshes.Length; i++)
+        {
+            var mesh = meshes[i];
+            for (var k = 0; k < Context.MeshesCount; k++)
+            {
+                positions.Add(mesh.Positions[k]);
+                rotations.Add(mesh.Rotations[k]);
+                scales.Add(mesh.Scales[k]);
+            }
+        }
+
         _positionsBuffer.SetData(positions);
         _rotationsBuffer.SetData(rotations);
         _scalesBuffer.SetData(scales);

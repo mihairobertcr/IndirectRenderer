@@ -84,20 +84,20 @@ inline void CSMain (
         0, 0, 0, 1
     };
 	
-    float4x4 objectToWorld = mul(translation, rotationMatrix);
-    float4x4 worldToObject = Inverse(objectToWorld);
+    float4x4 localToWorld = mul(translation, rotationMatrix);
+    float4x4 worldToLocal = Inverse(localToWorld);
     
     Indirect2x2Matrix rows01;
     Indirect2x2Matrix rows23;
     Indirect2x2Matrix rows45;
     
-    rows01.FirstRow  = objectToWorld[0];
-    rows01.SecondRow = objectToWorld[1];
-    rows23.FirstRow  = objectToWorld[2];
+    rows01.FirstRow  = localToWorld[0];
+    rows01.SecondRow = localToWorld[1];
+    rows23.FirstRow  = localToWorld[2];
     
-    rows23.SecondRow = worldToObject[0];
-    rows45.FirstRow  = worldToObject[1];
-    rows45.SecondRow = worldToObject[2];
+    rows23.SecondRow = worldToLocal[0];
+    rows45.FirstRow  = worldToLocal[1];
+    rows45.SecondRow = worldToLocal[2];
     
     _MatrixRows01[threadID] = rows01;
     _MatrixRows23[threadID] = rows23;

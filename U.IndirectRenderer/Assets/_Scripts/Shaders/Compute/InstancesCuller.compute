@@ -44,7 +44,8 @@ inline uint IsCameraOutsideObjBounds(float3 position, float3 min, float3 max)
 
 inline uint IsVisibleAfterDetailCulling(float clipMinX, float clipMaxX, float clipMinY, float clipMaxY)
 {
-    return saturate((distance(clipMinX, clipMaxX) >= _DetailCullingScreenPercentage) + (distance(clipMinY, clipMaxY) >= _DetailCullingScreenPercentage));
+    return saturate((distance(clipMinX, clipMaxX) >= _DetailCullingScreenPercentage) +
+        (distance(clipMinY, clipMaxY) >= _DetailCullingScreenPercentage));
 }
 
 // Hi-Z Culling
@@ -54,7 +55,7 @@ inline uint IsVisibleAfterOcclusionCulling(float clipMinX, float clipMaxX, float
     float2 uvLeftBottom = float2(clipMinX, clipMinY) * 0.5 + 0.5;
     float2 uvRightTop = float2(clipMaxX, clipMaxY) * 0.5 + 0.5;
 
-    /* ***** First approach *****
+    // /* ***** First approach *****
     // Calculate hi-Z buffer mip
     int2 size = (uvRightTop - uvLeftBottom) * _HiZTextureSize.xy;
     float mip = ceil(log2(max(size.x, size.y)));
@@ -102,9 +103,9 @@ inline uint IsVisibleAfterOcclusionCulling(float clipMinX, float clipMaxX, float
     }
 
     return (1.0 - clipMinZ) >= hiZDepth + 0.00015; // last is an epsilon
-    ***** */
+    //***** */
 
-    ///* ***** Second approach *****
+    /* ***** Second approach *****
     // Hiz Occlusion Culling: Determine if the grass instance is occluded by other geometry
     // Calculate the UV coordinates of the NDC AABB's left-bottom and right-top corners
 
@@ -165,7 +166,7 @@ inline uint IsVisibleAfterOcclusionCulling(float clipMinX, float clipMaxX, float
         
         return false;
     }
-    // *****/
+    **** */
 }
 
 inline uint IsVisibleAfterFrustumCulling(float4 clipPos)

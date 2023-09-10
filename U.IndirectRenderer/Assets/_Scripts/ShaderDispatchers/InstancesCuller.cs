@@ -14,7 +14,7 @@ public class InstancesCuller : ComputeShaderDispatcher
     private readonly ComputeBuffer _boundsDataBuffer;
     private readonly ComputeBuffer _sortingDataBuffer;
 
-    private BoundsData[] _boundsData;
+    private List<BoundsData> _boundsData;
 
     public InstancesCuller(ComputeShader computeShader, RendererDataContext context)
         : base(computeShader, context)
@@ -45,28 +45,33 @@ public class InstancesCuller : ComputeShaderDispatcher
         return this;
     }
     
-    public InstancesCuller SetBoundsData(Mesh mesh, Vector3[] positions)
+    public InstancesCuller SetBoundsData(IndirectMesh[] meshes)
     {
-        _boundsData = new BoundsData[Context.MeshesCount];
-        for (var i = 0; i < Context.MeshesCount; i++)
-        {
-            // //TODO: Create bounding boxes
-            // var mesh = new Bounds();
-            
-            mesh.RecalculateBounds();
-            var bounds = mesh.bounds;
-            bounds.center = positions[i];
-            // var size = Vector3.one; // TODO: Properly calculate or pass the size of aabbs
-            // size.Scale(scales[i]);
-            // mesh.size = size;
+        _boundsData = new List<BoundsData>();
 
-            _boundsData[i] = new BoundsData
+        for (var i = 0; i < meshes.Length; i++)
+        {
+            var mesh = meshes[i];
+            for (var k = 0; k < Context.MeshesCount; k++)
             {
-                BoundsCenter = bounds.center,
-                BoundsExtents = bounds.extents,
-            };
+                // //TODO: Create bounding boxes
+                // var mesh1 = new Bounds();
+
+                // mesh.Lod0Mesh.RecalculateBounds();
+                var bounds = mesh.Lod0Mesh.bounds;
+                bounds.center = mesh.Positions[k];
+                // var size = Vector3.one; // TODO: Properly calculate or pass the size of aabbs
+                // size.Scale(scales[i]);
+                // mesh1.size = size;
+
+                _boundsData.Add(new BoundsData
+                {
+                    BoundsCenter = bounds.center,
+                    BoundsExtents = bounds.extents,
+                });
+            }
         }
-        
+
         _boundsDataBuffer.SetData(_boundsData);
         return this;
     }
@@ -105,10 +110,11 @@ public class InstancesCuller : ComputeShaderDispatcher
     public override void Dispatch() => ComputeShader.Dispatch(_kernel, _threadGroupX, 1, 1);
 
     // TODO: #EDITOR
+    // TODO: Check if debug boxes are rendered correctly
     public void DrawGizmos()
     {
         Gizmos.color = new Color(1f, 0f, 0f, 0.333f);
-        for (var i = 0; i < _boundsData.Length; i++)
+        for (var i = 0; i < _boundsData.Count; i++)
         {
             Gizmos.DrawWireCube(_boundsData[i].BoundsCenter, _boundsData[i].BoundsExtents * 2f);
         }

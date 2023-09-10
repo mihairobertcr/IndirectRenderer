@@ -1,10 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Serialization;
 
 [Serializable]
 public class IndirectRendererConfig
@@ -12,12 +8,6 @@ public class IndirectRendererConfig
     [Header("Rendering")]
     public Camera RenderCamera;
     public Camera DebugCamera;
-    
-    public Material Material;
-    
-    public Mesh Lod0Mesh;
-    public Mesh Lod1Mesh;
-    public Mesh Lod2Mesh;
 
     [Header("Compute Shaders")]
     public ComputeShader MatricesInitializer;
@@ -39,6 +29,20 @@ public class IndirectRendererConfig
     public bool LogArgsBufferAfterCopy;
     public bool LogSortingData;
     public bool DebugBounds;
+}
+
+[Serializable]
+public class IndirectMesh
+{
+    public Material Material;
+    
+    public Mesh Lod0Mesh;
+    public Mesh Lod1Mesh;
+    public Mesh Lod2Mesh;
+
+    public List<Vector3> Positions;
+    public List<Vector3> Rotations;
+    public List<Vector3> Scales;
 }
 
 [Serializable]
@@ -88,6 +92,7 @@ public class IndirectRendererComponent : MonoBehaviour
     [SerializeField] private IndirectRendererConfig _config;
     [SerializeField] private IndirectRendererSettings _settings;
     [SerializeField] private HierarchicalDepthMap _hizMap;
+    [SerializeField] private IndirectMesh[] _instances;
 
     private IndirectRenderer _renderer;
     
@@ -97,34 +102,37 @@ public class IndirectRendererComponent : MonoBehaviour
 
     private void Start()
     {
-        for (var i = 0; i < 128; i++)
+        foreach (var instance in _instances)
         {
-            for (var j = 0; j < 128; j++)
+            for (var i = 0; i < 128; i++)
             {
-                _positions.Add(new Vector3
+                for (var j = 0; j < 128; j++)
                 {
-                    x = i,
-                    y = .5f,
-                    z = j
-                });
+                    instance.Positions.Add(new Vector3
+                    {
+                        x = i,
+                        y = .5f,
+                        z = j
+                    });
                 
-                _rotations.Add(new Vector3
-                {
-                    x = 0f,
-                    y = 0f,
-                    z = 0f
-                });
+                    instance.Rotations.Add(new Vector3
+                    {
+                        x = 0f,
+                        y = 0f,
+                        z = 0f
+                    });
                 
-                _scales.Add(new Vector3
-                {
-                    x = .75f,
-                    y = .75f,
-                    z = .75f
-                });
+                    instance.Scales.Add(new Vector3
+                    {
+                        x = .75f,
+                        y = .75f,
+                        z = .75f
+                    });
+                }
             }
         }
-        
-        _renderer = new IndirectRenderer(_config, _settings, _positions, _rotations, _scales);
+
+        _renderer = new IndirectRenderer(_instances, _config, _settings);
     }
 
     private void OnDestroy()

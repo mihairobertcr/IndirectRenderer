@@ -621,13 +621,6 @@ MonoBehaviour:
   _config:
     RenderCamera: {fileID: 330585545}
     DebugCamera: {fileID: 0}
-    Material: {fileID: 2100000, guid: a8248d39566b4478591457de205c621e, type: 2}
-    Lod0Mesh: {fileID: 7537633883582861140, guid: 0c420aef2b3c2be40b49892355d80991,
-      type: 3}
-    Lod1Mesh: {fileID: 3997043725991330010, guid: 0c420aef2b3c2be40b49892355d80991,
-      type: 3}
-    Lod2Mesh: {fileID: -1528503161650279355, guid: 0c420aef2b3c2be40b49892355d80991,
-      type: 3}
     MatricesInitializer: {fileID: 7200000, guid: 08d7ec0392f7748948199728f40cbc7f,
       type: 3}
     LodBitonicSorter: {fileID: 7200000, guid: 6f7afd63860da43238b81f2a660befc9, type: 3}
@@ -638,7 +631,7 @@ MonoBehaviour:
       type: 3}
     LogMatrices: 0
     LogArgumentsBufferAfterReset: 0
-    LogArgumentsAfterOcclusion: 0
+    LogArgumentsAfterOcclusion: 1
     LogInstancesIsVisibleBuffer: 0
     LogGroupSumsBuffer: 0
     LogScannedPredicates: 0
@@ -659,6 +652,14 @@ MonoBehaviour:
     EnableOnlyLod2Shadows: 0
     DetailCullingPercentage: 0.005
   _hizMap: {fileID: 11400000, guid: 52c4863dafa8f4277bdfa114810bee3c, type: 2}
+  _instances:
+  - Material: {fileID: 2100000, guid: a8248d39566b4478591457de205c621e, type: 2}
+    Lod0Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+    Lod1Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+    Lod2Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+    Positions: []
+    Rotations: []
+    Scales: []
 --- !u!4 &1014861749
 Transform:
   m_ObjectHideFlags: 0
@@ -876,13 +877,6 @@ MonoBehaviour:
   _config:
     RenderCamera: {fileID: 330585545}
     DebugCamera: {fileID: 0}
-    Material: {fileID: 2100000, guid: a8248d39566b4478591457de205c621e, type: 2}
-    Lod0Mesh: {fileID: 8857266173664433217, guid: 0c420aef2b3c2be40b49892355d80991,
-      type: 3}
-    Lod1Mesh: {fileID: 8738257266238673510, guid: 0c420aef2b3c2be40b49892355d80991,
-      type: 3}
-    Lod2Mesh: {fileID: 495821352303673200, guid: 0c420aef2b3c2be40b49892355d80991,
-      type: 3}
     MatricesInitializer: {fileID: 7200000, guid: 08d7ec0392f7748948199728f40cbc7f,
       type: 3}
     LodBitonicSorter: {fileID: 7200000, guid: 6f7afd63860da43238b81f2a660befc9, type: 3}
@@ -914,6 +908,7 @@ MonoBehaviour:
     EnableOnlyLod2Shadows: 0
     DetailCullingPercentage: 0.005
   _hizMap: {fileID: 11400000, guid: 52c4863dafa8f4277bdfa114810bee3c, type: 2}
+  _instances: []
 --- !u!4 &1258595048
 Transform:
   m_ObjectHideFlags: 0
