@@ -62,7 +62,7 @@ inline uint IsVisibleAfterOcclusionCulling(float clipMinX, float clipMaxX, float
     mip = clamp(mip, 0, 10);
     
     // Texel footprint for the lower (finer-grained) level
-    float  lowerLevel = max(mip + 2, 0);
+    float  lowerLevel = max(mip - 1, 0);
     float2 scale = exp2(-lowerLevel);
     float2 a = floor(uvLeftBottom * scale);
     float2 b = ceil(uvRightTop * scale);
