@@ -600,7 +600,7 @@ GameObject:
   - component: {fileID: 1014861749}
   - component: {fileID: 1014861748}
   m_Layer: 0
-  m_Name: '[TreeTrunksRenderer]'
+  m_Name: '[IndirectRenderer]'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -660,6 +660,17 @@ MonoBehaviour:
     Lod1Mesh: {fileID: 3997043725991330010, guid: 0c420aef2b3c2be40b49892355d80991,
       type: 3}
     Lod2Mesh: {fileID: -1528503161650279355, guid: 0c420aef2b3c2be40b49892355d80991,
+      type: 3}
+    Positions: []
+    Rotations: []
+    Scales: []
+  - Prefab: {fileID: 919132149155446097, guid: 0c420aef2b3c2be40b49892355d80991, type: 3}
+    Material: {fileID: 2100000, guid: a8248d39566b4478591457de205c621e, type: 2}
+    Lod0Mesh: {fileID: 8857266173664433217, guid: 0c420aef2b3c2be40b49892355d80991,
+      type: 3}
+    Lod1Mesh: {fileID: 8738257266238673510, guid: 0c420aef2b3c2be40b49892355d80991,
+      type: 3}
+    Lod2Mesh: {fileID: 495821352303673200, guid: 0c420aef2b3c2be40b49892355d80991,
       type: 3}
     Positions: []
     Rotations: []
@@ -849,85 +860,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1258595046
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1258595048}
-  - component: {fileID: 1258595047}
-  m_Layer: 0
-  m_Name: '[TreeLeavesRenderer]'
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!114 &1258595047
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1258595046}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b688fdeb87bdc4de58d3eac42850d3ca, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _config:
-    RenderCamera: {fileID: 330585545}
-    DebugCamera: {fileID: 0}
-    MatricesInitializer: {fileID: 7200000, guid: 08d7ec0392f7748948199728f40cbc7f,
-      type: 3}
-    LodBitonicSorter: {fileID: 7200000, guid: 6f7afd63860da43238b81f2a660befc9, type: 3}
-    InstancesCuller: {fileID: 7200000, guid: 33fbcc6be2866431cb42e4a688e83cea, type: 3}
-    InstancesScanner: {fileID: 7200000, guid: 734cfd04ff92d4db8a4a713ce9c0d92b, type: 3}
-    GroupSumsScanner: {fileID: 7200000, guid: c5b9ba8237ff641d8a7c10c4148e1eee, type: 3}
-    InstancesDataCopier: {fileID: 7200000, guid: 266562bdb8f774ae2872176ce62aca32,
-      type: 3}
-    LogMatrices: 0
-    LogArgumentsBufferAfterReset: 0
-    LogArgumentsAfterOcclusion: 0
-    LogInstancesIsVisibleBuffer: 0
-    LogGroupSumsBuffer: 0
-    LogScannedPredicates: 0
-    LogScannedGroupSumsBuffer: 0
-    LogCulledMatrices: 0
-    LogArgsBufferAfterCopy: 0
-    LogSortingData: 0
-    DebugBounds: 1
-  _settings:
-    RunCompute: 1
-    DrawInstances: 1
-    DrawShadows: 1
-    ComputeAsync: 1
-    EnableFrustumCulling: 1
-    EnableOcclusionCulling: 1
-    EnableDetailCulling: 1
-    EnableLod: 1
-    EnableOnlyLod2Shadows: 0
-    DetailCullingPercentage: 0.005
-  _hizMap: {fileID: 11400000, guid: 52c4863dafa8f4277bdfa114810bee3c, type: 2}
-  _instances: []
---- !u!4 &1258595048
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1258595046}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1985035716
 GameObject:
   m_ObjectHideFlags: 0
@@ -1005,7 +937,6 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 1014861749}
-  - {fileID: 1258595048}
   - {fileID: 330585546}
   - {fileID: 410087041}
   - {fileID: 925946678}

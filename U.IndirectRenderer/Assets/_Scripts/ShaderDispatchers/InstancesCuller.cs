@@ -52,7 +52,7 @@ public class InstancesCuller : ComputeShaderDispatcher
         for (var i = 0; i < meshes.Length; i++)
         {
             var mesh = meshes[i];
-            for (var k = 0; k < Context.MeshesCount; k++)
+            for (var k = 0; k < mesh.Positions.Count; k++)
             {
                 var bounds = CreateBounds(mesh.Prefab);
                 bounds.center = mesh.Positions[k];
