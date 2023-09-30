@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
+using Object = UnityEngine.Object;
 
 [Serializable]
 public class IndirectRendererConfig
@@ -62,6 +64,9 @@ public class IndirectMesh
 
     public Mesh Mesh;
 
+    public Bounds Bounds;
+    public Vector3 BoundsOffset;
+
     public MaterialPropertyBlock Lod0PropertyBlock;
     public MaterialPropertyBlock Lod1PropertyBlock;
     public MaterialPropertyBlock Lod2PropertyBlock;
@@ -97,7 +102,7 @@ public class IndirectMesh
             useMatrices: false,
             hasLightmapData: false);
     }
-    
+
     private void InitializeMaterialPropertyBlocks()
     {
         Lod0PropertyBlock = new MaterialPropertyBlock();

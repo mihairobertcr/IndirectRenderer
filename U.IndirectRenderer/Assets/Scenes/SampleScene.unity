@@ -210,7 +210,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: 0.08052145, y: 0.3812272, z: -0.033353075, w: 0.9203639}
-  m_LocalPosition: {x: 0, y: 10, z: 0}
+  m_LocalPosition: {x: 0, y: 15, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -661,6 +661,11 @@ MonoBehaviour:
       type: 3}
     Lod2Mesh: {fileID: -1528503161650279355, guid: 0c420aef2b3c2be40b49892355d80991,
       type: 3}
+    Mesh: {fileID: 0}
+    Bounds:
+      m_Center: {x: 0, y: 2.5, z: 0}
+      m_Extent: {x: 0.5, y: 3.5, z: 0.5}
+    BoundsOffset: {x: 0, y: 0, z: 0}
     Positions: []
     Rotations: []
     Scales: []
@@ -672,6 +677,11 @@ MonoBehaviour:
       type: 3}
     Lod2Mesh: {fileID: 495821352303673200, guid: 0c420aef2b3c2be40b49892355d80991,
       type: 3}
+    Mesh: {fileID: 0}
+    Bounds:
+      m_Center: {x: 0, y: 2.5, z: 0}
+      m_Extent: {x: 0.5, y: 3.5, z: 0.5}
+    BoundsOffset: {x: 0, y: 0, z: 0}
     Positions: []
     Rotations: []
     Scales: []

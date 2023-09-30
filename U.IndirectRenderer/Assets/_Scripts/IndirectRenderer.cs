@@ -8,7 +8,6 @@ public class IndirectRenderer : IDisposable
     private readonly IndirectMesh[] _instances;
     private readonly IndirectRendererConfig _config;
     private readonly IndirectRendererSettings _settings;
-    // private readonly MeshProperties[] _meshProperties;
     private readonly RendererDataContext _context;
 
     private readonly MatricesInitializerDispatcher _matricesInitializerDispatcher;

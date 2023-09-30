@@ -54,8 +54,9 @@ public class InstancesCuller : ComputeShaderDispatcher
             var mesh = meshes[i];
             for (var k = 0; k < mesh.Positions.Count; k++)
             {
-                var bounds = CreateBounds(mesh.Prefab);
-                bounds.center = mesh.Positions[k];
+                var bounds = mesh.Bounds;
+                bounds.center += mesh.Positions[k];
+                bounds.center += mesh.BoundsOffset;
                 var size = bounds.size;
                 size.Scale(mesh.Scales[k]);
                 bounds.size = size;
@@ -128,28 +129,28 @@ public class InstancesCuller : ComputeShaderDispatcher
         sortingData = Context.Sorting.Data;
     }
 
-    private Bounds CreateBounds(GameObject prefab)
-    {
-        var gameObject = Object.Instantiate(prefab);
-        gameObject.transform.position = Vector3.zero;
-        gameObject.transform.rotation = Quaternion.Euler(Vector3.zero);
-        gameObject.transform.localScale = Vector3.one;
-        
-        var renderers = gameObject.GetComponentsInChildren<Renderer>();
-        
-        var bounds = new Bounds();
-        if (renderers.Length > 0)
-        {
-            bounds = new Bounds(renderers[0].bounds.center, renderers[0].bounds.size);
-            for (var r = 1; r < renderers.Length; r++)
-            {
-                bounds.Encapsulate(renderers[r].bounds);
-            }
-        }
-        
-        bounds.center = Vector3.zero;
-        Object.DestroyImmediate(gameObject);
-        
-        return bounds;
-    }
+    // private Bounds CreateBounds(GameObject prefab)
+    // {
+    //     var gameObject = Object.Instantiate(prefab);
+    //     gameObject.transform.position = Vector3.zero;
+    //     gameObject.transform.rotation = Quaternion.Euler(Vector3.zero);
+    //     gameObject.transform.localScale = Vector3.one;
+    //     
+    //     var renderers = gameObject.GetComponentsInChildren<Renderer>();
+    //     
+    //     var bounds = new Bounds();
+    //     if (renderers.Length > 0)
+    //     {
+    //         bounds = new Bounds(renderers[0].bounds.center, renderers[0].bounds.size);
+    //         for (var r = 1; r < renderers.Length; r++)
+    //         {
+    //             bounds.Encapsulate(renderers[r].bounds);
+    //         }
+    //     }
+    //     
+    //     bounds.center = Vector3.zero;
+    //     Object.DestroyImmediate(gameObject);
+    //     
+    //     return bounds;
+    // }
 }
