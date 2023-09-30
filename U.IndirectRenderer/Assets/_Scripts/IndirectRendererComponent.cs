@@ -32,21 +32,6 @@ public class IndirectRendererConfig
 }
 
 [Serializable]
-public class IndirectMesh
-{
-    public GameObject Prefab;
-    public Material Material;
-    
-    public Mesh Lod0Mesh;
-    public Mesh Lod1Mesh;
-    public Mesh Lod2Mesh;
-
-    public List<Vector3> Positions;
-    public List<Vector3> Rotations;
-    public List<Vector3> Scales;
-}
-
-[Serializable]
 public class IndirectRendererSettings
 {
     public bool RunCompute = true;
@@ -66,19 +51,17 @@ public class IndirectRendererSettings
 }
 
 [Serializable]
-public class MeshProperties
+public class IndirectMesh
 {
-    public Mesh Mesh;
+    public GameObject Prefab;
     public Material Material;
     
-    public uint Lod0Vertices;
-    public uint Lod1Vertices;
-    public uint Lod2Vertices;
-    
-    public uint Lod0Indices;
-    public uint Lod1Indices;
-    public uint Lod2Indices;
-    
+    public Mesh Lod0Mesh;
+    public Mesh Lod1Mesh;
+    public Mesh Lod2Mesh;
+
+    public Mesh Mesh;
+
     public MaterialPropertyBlock Lod0PropertyBlock;
     public MaterialPropertyBlock Lod1PropertyBlock;
     public MaterialPropertyBlock Lod2PropertyBlock;
@@ -86,6 +69,45 @@ public class MeshProperties
     public MaterialPropertyBlock ShadowLod0PropertyBlock;
     public MaterialPropertyBlock ShadowLod1PropertyBlock;
     public MaterialPropertyBlock ShadowLod2PropertyBlock;
+
+    public List<Vector3> Positions;
+    public List<Vector3> Rotations;
+    public List<Vector3> Scales;
+
+    public void Initialize()
+    {
+        InitializeCombinedMesh();
+        InitializeMaterialPropertyBlocks();
+    }
+
+    private void InitializeCombinedMesh()
+    {
+        Mesh = new Mesh();
+        Mesh.name = Prefab.name;
+        var combinedMeshes = new CombineInstance[]
+        {
+            new() { mesh = Lod0Mesh },
+            new() { mesh = Lod1Mesh },
+            new() { mesh = Lod2Mesh }
+        };
+        
+        Mesh.CombineMeshes(
+            combine: combinedMeshes,
+            mergeSubMeshes: false,
+            useMatrices: false,
+            hasLightmapData: false);
+    }
+    
+    private void InitializeMaterialPropertyBlocks()
+    {
+        Lod0PropertyBlock = new MaterialPropertyBlock();
+        Lod1PropertyBlock = new MaterialPropertyBlock();
+        Lod2PropertyBlock = new MaterialPropertyBlock();
+        
+        ShadowLod0PropertyBlock = new MaterialPropertyBlock();
+        ShadowLod1PropertyBlock = new MaterialPropertyBlock();
+        ShadowLod2PropertyBlock = new MaterialPropertyBlock();
+    }
 }
 
 public class IndirectRendererComponent : MonoBehaviour

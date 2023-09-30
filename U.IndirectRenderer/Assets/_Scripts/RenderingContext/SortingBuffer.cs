@@ -44,7 +44,7 @@ public class SortingBuffer : IDisposable
                 lastDrawCallIndex = drawCallIndex;
             }
             
-            log.AppendLine($"({drawCallIndex}) --> {data[i].DistanceToCamera} instanceIndex:{instanceIndex}");
+            log.AppendLine($"({drawCallIndex}) --> {data[i].DistanceToCamera} instanceIndex: {instanceIndex}");
 
             if (lastDrawCallIndex == drawCallIndex) continue;
             

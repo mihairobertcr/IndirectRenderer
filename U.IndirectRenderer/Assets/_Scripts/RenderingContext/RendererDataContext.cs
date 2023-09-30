@@ -14,7 +14,7 @@ public class RendererDataContext : IDisposable
     public InstancesDataBuffer ScannedPredicates { get; }
     public InstancesDataBuffer ScannedGroupSums { get; }
 
-    public RendererDataContext(MeshProperties[] meshProperties, int meshesCount, IndirectRendererConfig config)
+    public RendererDataContext(IndirectMesh[] meshProperties, int meshesCount, IndirectRendererConfig config)
     {
         MeshesCount = meshesCount;
         BoundsData = new ComputeBuffer(MeshesCount, IndirectRendering.BoundsData.Size, ComputeBufferType.Default);

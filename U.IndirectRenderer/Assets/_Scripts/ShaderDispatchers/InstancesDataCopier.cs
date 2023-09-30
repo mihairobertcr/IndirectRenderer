@@ -81,7 +81,7 @@ public class InstancesDataCopier : ComputeShaderDispatcher
         ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.BoundsData, _boundsData);
     }
 
-    public void BindMaterialProperties(MeshProperties[] properties)
+    public void BindMaterialProperties(IndirectMesh[] properties)
     {
         foreach (var property in properties)
         {

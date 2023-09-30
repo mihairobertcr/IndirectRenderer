@@ -8,7 +8,7 @@ public class IndirectRenderer : IDisposable
     private readonly IndirectMesh[] _instances;
     private readonly IndirectRendererConfig _config;
     private readonly IndirectRendererSettings _settings;
-    private readonly MeshProperties[] _meshProperties;
+    // private readonly MeshProperties[] _meshProperties;
     private readonly RendererDataContext _context;
 
     private readonly MatricesInitializerDispatcher _matricesInitializerDispatcher;
@@ -30,10 +30,10 @@ public class IndirectRenderer : IDisposable
         _config = config;
         _settings = settings;
         
-        _meshProperties = CreateMeshProperties();
+        InitializeMeshProperties();
         _bounds.extents = Vector3.one * 10000; // ???
         
-        _context = new RendererDataContext(_meshProperties, _numberOfInstances * _meshProperties.Length, _config);
+        _context = new RendererDataContext(_instances, _numberOfInstances * _instances.Length, _config);
 
         _matricesInitializerDispatcher = new MatricesInitializerDispatcher(_config.MatricesInitializer, _context);
         _lodBitonicSorter = new LodBitonicSorter(_config.LodBitonicSorter, _context);
@@ -77,7 +77,7 @@ public class IndirectRenderer : IDisposable
 
         _groupSumsScanner.SubmitGroupCount();
         _dataCopier.SubmitCopingBuffers();
-        _dataCopier.BindMaterialProperties(_meshProperties);
+        _dataCopier.BindMaterialProperties(_instances);
     }
 
     public void BeginFrameRendering(ScriptableRenderContext context, Camera[] camera)
@@ -203,9 +203,9 @@ public class IndirectRenderer : IDisposable
 
     private void DrawInstances()
     {
-        for (var i = 0; i < _meshProperties.Length; i++)
+        for (var i = 0; i < _instances.Length; i++)
         {
-            var property = _meshProperties[i];
+            var property = _instances[i];
             var rp = new RenderParams(property.Material);
             rp.worldBounds = _bounds;
 
@@ -228,50 +228,11 @@ public class IndirectRenderer : IDisposable
         
     }
 
-    private MeshProperties[] CreateMeshProperties()
+    private void InitializeMeshProperties()
     {
-        var properties = new MeshProperties[_instances.Length];
-        for (var i = 0; i < properties.Length; i++)
+        foreach (var instance in _instances)
         {
-            ref var property = ref properties[i];
-            var instance = _instances[i];
-            property = new MeshProperties
-            {
-                Mesh = new Mesh(),
-                Material = instance.Material,
-            
-                // Lod0Vertices = (uint)_config.Lod0Mesh.vertexCount,
-                // Lod1Vertices = (uint)_config.Lod1Mesh.vertexCount,
-                // Lod2Vertices = (uint)_config.Lod2Mesh.vertexCount,
-                //
-                // Lod0Indices = _config.Lod0Mesh.GetIndexCount(0),
-                // Lod1Indices = _config.Lod1Mesh.GetIndexCount(0),
-                // Lod2Indices = _config.Lod2Mesh.GetIndexCount(0),
-                
-                Lod0PropertyBlock = new MaterialPropertyBlock(),
-                Lod1PropertyBlock = new MaterialPropertyBlock(),
-                Lod2PropertyBlock = new MaterialPropertyBlock(),
-            
-                ShadowLod0PropertyBlock = new MaterialPropertyBlock(),
-                ShadowLod1PropertyBlock = new MaterialPropertyBlock(),
-                ShadowLod2PropertyBlock = new MaterialPropertyBlock()
-            };
-        
-            property.Mesh.name = instance.Prefab.name;
-            var combinedMeshes = new CombineInstance[]
-            {
-                new() { mesh = instance.Lod0Mesh },
-                new() { mesh = instance.Lod1Mesh },
-                new() { mesh = instance.Lod2Mesh }
-            };
-        
-            property.Mesh.CombineMeshes(
-                combine: combinedMeshes,
-                mergeSubMeshes: false,
-                useMatrices: false,
-                hasLightmapData: false);
+            instance.Initialize();
         }
-
-        return properties;
     }
 }
