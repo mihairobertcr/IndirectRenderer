@@ -5,6 +5,18 @@ using UnityEngine;
 namespace IndirectRendering
 {
     // Preferably want to have all buffer structs in power of 2...
+    // 8 * 4 bytes = 32 bytes
+    [StructLayout(LayoutKind.Sequential)]
+    public struct Matrix2x2
+    {
+        public Vector4 Row0;
+        public Vector4 Row1;
+    
+        public static int Size =>
+            sizeof(float) * 4 + 
+            sizeof(float) * 4;
+    };
+    
     // 6 * 4 bytes = 24 bytes
     [Serializable]
     [StructLayout(LayoutKind.Sequential)]
@@ -17,18 +29,6 @@ namespace IndirectRendering
             sizeof(float) * 3 + 
             sizeof(float) * 3;
     }
-
-    // 8 * 4 bytes = 32 bytes
-    [StructLayout(LayoutKind.Sequential)]
-    public struct Indirect2x2Matrix
-    {
-        public Vector4 FirstRow;
-        public Vector4 SecondRow;
-    
-        public static int Size =>
-            sizeof(float) * 4 + 
-            sizeof(float) * 4;
-    };
 
     // 2 * 4 bytes = 8 bytes
     [StructLayout(LayoutKind.Sequential)]

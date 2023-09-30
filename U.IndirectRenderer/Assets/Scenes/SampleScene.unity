@@ -629,16 +629,16 @@ MonoBehaviour:
     GroupSumsScanner: {fileID: 7200000, guid: c5b9ba8237ff641d8a7c10c4148e1eee, type: 3}
     InstancesDataCopier: {fileID: 7200000, guid: 266562bdb8f774ae2872176ce62aca32,
       type: 3}
-    LogMatrices: 0
-    LogArgumentsBufferAfterReset: 0
+    LogMatrices: 1
+    LogArgumentsBufferAfterReset: 1
     LogArgumentsAfterOcclusion: 1
-    LogInstancesIsVisibleBuffer: 0
-    LogGroupSumsBuffer: 0
-    LogScannedPredicates: 0
-    LogScannedGroupSumsBuffer: 0
-    LogCulledMatrices: 0
-    LogArgsBufferAfterCopy: 0
-    LogSortingData: 0
+    LogInstancesIsVisibleBuffer: 1
+    LogGroupSumsBuffer: 1
+    LogScannedPredicates: 1
+    LogScannedGroupSumsBuffer: 1
+    LogCulledMatrices: 1
+    LogArgsBufferAfterCopy: 1
+    LogSortingData: 1
     DebugBounds: 1
   _settings:
     RunCompute: 1

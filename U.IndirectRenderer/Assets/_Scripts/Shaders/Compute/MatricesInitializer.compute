@@ -10,9 +10,9 @@ StructuredBuffer<float3> _Positions;
 StructuredBuffer<float3> _Scales;
 StructuredBuffer<float3> _Rotations;
 
-RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows01;
-RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows23;
-RWStructuredBuffer<Indirect2x2Matrix> _MatrixRows45;
+RWStructuredBuffer<Matrix2x2> _MatrixRows01;
+RWStructuredBuffer<Matrix2x2> _MatrixRows23;
+RWStructuredBuffer<Matrix2x2> _MatrixRows45;
 
 float4x4 RotationMatrix(float3 axis, float angle)
 {
@@ -87,17 +87,17 @@ inline void CSMain (
     float4x4 localToWorld = mul(translation, rotationMatrix);
     float4x4 worldToLocal = Inverse(localToWorld);
     
-    Indirect2x2Matrix rows01;
-    Indirect2x2Matrix rows23;
-    Indirect2x2Matrix rows45;
+    Matrix2x2 rows01;
+    Matrix2x2 rows23;
+    Matrix2x2 rows45;
     
-    rows01.FirstRow  = localToWorld[0];
-    rows01.SecondRow = localToWorld[1];
-    rows23.FirstRow  = localToWorld[2];
+    rows01.Row0 = localToWorld[0];
+    rows01.Row1 = localToWorld[1];
+    rows23.Row0 = localToWorld[2];
     
-    rows23.SecondRow = worldToLocal[0];
-    rows45.FirstRow  = worldToLocal[1];
-    rows45.SecondRow = worldToLocal[2];
+    rows23.Row1 = worldToLocal[0];
+    rows45.Row0 = worldToLocal[1];
+    rows45.Row1 = worldToLocal[2];
     
     _MatrixRows01[threadID] = rows01;
     _MatrixRows23[threadID] = rows23;

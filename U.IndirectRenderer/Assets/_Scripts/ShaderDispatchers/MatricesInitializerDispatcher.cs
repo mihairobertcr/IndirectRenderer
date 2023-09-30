@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MatricesInitializer : ComputeShaderDispatcher
+public class MatricesInitializerDispatcher : ComputeShaderDispatcher
 {
     private readonly int _kernel;
     private readonly int _threadGroupX;
@@ -11,7 +11,7 @@ public class MatricesInitializer : ComputeShaderDispatcher
     private readonly ComputeBuffer _scalesBuffer;
     private readonly MatrixBuffer _matrixBuffer;
 
-    public MatricesInitializer(ComputeShader computeShader, RendererDataContext context)
+    public MatricesInitializerDispatcher(ComputeShader computeShader, RendererDataContext context)
         : base(computeShader, context)
     {
         _kernel = GetKernel("CSMain");
@@ -24,15 +24,14 @@ public class MatricesInitializer : ComputeShaderDispatcher
             out _matrixBuffer);
     }
 
-    public MatricesInitializer SetTransformData(IndirectMesh[] meshes)
+    public MatricesInitializerDispatcher SetTransformData(IndirectMesh[] meshes)
     {
         var positions = new List<Vector3>();
         var rotations = new List<Vector3>();
         var scales = new List<Vector3>();
 
-        for (var i = 0; i < meshes.Length; i++)
+        foreach (var mesh in meshes)
         {
-            var mesh = meshes[i];
             for (var k = 0; k < mesh.Positions.Count; k++)
             {
                 positions.Add(mesh.Positions[k]);
@@ -48,7 +47,7 @@ public class MatricesInitializer : ComputeShaderDispatcher
         return this;
     }
     
-    public MatricesInitializer SubmitTransformsData()
+    public MatricesInitializerDispatcher SubmitTransformsData()
     {
         ComputeShader.SetBuffer(_kernel, ShaderProperties.Positions, _positionsBuffer);
         ComputeShader.SetBuffer(_kernel, ShaderProperties.Rotations, _rotationsBuffer);
@@ -65,9 +64,9 @@ public class MatricesInitializer : ComputeShaderDispatcher
     private void InitializeTransformBuffers(out ComputeBuffer position, out ComputeBuffer rotation, 
         out ComputeBuffer scale, out MatrixBuffer matrix)
     {
-        position = Context.Transform.PositionsBuffer;
-        rotation = Context.Transform.RotationsBuffer;
-        scale = Context.Transform.ScalesBuffer;
-        matrix = Context.Transform.Matrix;
+        position = Context.Transform.Positions;
+        rotation = Context.Transform.Rotations;
+        scale = Context.Transform.Scales;
+        matrix = Context.Transform.Matrices;
     }
 }

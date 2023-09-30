@@ -174,9 +174,9 @@ public class InstancesDataCopier : ComputeShaderDispatcher
         out ComputeBuffer matricesRows23, out ComputeBuffer matricesRows45,
         out ComputeBuffer sortingData, out ComputeBuffer boundsData)
     {
-        matricesRows01 = Context.Transform.Matrix.Rows01;
-        matricesRows23 = Context.Transform.Matrix.Rows23;
-        matricesRows45 = Context.Transform.Matrix.Rows45;
+        matricesRows01 = Context.Transform.Matrices.Rows01;
+        matricesRows23 = Context.Transform.Matrices.Rows23;
+        matricesRows45 = Context.Transform.Matrices.Rows45;
         sortingData = Context.Sorting.Data;
         boundsData = Context.BoundsData;
     }
@@ -189,9 +189,9 @@ public class InstancesDataCopier : ComputeShaderDispatcher
         meshesVisibility = Context.Visibility.Meshes;
         meshesScannedGroupSums = Context.ScannedGroupSums.Meshes;
         meshesScannedPredicates = Context.ScannedPredicates.Meshes;
-        meshesCulledMatricesRows01 = Context.Transform.CulledMatrix.Rows01;
-        meshesCulledMatricesRows23 = Context.Transform.CulledMatrix.Rows23;
-        meshesCulledMatricesRows45 = Context.Transform.CulledMatrix.Rows45;
+        meshesCulledMatricesRows01 = Context.Transform.CulledMeshesMatrices.Rows01;
+        meshesCulledMatricesRows23 = Context.Transform.CulledMeshesMatrices.Rows23;
+        meshesCulledMatricesRows45 = Context.Transform.CulledMeshesMatrices.Rows45;
         meshesArguments = Context.Arguments.MeshesBuffer;
     }
 
@@ -203,9 +203,9 @@ public class InstancesDataCopier : ComputeShaderDispatcher
         shadowsVisibility = Context.Visibility.Shadows;
         shadowsScannedGroupSums = Context.ScannedGroupSums.Shadows;
         shadowsScannedPredicates = Context.ScannedPredicates.Shadows;
-        shadowsCulledMatricesRows01 = Context.Transform.ShadowsCulledMatrix.Rows01;
-        shadowsCulledMatricesRows23 = Context.Transform.ShadowsCulledMatrix.Rows23;
-        shadowsCulledMatricesRows45 = Context.Transform.ShadowsCulledMatrix.Rows45;
+        shadowsCulledMatricesRows01 = Context.Transform.CulledShadowsMatrices.Rows01;
+        shadowsCulledMatricesRows23 = Context.Transform.CulledShadowsMatrices.Rows23;
+        shadowsCulledMatricesRows45 = Context.Transform.CulledShadowsMatrices.Rows45;
         shadowsArguments = Context.Arguments.ShadowsBuffer;
     }
 

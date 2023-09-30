@@ -12,7 +12,7 @@ public class IndirectRenderer : IDisposable
     private readonly MeshProperties[] _meshProperties;
     private readonly RendererDataContext _context;
 
-    private readonly MatricesInitializer _matricesInitializer;
+    private readonly MatricesInitializerDispatcher _matricesInitializerDispatcher;
     private readonly LodBitonicSorter _lodBitonicSorter;
     private readonly InstancesCuller _instancesCuller;
     private readonly InstancesScanner _instancesScanner;
@@ -36,7 +36,7 @@ public class IndirectRenderer : IDisposable
         
         _context = new RendererDataContext(_meshProperties, _numberOfInstances * _meshProperties.Length, _config);
 
-        _matricesInitializer = new MatricesInitializer(_config.MatricesInitializer, _context);
+        _matricesInitializerDispatcher = new MatricesInitializerDispatcher(_config.MatricesInitializer, _context);
         _lodBitonicSorter = new LodBitonicSorter(_config.LodBitonicSorter, _context);
         _instancesCuller = new InstancesCuller(_config.InstancesCuller, _context);
         _instancesScanner = new InstancesScanner(_config.InstancesScanner, _context);
@@ -63,7 +63,7 @@ public class IndirectRenderer : IDisposable
     
     private void Initialize()
     {
-        _matricesInitializer.SetTransformData(_instances)
+        _matricesInitializerDispatcher.SetTransformData(_instances)
             .SubmitTransformsData()
             .Dispatch();
 
@@ -121,16 +121,15 @@ public class IndirectRenderer : IDisposable
         if (_config.LogMatrices)
         {
             _config.LogMatrices = false;
-            _context.Transform.LogMatrices("LogInstanceDrawMatrices");
+            _context.Transform.LogMatrices("Matrices");
         }
         
-        Profiler.BeginSample("Resetting args buffer");
+        Profiler.BeginSample("Resetting Args Buffer");
         _context.Arguments.Reset();
-        
         if (_config.LogArgumentsBufferAfterReset)
         {
             _config.LogArgumentsBufferAfterReset = false;
-            _context.Arguments.Log("LogArgsBuffers - Instances After Reset", "LogArgsBuffers - Shadows After Reset");
+            _context.Arguments.Log("LogArgsBuffers - Meshes After Reset", "LogArgsBuffers - Shadows After Reset");
         }
         Profiler.EndSample();
         
@@ -259,7 +258,7 @@ public class IndirectRenderer : IDisposable
                 ShadowLod2PropertyBlock = new MaterialPropertyBlock()
             };
         
-            property.Mesh.name = "Mesh";
+            property.Mesh.name = instance.Prefab.name;
             var combinedMeshes = new CombineInstance[]
             {
                 new() { mesh = instance.Lod0Mesh },
