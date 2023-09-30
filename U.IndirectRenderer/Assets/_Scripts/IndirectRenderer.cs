@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
@@ -92,7 +91,7 @@ public class IndirectRenderer : IDisposable
         
         if (_settings.DrawInstances)
         {
-            Profiler.BeginSample("DrawInstances");
+            Profiler.BeginSample("DrawMeshes");
             DrawInstances();
             Profiler.EndSample();
         }
@@ -129,7 +128,7 @@ public class IndirectRenderer : IDisposable
         if (_config.LogArgumentsBufferAfterReset)
         {
             _config.LogArgumentsBufferAfterReset = false;
-            _context.Arguments.Log("LogArgsBuffers - Meshes After Reset", "LogArgsBuffers - Shadows After Reset");
+            _context.Arguments.Log("Arguments Buffers - Meshes After Reset", "Arguments Buffers - Shadows After Reset");
         }
         Profiler.EndSample();
         
@@ -138,13 +137,13 @@ public class IndirectRenderer : IDisposable
         if (_config.LogArgumentsAfterOcclusion)
         {
             _config.LogArgumentsAfterOcclusion = false;
-            _context.Arguments.Log("LogArgsBuffers - Instances After Occlusion", "LogArgsBuffers - Shadows After Occlusion");
+            _context.Arguments.Log("Arguments Buffers - Meshes After Occlusion", "Arguments Buffers - Shadows After Occlusion");
         }
         
         if (_config.LogInstancesIsVisibleBuffer)
         {
             _config.LogInstancesIsVisibleBuffer = false;
-            _context.Visibility.Log("LogInstancesIsVisibleBuffers - Instances", "LogInstancesIsVisibleBuffers - Shadows");
+            _context.Visibility.Log("Visibility Buffers - Meshes", "Visibility Buffers - Shadows");
         }
         Profiler.EndSample();
         
@@ -154,13 +153,13 @@ public class IndirectRenderer : IDisposable
         if (_config.LogGroupSumsBuffer)
         {
             _config.LogGroupSumsBuffer = false;
-            _context.GroupSums.Log("LogGroupSumsBuffer - Instances", "LogGroupSumsBuffer - Shadows");
+            _context.GroupSums.Log("Group Sums Buffer - Meshes", "Group Sums Buffer - Shadows");
         }
         
         if (_config.LogScannedPredicates)
         {
             _config.LogScannedPredicates = false;
-            _context.ScannedPredicates.Log("LogScannedPredicates - Instances", "LogScannedPredicates - Shadows");
+            _context.ScannedPredicates.Log("Scanned Predicates - Meshes", "Scanned Predicates - Shadows");
         }
         Profiler.EndSample();
         
@@ -170,24 +169,24 @@ public class IndirectRenderer : IDisposable
         if (_config.LogScannedGroupSumsBuffer)
         {
             _config.LogScannedGroupSumsBuffer = false;
-            _context.ScannedGroupSums.Log("LogScannedGroupSumBuffer - Instances", "LogScannedGroupSumBuffer - Shadows");
+            _context.ScannedGroupSums.Log("Scanned Group Sums Buffer - Meshes", "Scanned Group Sums Buffer - Shadows");
         }
         Profiler.EndSample();
         
-        Profiler.BeginSample("Copy Instance Data");
+        Profiler.BeginSample("Copy Instances Data");
         _dataCopier.SubmitMeshesData().Dispatch();
         _dataCopier.SubmitShadowsData().Dispatch();
 
         if (_config.LogCulledMatrices)
         {
             _config.LogCulledMatrices = false;
-            _context.Transform.LogCulledMatrices("LogCulledMatrices - Instances", "LogCulledMatrices - Shadows");
+            _context.Transform.LogCulledMatrices("Culled Matrices - Meshes", "Culled Matrices - Shadows");
         }
         
         if (_config.LogArgsBufferAfterCopy)
         {
             _config.LogArgsBufferAfterCopy = false;
-            _context.Arguments.Log("LogArgsBuffers - Instances After Copy", "LogArgsBuffers - Shadows After Copy");
+            _context.Arguments.Log("Arguments Buffers - Meshes After Copy", "Arguments Buffers - Shadows After Copy");
         }
         Profiler.EndSample();
         
@@ -198,7 +197,7 @@ public class IndirectRenderer : IDisposable
         if (_config.LogSortingData)
         {
             _config.LogSortingData = false;
-            _context.Sorting.Log("LogSortingData");
+            _context.Sorting.Log("Sorting Data");
         }
     }
 
