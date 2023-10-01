@@ -653,31 +653,15 @@ MonoBehaviour:
     DetailCullingPercentage: 0.005
   _hizMap: {fileID: 11400000, guid: 52c4863dafa8f4277bdfa114810bee3c, type: 2}
   _instances:
-  - Prefab: {fileID: 919132149155446097, guid: 0c420aef2b3c2be40b49892355d80991, type: 3}
-    Material: {fileID: 2100000, guid: a8248d39566b4478591457de205c621e, type: 2}
-    Lod0Mesh: {fileID: 7537633883582861140, guid: 0c420aef2b3c2be40b49892355d80991,
+  - Prefab: {fileID: 919132149155446097, guid: 57f354831b1044a33b5a0a6164e68490, type: 3}
+    Material: {fileID: 2100000, guid: 316b8a94b405b47c1936fdc01c350bf6, type: 2}
+    Lod0Mesh: {fileID: -1224505478118319035, guid: 57f354831b1044a33b5a0a6164e68490,
       type: 3}
-    Lod1Mesh: {fileID: 3997043725991330010, guid: 0c420aef2b3c2be40b49892355d80991,
+    Lod1Mesh: {fileID: 5368998524920036126, guid: 57f354831b1044a33b5a0a6164e68490,
       type: 3}
-    Lod2Mesh: {fileID: -1528503161650279355, guid: 0c420aef2b3c2be40b49892355d80991,
+    Lod2Mesh: {fileID: -8750779691553580571, guid: 57f354831b1044a33b5a0a6164e68490,
       type: 3}
-    Mesh: {fileID: 0}
-    Bounds:
-      m_Center: {x: 0, y: 2.5, z: 0}
-      m_Extent: {x: 0.5, y: 3.5, z: 0.5}
-    BoundsOffset: {x: 0, y: 0, z: 0}
-    Positions: []
-    Rotations: []
-    Scales: []
-  - Prefab: {fileID: 919132149155446097, guid: 0c420aef2b3c2be40b49892355d80991, type: 3}
-    Material: {fileID: 2100000, guid: a8248d39566b4478591457de205c621e, type: 2}
-    Lod0Mesh: {fileID: 8857266173664433217, guid: 0c420aef2b3c2be40b49892355d80991,
-      type: 3}
-    Lod1Mesh: {fileID: 8738257266238673510, guid: 0c420aef2b3c2be40b49892355d80991,
-      type: 3}
-    Lod2Mesh: {fileID: 495821352303673200, guid: 0c420aef2b3c2be40b49892355d80991,
-      type: 3}
-    Mesh: {fileID: 0}
+    Mesh: {fileID: 5668788170693331272, guid: fedd82e62536149f188064201b715ac8, type: 3}
     Bounds:
       m_Center: {x: 0, y: 2.5, z: 0}
       m_Extent: {x: 0.5, y: 3.5, z: 0.5}

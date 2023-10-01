@@ -66,8 +66,8 @@ public class ArgumentsBuffer : IDisposable
         shadowsLog.AppendLine("IndexCountPerInstance InstanceCount StartIndex BaseVertexIndex StartInstance");
     
         var counter = 0;
-        meshesLog.AppendLine(_meshProperties[counter].Mesh.name);
-        shadowsLog.AppendLine(_meshProperties[counter].Mesh.name);
+        meshesLog.AppendLine(_meshProperties[counter].CombinedMesh.name);
+        shadowsLog.AppendLine(_meshProperties[counter].CombinedMesh.name);
         for (var i = 0; i < meshesArgs.Length; i++)
         {
             meshesLog.Append($"{meshesArgs[i]} ");
@@ -84,7 +84,7 @@ public class ArgumentsBuffer : IDisposable
 
                     counter++;
                     var properties = _meshProperties[counter];
-                    var mesh = properties.Mesh;
+                    var mesh = properties.CombinedMesh;
                     meshesLog.AppendLine(mesh.name);
                     shadowsLog.AppendLine(mesh.name);
                 }
@@ -103,28 +103,28 @@ public class ArgumentsBuffer : IDisposable
         {
             parameters.Add(new GraphicsBuffer.IndirectDrawIndexedArgs
             {
-                indexCountPerInstance = property.Mesh.GetIndexCount(0),
+                indexCountPerInstance = property.CombinedMesh.GetIndexCount(0),
                 instanceCount = 0,
-                startIndex = property.Mesh.GetIndexStart(0),
-                baseVertexIndex = property.Mesh.GetBaseVertex(0),
+                startIndex = property.CombinedMesh.GetIndexStart(0),
+                baseVertexIndex = property.CombinedMesh.GetBaseVertex(0),
                 startInstance = 0
             });
         
             parameters.Add(new GraphicsBuffer.IndirectDrawIndexedArgs
             {
-                indexCountPerInstance = property.Mesh.GetIndexCount(1),
+                indexCountPerInstance = property.CombinedMesh.GetIndexCount(1),
                 instanceCount = 0,
-                startIndex = property.Mesh.GetIndexStart(1),
-                baseVertexIndex = property.Mesh.GetBaseVertex(1),
+                startIndex = property.CombinedMesh.GetIndexStart(1),
+                baseVertexIndex = property.CombinedMesh.GetBaseVertex(1),
                 startInstance = 0
             });
         
             parameters.Add(new GraphicsBuffer.IndirectDrawIndexedArgs
             {
-                indexCountPerInstance = property.Mesh.GetIndexCount(2),
+                indexCountPerInstance = property.CombinedMesh.GetIndexCount(2),
                 instanceCount = 0,
-                startIndex = property.Mesh.GetIndexStart(2),
-                baseVertexIndex = property.Mesh.GetBaseVertex(2),
+                startIndex = property.CombinedMesh.GetIndexStart(2),
+                baseVertexIndex = property.CombinedMesh.GetBaseVertex(2),
                 startInstance = 0
             });   
         }

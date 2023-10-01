@@ -56,7 +56,7 @@ public class InstancesCuller : ComputeShaderDispatcher
             {
                 var bounds = mesh.Bounds;
                 bounds.center += mesh.Positions[k];
-                bounds.center += mesh.BoundsOffset;
+                // bounds.center += mesh.BoundsOffset;
                 var size = bounds.size;
                 size.Scale(mesh.Scales[k]);
                 bounds.size = size;

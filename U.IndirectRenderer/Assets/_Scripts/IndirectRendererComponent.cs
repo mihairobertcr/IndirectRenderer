@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
-using Object = UnityEngine.Object;
 
 [Serializable]
 public class IndirectRendererConfig
@@ -18,7 +16,7 @@ public class IndirectRendererConfig
     public ComputeShader InstancesScanner;
     public ComputeShader GroupSumsScanner;
     public ComputeShader InstancesDataCopier;
-
+    
     [Header("Debug")]
     public bool LogMatrices;
     public bool LogArgumentsBufferAfterReset;
@@ -53,20 +51,36 @@ public class IndirectRendererSettings
 }
 
 [Serializable]
+public class TransformDto
+{
+    public Vector3 Position;
+    public Vector3 Rotation;
+    public Vector3 Scale;
+}
+
+[Serializable]
 public class IndirectMesh
 {
     public GameObject Prefab;
     public Material Material;
-    
+
+    [Space] 
+    [Header("Mesh")]
+    public Mesh CombinedMesh;
+    public bool RecombineLods;
     public Mesh Lod0Mesh;
     public Mesh Lod1Mesh;
     public Mesh Lod2Mesh;
 
-    public Mesh Mesh;
-
+    public TransformDto Offset;
     public Bounds Bounds;
-    public Vector3 BoundsOffset;
 
+    [Space] 
+    [Header("Instances Transforms")]
+    public List<Vector3> Positions;
+    public List<Vector3> Rotations;
+    public List<Vector3> Scales;
+    
     public MaterialPropertyBlock Lod0PropertyBlock;
     public MaterialPropertyBlock Lod1PropertyBlock;
     public MaterialPropertyBlock Lod2PropertyBlock;
@@ -74,10 +88,6 @@ public class IndirectMesh
     public MaterialPropertyBlock ShadowLod0PropertyBlock;
     public MaterialPropertyBlock ShadowLod1PropertyBlock;
     public MaterialPropertyBlock ShadowLod2PropertyBlock;
-
-    public List<Vector3> Positions;
-    public List<Vector3> Rotations;
-    public List<Vector3> Scales;
 
     public void Initialize()
     {
@@ -87,8 +97,10 @@ public class IndirectMesh
 
     private void InitializeCombinedMesh()
     {
-        Mesh = new Mesh();
-        Mesh.name = Prefab.name;
+        if (RecombineLods) return;
+        
+        CombinedMesh = new Mesh();
+        CombinedMesh.name = Prefab.name;
         var combinedMeshes = new CombineInstance[]
         {
             new() { mesh = Lod0Mesh },
@@ -96,11 +108,22 @@ public class IndirectMesh
             new() { mesh = Lod2Mesh }
         };
         
-        Mesh.CombineMeshes(
+        CombinedMesh.CombineMeshes(
             combine: combinedMeshes,
             mergeSubMeshes: false,
             useMatrices: false,
             hasLightmapData: false);
+        
+        CombinedMesh.RecalculateTangents();
+        CombinedMesh.RecalculateNormals();
+        
+        // ----- DEBUG
+        // var gameObject = new GameObject($"{Prefab.name}_Debug");
+        // var filter = gameObject.AddComponent<MeshFilter>();
+        // gameObject.AddComponent<MeshRenderer>();
+        // filter.mesh = CombinedMesh;
+        // UnityEditor.Formats.Fbx.Exporter.ModelExporter.ExportObject($"Assets/{gameObject}.fbx", gameObject);
+        // -----
     }
 
     private void InitializeMaterialPropertyBlocks()
