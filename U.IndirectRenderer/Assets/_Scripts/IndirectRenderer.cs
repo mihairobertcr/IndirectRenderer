@@ -53,7 +53,7 @@ public class IndirectRenderer : IDisposable
 
     public void DrawGizmos()
     {
-        if (_config.DebugBounds)
+        if (_settings.DrawBounds)
         {
             _instancesCuller.DrawGizmos();
         }
@@ -65,7 +65,7 @@ public class IndirectRenderer : IDisposable
             .SubmitTransformsData()
             .Dispatch();
 
-        _lodBitonicSorter.SetSortingData(_instances, _config.RenderCamera)
+        _lodBitonicSorter.SetSortingData(_instances, _config.Camera)
             .SetupSortingCommand()
             .EnabledAsyncComputing(true);
         
@@ -114,34 +114,34 @@ public class IndirectRenderer : IDisposable
     private void CalculateVisibleInstances()
     {
         // Global data
-        _bounds.center = _config.RenderCamera.transform.position;
+        _bounds.center = _config.Camera.transform.position;
         
-        if (_config.LogMatrices)
+        if (_settings.LogMatrices)
         {
-            _config.LogMatrices = false;
-            _context.Transform.LogMatrices("Matrices");
+            _settings.LogMatrices = false;
+            _context.Transforms.LogMatrices("Matrices");
         }
         
         Profiler.BeginSample("Resetting Args Buffer");
         _context.Arguments.Reset();
-        if (_config.LogArgumentsBufferAfterReset)
+        if (_settings.LogArgumentsAfterReset)
         {
-            _config.LogArgumentsBufferAfterReset = false;
+            _settings.LogArgumentsAfterReset = false;
             _context.Arguments.Log("Arguments Buffers - Meshes After Reset", "Arguments Buffers - Shadows After Reset");
         }
         Profiler.EndSample();
         
         Profiler.BeginSample("Occlusion");
-        _instancesCuller.SubmitCameraData(_config.RenderCamera).Dispatch();
-        if (_config.LogArgumentsAfterOcclusion)
+        _instancesCuller.SubmitCameraData(_config.Camera).Dispatch();
+        if (_settings.LogArgumentsAfterOcclusion)
         {
-            _config.LogArgumentsAfterOcclusion = false;
+            _settings.LogArgumentsAfterOcclusion = false;
             _context.Arguments.Log("Arguments Buffers - Meshes After Occlusion", "Arguments Buffers - Shadows After Occlusion");
         }
         
-        if (_config.LogInstancesIsVisibleBuffer)
+        if (_settings.LogVisibilityBuffer)
         {
-            _config.LogInstancesIsVisibleBuffer = false;
+            _settings.LogVisibilityBuffer = false;
             _context.Visibility.Log("Visibility Buffers - Meshes", "Visibility Buffers - Shadows");
         }
         Profiler.EndSample();
@@ -149,15 +149,15 @@ public class IndirectRenderer : IDisposable
         Profiler.BeginSample("Scan Instances");
         _instancesScanner.SubmitMeshesData().Dispatch();
         _instancesScanner.SubmitShadowsData().Dispatch();
-        if (_config.LogGroupSumsBuffer)
+        if (_settings.LogGroupSums)
         {
-            _config.LogGroupSumsBuffer = false;
+            _settings.LogGroupSums = false;
             _context.GroupSums.Log("Group Sums Buffer - Meshes", "Group Sums Buffer - Shadows");
         }
         
-        if (_config.LogScannedPredicates)
+        if (_settings.LogScannedPredicates)
         {
-            _config.LogScannedPredicates = false;
+            _settings.LogScannedPredicates = false;
             _context.ScannedPredicates.Log("Scanned Predicates - Meshes", "Scanned Predicates - Shadows");
         }
         Profiler.EndSample();
@@ -165,9 +165,9 @@ public class IndirectRenderer : IDisposable
         Profiler.BeginSample("Scan Thread Groups");
         _groupSumsScanner.SubmitMeshData().Dispatch();
         _groupSumsScanner.SubmitShadowsData().Dispatch();
-        if (_config.LogScannedGroupSumsBuffer)
+        if (_settings.LogScannedGroupSums)
         {
-            _config.LogScannedGroupSumsBuffer = false;
+            _settings.LogScannedGroupSums = false;
             _context.ScannedGroupSums.Log("Scanned Group Sums Buffer - Meshes", "Scanned Group Sums Buffer - Shadows");
         }
         Profiler.EndSample();
@@ -176,15 +176,15 @@ public class IndirectRenderer : IDisposable
         _dataCopier.SubmitMeshesData().Dispatch();
         _dataCopier.SubmitShadowsData().Dispatch();
 
-        if (_config.LogCulledMatrices)
+        if (_settings.LogCulledMatrices)
         {
-            _config.LogCulledMatrices = false;
-            _context.Transform.LogCulledMatrices("Culled Matrices - Meshes", "Culled Matrices - Shadows");
+            _settings.LogCulledMatrices = false;
+            _context.Transforms.LogCulledMatrices("Culled Matrices - Meshes", "Culled Matrices - Shadows");
         }
         
-        if (_config.LogArgsBufferAfterCopy)
+        if (_settings.LogArgumentsAfterCopy)
         {
-            _config.LogArgsBufferAfterCopy = false;
+            _settings.LogArgumentsAfterCopy = false;
             _context.Arguments.Log("Arguments Buffers - Meshes After Copy", "Arguments Buffers - Shadows After Copy");
         }
         Profiler.EndSample();
@@ -193,9 +193,9 @@ public class IndirectRenderer : IDisposable
         _lodBitonicSorter.Dispatch();
         Profiler.EndSample();
         
-        if (_config.LogSortingData)
+        if (_settings.LogSortingData)
         {
-            _config.LogSortingData = false;
+            _settings.LogSortingData = false;
             _context.Sorting.Log("Sorting Data");
         }
     }

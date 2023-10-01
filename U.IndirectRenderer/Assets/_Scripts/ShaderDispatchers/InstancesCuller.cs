@@ -49,16 +49,15 @@ public class InstancesCuller : ComputeShaderDispatcher
     public InstancesCuller SetBoundsData(IndirectMesh[] meshes)
     {
         _boundsData = new List<BoundsData>();
-        for (var i = 0; i < meshes.Length; i++)
+        foreach (var mesh in meshes)
         {
-            var mesh = meshes[i];
-            for (var k = 0; k < mesh.Positions.Count; k++)
+            foreach (var transform in mesh.Transforms)
             {
                 var bounds = mesh.Bounds;
-                bounds.center += mesh.Positions[k];
-                // bounds.center += mesh.BoundsOffset;
+                bounds.center += transform.Position;
+                
                 var size = bounds.size;
-                size.Scale(mesh.Scales[k]);
+                size.Scale(transform.Scale);
                 bounds.size = size;
                 
                 _boundsData.Add(new BoundsData
@@ -107,7 +106,6 @@ public class InstancesCuller : ComputeShaderDispatcher
     public override void Dispatch() => ComputeShader.Dispatch(_kernel, _threadGroupX, 1, 1);
 
     // TODO: #EDITOR
-    // TODO: Check if debug boxes are rendered correctly
     public void DrawGizmos()
     {
         Gizmos.color = new Color(1f, 0f, 0f, 0.333f);

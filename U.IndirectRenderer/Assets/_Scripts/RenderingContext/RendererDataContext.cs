@@ -7,7 +7,7 @@ public class RendererDataContext : IDisposable
     public ComputeBuffer BoundsData { get; }
     
     public ArgumentsBuffer Arguments { get; }
-    public TransformBuffer Transform { get; }
+    public TransformBuffer Transforms { get; }
     public SortingBuffer Sorting { get; }
     public InstancesDataBuffer Visibility { get; }
     public InstancesDataBuffer GroupSums { get; }
@@ -20,7 +20,7 @@ public class RendererDataContext : IDisposable
         BoundsData = new ComputeBuffer(MeshesCount, IndirectRendering.BoundsData.Size, ComputeBufferType.Default);
 
         Arguments = new ArgumentsBuffer(meshProperties);
-        Transform = new TransformBuffer(meshesCount);
+        Transforms = new TransformBuffer(meshesCount);
         Sorting = new SortingBuffer(meshesCount);
         Visibility = new InstancesDataBuffer(meshesCount);
         GroupSums = new InstancesDataBuffer(meshesCount);
@@ -33,7 +33,7 @@ public class RendererDataContext : IDisposable
         BoundsData?.Dispose();
 
         Arguments?.Dispose();
-        Transform?.Dispose();
+        Transforms?.Dispose();
         Sorting?.Dispose();
         Visibility?.Dispose();
         GroupSums?.Dispose();

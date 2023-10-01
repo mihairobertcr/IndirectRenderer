@@ -33,17 +33,17 @@ public class LodBitonicSorter : ComputeShaderDispatcher
     {
         var cameraPosition = camera.transform.position;
         var sortingData = new List<SortingData>();
-
+        
         var instancesCount = 0;
         for (var i = 0; i < meshes.Length; i++)
         {
             var mesh = meshes[i];
-            for (var k = 0; k < mesh.Positions.Count; k++)
+            foreach (var transform in mesh.Transforms)
             {
                 sortingData.Add(new SortingData
                 {
                     DrawCallInstanceIndex = (((uint)i * NUMBER_OF_ARGS_PER_INSTANCE_TYPE) << 16) + (uint)instancesCount,
-                    DistanceToCamera = Vector3.Distance(mesh.Positions[k], cameraPosition)
+                    DistanceToCamera = Vector3.Distance(transform.Position, cameraPosition)
                 });
 
                 instancesCount++;

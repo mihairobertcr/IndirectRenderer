@@ -32,11 +32,11 @@ public class MatricesInitializerDispatcher : ComputeShaderDispatcher
 
         foreach (var mesh in meshes)
         {
-            for (var k = 0; k < mesh.Positions.Count; k++)
+            foreach (var transform in mesh.Transforms)
             {
-                positions.Add(mesh.Positions[k]);
-                rotations.Add(mesh.Rotations[k]);
-                scales.Add(mesh.Scales[k]);
+                positions.Add(transform.Position);
+                rotations.Add(transform.Rotation);
+                scales.Add(transform.Scale);
             }
         }
 
@@ -64,9 +64,9 @@ public class MatricesInitializerDispatcher : ComputeShaderDispatcher
     private void InitializeTransformBuffers(out ComputeBuffer position, out ComputeBuffer rotation, 
         out ComputeBuffer scale, out MatrixBuffer matrix)
     {
-        position = Context.Transform.Positions;
-        rotation = Context.Transform.Rotations;
-        scale = Context.Transform.Scales;
-        matrix = Context.Transform.Matrices;
+        position = Context.Transforms.Positions;
+        rotation = Context.Transforms.Rotations;
+        scale = Context.Transforms.Scales;
+        matrix = Context.Transforms.Matrices;
     }
 }
