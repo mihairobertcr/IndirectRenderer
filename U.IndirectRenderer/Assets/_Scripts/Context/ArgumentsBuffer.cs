@@ -12,10 +12,10 @@ public class ArgumentsBuffer : IDisposable
     private const int DRAW_CALLS_COUNT = 3;
     private const int ARGS_PER_DRAW_COUNT = 5;
 
-    private readonly IndirectMesh[] _meshProperties;
+    private readonly InstanceProperties[] _meshProperties;
     private readonly GraphicsBuffer.IndirectDrawIndexedArgs[] _parameters;
 
-    public ArgumentsBuffer(IndirectMesh[] meshProperties)
+    public ArgumentsBuffer(InstanceProperties[] meshProperties)
     {
         _meshProperties = meshProperties;
         _parameters = InitializeArgumentsBuffer();

@@ -29,7 +29,7 @@ public class LodBitonicSorter : ComputeShaderDispatcher
     
     ~LodBitonicSorter() => _command.Release();
 
-    public LodBitonicSorter SetSortingData(IndirectMesh[] meshes, Camera camera)
+    public LodBitonicSorter SetSortingData(InstanceProperties[] meshes, Camera camera)
     {
         var cameraPosition = camera.transform.position;
         var sortingData = new List<SortingData>();

@@ -1,10 +1,11 @@
 using System;
 using UnityEngine;
+using IndirectRendering;
 
 public class RendererDataContext : IDisposable
 {
     public int MeshesCount { get; }
-    public ComputeBuffer BoundsData { get; }
+    public ComputeBuffer BoundingBoxes { get; }
     
     public ArgumentsBuffer Arguments { get; }
     public TransformBuffer Transforms { get; }
@@ -14,10 +15,10 @@ public class RendererDataContext : IDisposable
     public InstancesDataBuffer ScannedPredicates { get; }
     public InstancesDataBuffer ScannedGroupSums { get; }
 
-    public RendererDataContext(IndirectMesh[] meshProperties, int meshesCount, IndirectRendererConfig config)
+    public RendererDataContext(InstanceProperties[] meshProperties, int meshesCount)
     {
         MeshesCount = meshesCount;
-        BoundsData = new ComputeBuffer(MeshesCount, IndirectRendering.BoundsData.Size, ComputeBufferType.Default);
+        BoundingBoxes = new ComputeBuffer(MeshesCount, BoundsData.Size, ComputeBufferType.Default);
 
         Arguments = new ArgumentsBuffer(meshProperties);
         Transforms = new TransformBuffer(meshesCount);
@@ -30,7 +31,7 @@ public class RendererDataContext : IDisposable
 
     public void Dispose()
     {
-        BoundsData?.Dispose();
+        BoundingBoxes?.Dispose();
 
         Arguments?.Dispose();
         Transforms?.Dispose();

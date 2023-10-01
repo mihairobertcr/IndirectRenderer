@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 
 public class IndirectRenderer : IDisposable
 {
-    private readonly IndirectMesh[] _instances;
+    private readonly InstanceProperties[] _instances;
     private readonly IndirectRendererConfig _config;
     private readonly IndirectRendererSettings _settings;
     private readonly RendererDataContext _context;
@@ -21,7 +21,7 @@ public class IndirectRenderer : IDisposable
 
     private Bounds _bounds;
     
-    public IndirectRenderer(IndirectMesh[] instances,
+    public IndirectRenderer(InstanceProperties[] instances,
         IndirectRendererConfig config, 
         IndirectRendererSettings settings)
     {
@@ -32,7 +32,7 @@ public class IndirectRenderer : IDisposable
         InitializeMeshProperties();
         _bounds.extents = Vector3.one * 10000; // ???
         
-        _context = new RendererDataContext(_instances, _numberOfInstances * _instances.Length, _config);
+        _context = new RendererDataContext(_instances, _numberOfInstances * _instances.Length);
 
         _matricesInitializerDispatcher = new MatricesInitializerDispatcher(_config.MatricesInitializer, _context);
         _lodBitonicSorter = new LodBitonicSorter(_config.LodBitonicSorter, _context);

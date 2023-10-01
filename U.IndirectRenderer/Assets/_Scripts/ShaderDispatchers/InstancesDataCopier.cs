@@ -81,7 +81,7 @@ public class InstancesDataCopier : ComputeShaderDispatcher
         ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.BoundsData, _boundsData);
     }
 
-    public void BindMaterialProperties(IndirectMesh[] properties)
+    public void BindMaterialProperties(InstanceProperties[] properties)
     {
         foreach (var property in properties)
         {
@@ -178,7 +178,7 @@ public class InstancesDataCopier : ComputeShaderDispatcher
         matricesRows23 = Context.Transforms.Matrices.Rows23;
         matricesRows45 = Context.Transforms.Matrices.Rows45;
         sortingData = Context.Sorting.Data;
-        boundsData = Context.BoundsData;
+        boundsData = Context.BoundingBoxes;
     }
 
     private void InitializeMeshesBuffer(out ComputeBuffer meshesVisibility,

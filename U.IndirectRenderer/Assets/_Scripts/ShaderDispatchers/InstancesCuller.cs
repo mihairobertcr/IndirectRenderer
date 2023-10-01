@@ -46,7 +46,7 @@ public class InstancesCuller : ComputeShaderDispatcher
     }
     
     //TODO: Enforce that this should be called only in initialization faze
-    public InstancesCuller SetBoundsData(IndirectMesh[] meshes)
+    public InstancesCuller SetBoundsData(InstanceProperties[] meshes)
     {
         _boundsData = new List<BoundsData>();
         foreach (var mesh in meshes)
@@ -123,7 +123,7 @@ public class InstancesCuller : ComputeShaderDispatcher
         shadowsArgs = Context.Arguments.ShadowsBuffer;
         meshesVisibility = Context.Visibility.Meshes;
         shadowsVisibility = Context.Visibility.Shadows;
-        bounds = Context.BoundsData;
+        bounds = Context.BoundingBoxes;
         sortingData = Context.Sorting.Data;
     }
 
