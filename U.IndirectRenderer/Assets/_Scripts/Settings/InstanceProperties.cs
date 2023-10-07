@@ -21,9 +21,11 @@ public class InstanceProperties
     [Header("Mesh")]
     public Mesh CombinedMesh;
     public bool RecombineLods;
-    public Mesh Lod0Mesh;
-    public Mesh Lod1Mesh;
-    public Mesh Lod2Mesh;
+    public List<LodProperty> Lods;
+    
+    // public Mesh Lod0Mesh;
+    // public Mesh Lod1Mesh;
+    // public Mesh Lod2Mesh;
 
     [Space] 
     [Header("Location")]
@@ -34,13 +36,13 @@ public class InstanceProperties
     [Header("Instances")]
     public List<TransformDto> Transforms; //TODO: Consider making it an array
     
-    public MaterialPropertyBlock Lod0PropertyBlock;
-    public MaterialPropertyBlock Lod1PropertyBlock;
-    public MaterialPropertyBlock Lod2PropertyBlock;
-    
-    public MaterialPropertyBlock ShadowLod0PropertyBlock;
-    public MaterialPropertyBlock ShadowLod1PropertyBlock;
-    public MaterialPropertyBlock ShadowLod2PropertyBlock;
+    // public MaterialPropertyBlock Lod0PropertyBlock;
+    // public MaterialPropertyBlock Lod1PropertyBlock;
+    // public MaterialPropertyBlock Lod2PropertyBlock;
+    //
+    // public MaterialPropertyBlock ShadowLod0PropertyBlock;
+    // public MaterialPropertyBlock ShadowLod1PropertyBlock;
+    // public MaterialPropertyBlock ShadowLod2PropertyBlock;
 
     public void Initialize()
     {
@@ -54,13 +56,23 @@ public class InstanceProperties
 
         CombinedMesh = new Mesh();
         CombinedMesh.name = Prefab.name;
-        var combinedMeshes = new CombineInstance[]
+        // var combinedMeshes = new CombineInstance[]
+        // {
+        //     new() { mesh = Lod0Mesh },
+        //     new() { mesh = Lod1Mesh },
+        //     new() { mesh = Lod2Mesh }
+        // };
+
+        var combinedMeshes = new CombineInstance[Lods.Count];
+        for (var i = 0; i < Lods.Count; i++)
         {
-            new() { mesh = Lod0Mesh },
-            new() { mesh = Lod1Mesh },
-            new() { mesh = Lod2Mesh }
-        };
-        
+            var lod = Lods[i];
+            combinedMeshes[i] = new CombineInstance
+            {
+                mesh = lod.Mesh
+            };
+        }
+
         CombinedMesh.CombineMeshes(
             combine: combinedMeshes,
             mergeSubMeshes: false,
@@ -69,24 +81,34 @@ public class InstanceProperties
         
         CombinedMesh.RecalculateTangents();
         CombinedMesh.RecalculateNormals();
-        
-        // ----- DEBUG
-        // var gameObject = new GameObject($"{Prefab.name}_Debug");
-        // var filter = gameObject.AddComponent<MeshFilter>();
-        // gameObject.AddComponent<MeshRenderer>();
-        // filter.mesh = CombinedMesh;
-        // UnityEditor.Formats.Fbx.Exporter.ModelExporter.ExportObject($"Assets/{gameObject}.fbx", gameObject);
-        // -----
     }
 
     private void InitializeMaterialPropertyBlocks()
     {
-        Lod0PropertyBlock = new MaterialPropertyBlock();
-        Lod1PropertyBlock = new MaterialPropertyBlock();
-        Lod2PropertyBlock = new MaterialPropertyBlock();
-        
-        ShadowLod0PropertyBlock = new MaterialPropertyBlock();
-        ShadowLod1PropertyBlock = new MaterialPropertyBlock();
-        ShadowLod2PropertyBlock = new MaterialPropertyBlock();
+        // Lod0PropertyBlock = new MaterialPropertyBlock();
+        // Lod1PropertyBlock = new MaterialPropertyBlock();
+        // Lod2PropertyBlock = new MaterialPropertyBlock();
+        //
+        // ShadowLod0PropertyBlock = new MaterialPropertyBlock();
+        // ShadowLod1PropertyBlock = new MaterialPropertyBlock();
+        // ShadowLod2PropertyBlock = new MaterialPropertyBlock();
+        foreach (var lod in Lods)
+        {
+            lod.Initialize();
+        }
+    }
+}
+
+[Serializable]
+public class LodProperty
+{
+    public Mesh Mesh;
+    public MaterialPropertyBlock MeshPropertyBlock;
+    public MaterialPropertyBlock ShadowPropertyBlock;
+
+    public void Initialize()
+    {
+        MeshPropertyBlock = new MaterialPropertyBlock();
+        ShadowPropertyBlock = new MaterialPropertyBlock();
     }
 }

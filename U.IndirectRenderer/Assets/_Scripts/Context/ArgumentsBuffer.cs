@@ -128,32 +128,44 @@ public class ArgumentsBuffer : IDisposable
             //     startInstance = 0
             // });
             
-            parameters.Add(new GraphicsBuffer.IndirectDrawIndexedArgs
+            // parameters.Add(new GraphicsBuffer.IndirectDrawIndexedArgs
+            // {
+            //     indexCountPerInstance = property.Lod0Mesh.GetIndexCount(0),
+            //     instanceCount = 0,
+            //     startIndex = property.Lod0Mesh.GetIndexStart(0),
+            //     baseVertexIndex = property.Lod0Mesh.GetBaseVertex(0),
+            //     startInstance = 0
+            // });
+            //
+            // parameters.Add(new GraphicsBuffer.IndirectDrawIndexedArgs
+            // {
+            //     indexCountPerInstance = property.Lod1Mesh.GetIndexCount(0),
+            //     instanceCount = 0,
+            //     startIndex = property.Lod1Mesh.GetIndexStart(0),
+            //     baseVertexIndex = property.Lod1Mesh.GetBaseVertex(0),
+            //     startInstance = 0
+            // });
+            //
+            // parameters.Add(new GraphicsBuffer.IndirectDrawIndexedArgs
+            // {
+            //     indexCountPerInstance = property.Lod2Mesh.GetIndexCount(0),
+            //     instanceCount = 0,
+            //     startIndex = property.Lod2Mesh.GetIndexStart(0),
+            //     baseVertexIndex = property.Lod2Mesh.GetBaseVertex(0),
+            //     startInstance = 0
+            // });   
+            
+            foreach (var lod in property.Lods)
             {
-                indexCountPerInstance = property.Lod0Mesh.GetIndexCount(0),
-                instanceCount = 0,
-                startIndex = property.Lod0Mesh.GetIndexStart(0),
-                baseVertexIndex = property.Lod0Mesh.GetBaseVertex(0),
-                startInstance = 0
-            });
-        
-            parameters.Add(new GraphicsBuffer.IndirectDrawIndexedArgs
-            {
-                indexCountPerInstance = property.Lod1Mesh.GetIndexCount(0),
-                instanceCount = 0,
-                startIndex = property.Lod1Mesh.GetIndexStart(0),
-                baseVertexIndex = property.Lod1Mesh.GetBaseVertex(0),
-                startInstance = 0
-            });
-        
-            parameters.Add(new GraphicsBuffer.IndirectDrawIndexedArgs
-            {
-                indexCountPerInstance = property.Lod2Mesh.GetIndexCount(0),
-                instanceCount = 0,
-                startIndex = property.Lod2Mesh.GetIndexStart(0),
-                baseVertexIndex = property.Lod2Mesh.GetBaseVertex(0),
-                startInstance = 0
-            });   
+                parameters.Add(new GraphicsBuffer.IndirectDrawIndexedArgs
+                {
+                    indexCountPerInstance = lod.Mesh.GetIndexCount(0),
+                    instanceCount = 0,
+                    startIndex = lod.Mesh.GetIndexStart(0),
+                    baseVertexIndex = lod.Mesh.GetBaseVertex(0),
+                    startInstance = 0
+                });
+            }
         }
 
         return parameters.ToArray();

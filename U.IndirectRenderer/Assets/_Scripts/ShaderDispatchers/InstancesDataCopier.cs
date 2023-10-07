@@ -85,49 +85,63 @@ public class InstancesDataCopier : ComputeShaderDispatcher
     {
         foreach (var property in properties)
         {
-            property.Lod0PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 4); //See if all 3 of them are required
-            property.Lod1PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 9);
-            property.Lod2PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 14);
+            // property.Lod0PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 4); //See if all 3 of them are required
+            // property.Lod1PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 9);
+            // property.Lod2PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 14);
+            //
+            // property.ShadowLod0PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 4);
+            // property.ShadowLod1PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 9);
+            // property.ShadowLod2PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 14);
+            //
+            // property.Lod0PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _meshesArguments);
+            // property.Lod1PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _meshesArguments);
+            // property.Lod2PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _meshesArguments);
+            //
+            // property.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _shadowsArguments);
+            // property.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _shadowsArguments);
+            // property.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _shadowsArguments);
+            //
+            // property.Lod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _meshesCulledMatricesRows01);
+            // property.Lod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _meshesCulledMatricesRows01);
+            // property.Lod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _meshesCulledMatricesRows01);
+            //
+            // property.Lod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _meshesCulledMatricesRows23);
+            // property.Lod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _meshesCulledMatricesRows23);
+            // property.Lod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _meshesCulledMatricesRows23);
+            //
+            // property.Lod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _meshesCulledMatricesRows45);
+            // property.Lod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _meshesCulledMatricesRows45);
+            // property.Lod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _meshesCulledMatricesRows45);
+            //
+            // property.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _shadowsCulledMatricesRows01);
+            // property.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _shadowsCulledMatricesRows01);
+            // property.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _shadowsCulledMatricesRows01);
+            //
+            // property.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _shadowsCulledMatricesRows23);
+            // property.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _shadowsCulledMatricesRows23);
+            // property.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _shadowsCulledMatricesRows23);
+            //
+            // property.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _shadowsCulledMatricesRows45);
+            // property.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _shadowsCulledMatricesRows45);
+            // property.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _shadowsCulledMatricesRows45);
 
-            property.ShadowLod0PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 4);
-            property.ShadowLod1PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 9);
-            property.ShadowLod2PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 14);
+            for (var i = 0; i < property.Lods.Count; i++)
+            {
+                var lod = property.Lods[i];
+                var argsOffset = 4 + (i * 5);
+                
+                lod.MeshPropertyBlock.SetInt(ShaderProperties.ArgsOffset, argsOffset);
+                lod.MeshPropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _meshesArguments);
+                lod.MeshPropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _meshesCulledMatricesRows01);
+                lod.MeshPropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _meshesCulledMatricesRows23);
+                lod.MeshPropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _meshesCulledMatricesRows45);
 
-            property.Lod0PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _meshesArguments);
-            property.Lod1PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _meshesArguments);
-            property.Lod2PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _meshesArguments);
-
-            // properties.Lod0PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _lodArgs0);
-            // properties.Lod1PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _lodArgs1);
-            // properties.Lod2PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _lodArgs2);
-
-            property.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _shadowsArguments);
-            property.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _shadowsArguments);
-            property.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _shadowsArguments);
-
-            property.Lod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _meshesCulledMatricesRows01);
-            property.Lod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _meshesCulledMatricesRows01);
-            property.Lod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _meshesCulledMatricesRows01);
-
-            property.Lod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _meshesCulledMatricesRows23);
-            property.Lod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _meshesCulledMatricesRows23);
-            property.Lod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _meshesCulledMatricesRows23);
-
-            property.Lod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _meshesCulledMatricesRows45);
-            property.Lod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _meshesCulledMatricesRows45);
-            property.Lod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _meshesCulledMatricesRows45);
-
-            property.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _shadowsCulledMatricesRows01);
-            property.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _shadowsCulledMatricesRows01);
-            property.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _shadowsCulledMatricesRows01);
-
-            property.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _shadowsCulledMatricesRows23);
-            property.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _shadowsCulledMatricesRows23);
-            property.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _shadowsCulledMatricesRows23);
-
-            property.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _shadowsCulledMatricesRows45);
-            property.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _shadowsCulledMatricesRows45);
-            property.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _shadowsCulledMatricesRows45);
+                lod.ShadowPropertyBlock.SetInt(ShaderProperties.ArgsOffset, argsOffset);
+                lod.ShadowPropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _shadowsArguments);
+                lod.ShadowPropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _shadowsCulledMatricesRows01);
+                lod.ShadowPropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _shadowsCulledMatricesRows23);
+                lod.ShadowPropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _shadowsCulledMatricesRows45);
+            }
         }
     }
 

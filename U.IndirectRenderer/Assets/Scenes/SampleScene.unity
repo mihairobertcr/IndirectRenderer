@@ -656,18 +656,35 @@ MonoBehaviour:
     CombinedMesh: {fileID: 5668788170693331272, guid: fedd82e62536149f188064201b715ac8,
       type: 3}
     RecombineLods: 1
-    Lod0Mesh: {fileID: -1224505478118319035, guid: 57f354831b1044a33b5a0a6164e68490,
-      type: 3}
-    Lod1Mesh: {fileID: 5368998524920036126, guid: 57f354831b1044a33b5a0a6164e68490,
-      type: 3}
-    Lod2Mesh: {fileID: -8750779691553580571, guid: 57f354831b1044a33b5a0a6164e68490,
-      type: 3}
+    Lods:
+    - Mesh: {fileID: -1224505478118319035, guid: 57f354831b1044a33b5a0a6164e68490,
+        type: 3}
+    - Mesh: {fileID: 5368998524920036126, guid: 57f354831b1044a33b5a0a6164e68490,
+        type: 3}
+    - Mesh: {fileID: -8750779691553580571, guid: 57f354831b1044a33b5a0a6164e68490,
+        type: 3}
     Offset:
       Position: {x: 0, y: 2.5, z: 0}
       Rotation: {x: 90, y: 0, z: 0}
       Scale: {x: -0.25, y: 0, z: -0.25}
     Bounds:
       m_Center: {x: 0, y: -1.5, z: 0}
+      m_Extent: {x: 0.75, y: 2, z: 0.75}
+    Transforms: []
+  - Prefab: {fileID: 919132149155446097, guid: 7df4b9598640f7a44b23c1d3939fc20b, type: 3}
+    Material: {fileID: 2100000, guid: 316b8a94b405b47c1936fdc01c350bf6, type: 2}
+    CombinedMesh: {fileID: 0}
+    RecombineLods: 1
+    Lods:
+    - Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+    - Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+    - Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+    Offset:
+      Position: {x: 0, y: 0, z: 0}
+      Rotation: {x: 0, y: 0, z: 0}
+      Scale: {x: 0, y: 0, z: 0}
+    Bounds:
+      m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0.75, y: 2, z: 0.75}
     Transforms: []
 --- !u!4 &1014861749

@@ -209,17 +209,25 @@ public class IndirectRenderer : IDisposable
             var rp = new RenderParams(property.Material);
             rp.worldBounds = _bounds;
 
-            if (_settings.EnableLod)
-            {
-                rp.matProps = property.Lod0PropertyBlock;
-                Graphics.RenderMeshIndirect(rp, property.Lod0Mesh, _context.Arguments.MeshesBuffer, 1, i * 3 + 0);
-        
-                rp.matProps = property.Lod1PropertyBlock;
-                Graphics.RenderMeshIndirect(rp, property.Lod1Mesh, _context.Arguments.MeshesBuffer, 1, i * 3 + 1);
-            }
+            // if (_settings.EnableLod)
+            // {
+            //     rp.matProps = property.Lod0PropertyBlock;
+            //     Graphics.RenderMeshIndirect(rp, property.Lod0Mesh, _context.Arguments.MeshesBuffer, 1, i * 3 + 0);
+            //
+            //     rp.matProps = property.Lod1PropertyBlock;
+            //     Graphics.RenderMeshIndirect(rp, property.Lod1Mesh, _context.Arguments.MeshesBuffer, 1, i * 3 + 1);
+            // }
+            //
+            // rp.matProps = property.Lod2PropertyBlock;
+            // Graphics.RenderMeshIndirect(rp, property.Lod2Mesh, _context.Arguments.MeshesBuffer, 1, i * 3 + 2);
 
-            rp.matProps = property.Lod2PropertyBlock;
-            Graphics.RenderMeshIndirect(rp, property.Lod2Mesh, _context.Arguments.MeshesBuffer, 1, i * 3 + 2);
+            for (var k = 0; k < property.Lods.Count; k++)
+            {
+                var lod = property.Lods[k];
+                rp.matProps = lod.MeshPropertyBlock;
+                var startCommand = i * property.Lods.Count + k;
+                Graphics.RenderMeshIndirect(rp, lod.Mesh, _context.Arguments.MeshesBuffer, 1, startCommand);
+            }
         }
     }
     
