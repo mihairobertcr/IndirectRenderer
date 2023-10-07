@@ -640,7 +640,7 @@ MonoBehaviour:
     EnableOnlyLod2Shadows: 0
     DetailCullingPercentage: 0.005
     DrawBounds: 1
-    LogMatrices: 0
+    LogMatrices: 1
     LogArgumentsAfterReset: 0
     LogArgumentsAfterOcclusion: 0
     LogVisibilityBuffer: 0
@@ -680,7 +680,7 @@ MonoBehaviour:
     - Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
     - Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
     Offset:
-      Position: {x: 0, y: 0, z: 0}
+      Position: {x: 0, y: 5, z: 0}
       Rotation: {x: 0, y: 0, z: 0}
       Scale: {x: 0, y: 0, z: 0}
     Bounds:

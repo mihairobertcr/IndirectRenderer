@@ -83,8 +83,9 @@ public class InstancesDataCopier : ComputeShaderDispatcher
 
     public void BindMaterialProperties(InstanceProperties[] properties)
     {
-        foreach (var property in properties)
+        for (var i = 0; i < properties.Length; i++)
         {
+            var property = properties[i];
             // property.Lod0PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 4); //See if all 3 of them are required
             // property.Lod1PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 9);
             // property.Lod2PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 14);
@@ -125,11 +126,11 @@ public class InstancesDataCopier : ComputeShaderDispatcher
             // property.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _shadowsCulledMatricesRows45);
             // property.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _shadowsCulledMatricesRows45);
 
-            for (var i = 0; i < property.Lods.Count; i++)
+            for (var k = 0; k < property.Lods.Count; k++)
             {
-                var lod = property.Lods[i];
-                var argsOffset = 4 + (i * 5);
-                
+                var lod = property.Lods[k];
+                var argsOffset = (i * 15) + (4 + (k * 5)); // 15 is the number of arguments for 3 lods
+
                 lod.MeshPropertyBlock.SetInt(ShaderProperties.ArgsOffset, argsOffset);
                 lod.MeshPropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _meshesArguments);
                 lod.MeshPropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _meshesCulledMatricesRows01);
