@@ -3,7 +3,6 @@ using UnityEngine;
 public class InstancesDataCopier : ComputeShaderDispatcher
 {
     private readonly int _dataCopierKernel;
-    private readonly int _argumentsSplitterKernel;
     private readonly int _threadGroupX;
 
     private readonly ComputeBuffer _matricesRows01;
@@ -32,7 +31,6 @@ public class InstancesDataCopier : ComputeShaderDispatcher
         : base(computeShader, context)
     {
         _dataCopierKernel = GetKernel("CSMain");
-        _argumentsSplitterKernel = GetKernel("SplitArguments");
         _threadGroupX = Mathf.Max(1, context.MeshesCount / (2 * SCAN_THREAD_GROUP_SIZE));
 
         InitializeCopingBuffers(
@@ -80,7 +78,8 @@ public class InstancesDataCopier : ComputeShaderDispatcher
             for (var k = 0; k < property.Lods.Count; k++)
             {
                 var lod = property.Lods[k];
-                var argsOffset = (i * 15) + (4 + (k * 5)); // 15 is the number of arguments for 3 lods
+                var argsOffset = (i * Context.Arguments.InstanceArgumentsCount) + 
+                    (4 + (k * ArgumentsBuffer.MESH_ARGUMENTS_COUNT));
 
                 lod.MeshPropertyBlock.SetInt(ShaderProperties.ArgsOffset, argsOffset);
                 lod.MeshPropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _meshesArguments);

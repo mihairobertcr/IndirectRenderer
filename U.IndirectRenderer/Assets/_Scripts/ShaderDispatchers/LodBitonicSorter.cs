@@ -5,7 +5,6 @@ using IndirectRendering;
 
 public class LodBitonicSorter : ComputeShaderDispatcher
 {
-    // private const uint NUMBER_OF_ARGS_PER_INSTANCE_TYPE = 15;
     private const uint BITONIC_BLOCK_SIZE = 256;
     private const uint TRANSPOSE_BLOCK_SIZE = 8;
 

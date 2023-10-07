@@ -11,10 +11,6 @@ public class ArgumentsBuffer : IDisposable
     public GraphicsBuffer MeshesBuffer { get; }
     public GraphicsBuffer ShadowsBuffer { get; }
 
-    // public const int ARGS_PER_INSTANCE_TYPE_COUNT = DRAW_CALLS_COUNT * ARGS_PER_DRAW_COUNT;
-    // private const int DRAW_CALLS_COUNT = 3;
-    // private const int ARGS_PER_DRAW_COUNT = 5;
-
     private readonly InstanceProperties[] _meshProperties;
     private readonly GraphicsBuffer.IndirectDrawIndexedArgs[] _parameters;
 

@@ -25,11 +25,6 @@ RWStructuredBuffer<Matrix2x2> _CulledMatrixRows01;
 RWStructuredBuffer<Matrix2x2> _CulledMatrixRows23;
 RWStructuredBuffer<Matrix2x2> _CulledMatrixRows45;
 
-// Split args
-RWStructuredBuffer<uint> _LodArgs0;
-RWStructuredBuffer<uint> _LodArgs1;
-RWStructuredBuffer<uint> _LodArgs2;
-
 // Based on Parallel Prefix Sum (Scan) with CUDA by Mark Harris
 [numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z)]
 inline void CSMain (
@@ -63,21 +58,4 @@ inline void CSMain (
                 _DrawCallsDataOutput[(k - 1) * 5 + 1];    // Previous prop type number of instances
         }
     }
-}
-
-[numthreads(1, 1, 1)]
-inline void SplitArguments(
-        in uint3 _dispatchThreadId : SV_DispatchThreadID, // DispatchThreadID = dot(GroupID, numthreads) + GroupThreadId;
-        in uint  _groupIndex       : SV_GroupIndex,       // GroupIndex = unique index of a thread inside a group
-        in uint3 _groupId          : SV_GroupID,          // GroupID = index for each dimension inside a ThreadGroupCount 
-        in uint3 _groupThreadId    : SV_GroupThreadID)    // GroupThreadId = indices for each dimension inside a group of the current thread
-{
-    _LodArgs0[1] = _DrawCallsDataOutput[1];
-    _LodArgs0[4] = _DrawCallsDataOutput[4];
-    
-    _LodArgs1[1] = _DrawCallsDataOutput[6];
-    _LodArgs1[4] = _DrawCallsDataOutput[9];
-
-    _LodArgs2[1] = _DrawCallsDataOutput[11];
-    _LodArgs2[4] = _DrawCallsDataOutput[14];
 }
