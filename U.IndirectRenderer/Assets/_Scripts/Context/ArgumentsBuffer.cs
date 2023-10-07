@@ -5,23 +5,27 @@ using UnityEngine;
 
 public class ArgumentsBuffer : IDisposable
 {
+    public const int MESH_ARGUMENTS_COUNT = 5;
+
+    public int InstanceArgumentsCount { get; }
     public GraphicsBuffer MeshesBuffer { get; }
     public GraphicsBuffer ShadowsBuffer { get; }
 
-    public const int ARGS_PER_INSTANCE_TYPE_COUNT = DRAW_CALLS_COUNT * ARGS_PER_DRAW_COUNT;
-    private const int DRAW_CALLS_COUNT = 3;
-    private const int ARGS_PER_DRAW_COUNT = 5;
+    // public const int ARGS_PER_INSTANCE_TYPE_COUNT = DRAW_CALLS_COUNT * ARGS_PER_DRAW_COUNT;
+    // private const int DRAW_CALLS_COUNT = 3;
+    // private const int ARGS_PER_DRAW_COUNT = 5;
 
     private readonly InstanceProperties[] _meshProperties;
     private readonly GraphicsBuffer.IndirectDrawIndexedArgs[] _parameters;
 
-    public ArgumentsBuffer(InstanceProperties[] meshProperties)
+    public ArgumentsBuffer(InstanceProperties[] meshProperties, int lodsCount)
     {
         _meshProperties = meshProperties;
         _parameters = InitializeArgumentsBuffer();
-
-        MeshesBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, _meshProperties.Length * 3, GraphicsBuffer.IndirectDrawIndexedArgs.size);
-        ShadowsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, _meshProperties.Length * 3, GraphicsBuffer.IndirectDrawIndexedArgs.size);
+        
+        InstanceArgumentsCount = MESH_ARGUMENTS_COUNT * lodsCount;
+        MeshesBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, _meshProperties.Length * lodsCount, GraphicsBuffer.IndirectDrawIndexedArgs.size);
+        ShadowsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, _meshProperties.Length * lodsCount, GraphicsBuffer.IndirectDrawIndexedArgs.size);
 
         Reset();
     }
@@ -41,8 +45,8 @@ public class ArgumentsBuffer : IDisposable
     //TODO: Change to GraphicsBuffer
     public void Log(string meshesPrefix = "", string shadowPrefix = "")
     {
-        var meshesArgs = new uint[ARGS_PER_INSTANCE_TYPE_COUNT * _meshProperties.Length];
-        var shadowArgs = new uint[ARGS_PER_INSTANCE_TYPE_COUNT * _meshProperties.Length];
+        var meshesArgs = new uint[InstanceArgumentsCount * _meshProperties.Length];
+        var shadowArgs = new uint[InstanceArgumentsCount * _meshProperties.Length];
         MeshesBuffer.GetData(meshesArgs);
         ShadowsBuffer.GetData(shadowArgs);
     
@@ -77,7 +81,7 @@ public class ArgumentsBuffer : IDisposable
             {
                 meshesLog.AppendLine("");
                 shadowsLog.AppendLine("");
-                if ((i + 1) < meshesArgs.Length && (i + 1) % ARGS_PER_INSTANCE_TYPE_COUNT == 0)
+                if ((i + 1) < meshesArgs.Length && (i + 1) % InstanceArgumentsCount == 0)
                 {
                     meshesLog.AppendLine("");
                     shadowsLog.AppendLine("");

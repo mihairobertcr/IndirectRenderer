@@ -27,11 +27,7 @@ public class InstancesDataCopier : ComputeShaderDispatcher
     private readonly ComputeBuffer _shadowsCulledMatricesRows23;
     private readonly ComputeBuffer _shadowsCulledMatricesRows45;
     private readonly GraphicsBuffer _shadowsArguments;
-
-    private readonly ComputeBuffer _lodArgs0;
-    private readonly ComputeBuffer _lodArgs1;
-    private readonly ComputeBuffer _lodArgs2;
-
+    
     public InstancesDataCopier(ComputeShader computeShader, RendererDataContext context)
         : base(computeShader, context)
     {
@@ -63,16 +59,11 @@ public class InstancesDataCopier : ComputeShaderDispatcher
             out _shadowsCulledMatricesRows23,
             out _shadowsCulledMatricesRows45,
             out _shadowsArguments);
-
-        // InitializeLodArgsBuffers(
-        //     out _lodArgs0,
-        //     out _lodArgs1,
-        //     out _lodArgs2);
     }
 
     public void SubmitCopingBuffers()
     {
-        ComputeShader.SetInt(ShaderProperties.NumberOfDrawCalls, ArgumentsBuffer.ARGS_PER_INSTANCE_TYPE_COUNT);
+        ComputeShader.SetInt(ShaderProperties.NumberOfDrawCalls, Context.Arguments.InstanceArgumentsCount);
 
         ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.MatrixRows01, _matricesRows01);
         ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.MatrixRows23, _matricesRows23);
@@ -86,46 +77,6 @@ public class InstancesDataCopier : ComputeShaderDispatcher
         for (var i = 0; i < properties.Length; i++)
         {
             var property = properties[i];
-            // property.Lod0PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 4); //See if all 3 of them are required
-            // property.Lod1PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 9);
-            // property.Lod2PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 14);
-            //
-            // property.ShadowLod0PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 4);
-            // property.ShadowLod1PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 9);
-            // property.ShadowLod2PropertyBlock.SetInt(ShaderProperties.ArgsOffset, 14);
-            //
-            // property.Lod0PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _meshesArguments);
-            // property.Lod1PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _meshesArguments);
-            // property.Lod2PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _meshesArguments);
-            //
-            // property.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _shadowsArguments);
-            // property.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _shadowsArguments);
-            // property.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.ArgsBuffer, _shadowsArguments);
-            //
-            // property.Lod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _meshesCulledMatricesRows01);
-            // property.Lod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _meshesCulledMatricesRows01);
-            // property.Lod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _meshesCulledMatricesRows01);
-            //
-            // property.Lod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _meshesCulledMatricesRows23);
-            // property.Lod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _meshesCulledMatricesRows23);
-            // property.Lod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _meshesCulledMatricesRows23);
-            //
-            // property.Lod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _meshesCulledMatricesRows45);
-            // property.Lod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _meshesCulledMatricesRows45);
-            // property.Lod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _meshesCulledMatricesRows45);
-            //
-            // property.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _shadowsCulledMatricesRows01);
-            // property.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _shadowsCulledMatricesRows01);
-            // property.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows01, _shadowsCulledMatricesRows01);
-            //
-            // property.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _shadowsCulledMatricesRows23);
-            // property.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _shadowsCulledMatricesRows23);
-            // property.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows23, _shadowsCulledMatricesRows23);
-            //
-            // property.ShadowLod0PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _shadowsCulledMatricesRows45);
-            // property.ShadowLod1PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _shadowsCulledMatricesRows45);
-            // property.ShadowLod2PropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _shadowsCulledMatricesRows45);
-
             for (var k = 0; k < property.Lods.Count; k++)
             {
                 var lod = property.Lods[k];
@@ -172,18 +123,7 @@ public class InstancesDataCopier : ComputeShaderDispatcher
         return this;
     }
 
-    public InstancesDataCopier SubmitArgumentsData()
-    {
-        ComputeShader.SetBuffer(_argumentsSplitterKernel, ShaderProperties.DrawCallsDataOutput, _meshesArguments);
-        ComputeShader.SetBuffer(_argumentsSplitterKernel, ShaderProperties.LodArgs0, _lodArgs0);
-        ComputeShader.SetBuffer(_argumentsSplitterKernel, ShaderProperties.LodArgs1, _lodArgs1);
-        ComputeShader.SetBuffer(_argumentsSplitterKernel, ShaderProperties.LodArgs2, _lodArgs2);
-
-        return this;
-    }
-
     public override void Dispatch() => ComputeShader.Dispatch(_dataCopierKernel, _threadGroupX, 1, 1);
-    public void DispatchArgumentsSplitter() => ComputeShader.Dispatch(_argumentsSplitterKernel, 1, 1, 1);
 
     private void InitializeCopingBuffers(out ComputeBuffer matricesRows01,
         out ComputeBuffer matricesRows23, out ComputeBuffer matricesRows45,
@@ -223,13 +163,4 @@ public class InstancesDataCopier : ComputeShaderDispatcher
         shadowsCulledMatricesRows45 = Context.Transforms.CulledShadowsMatrices.Rows45;
         shadowsArguments = Context.Arguments.ShadowsBuffer;
     }
-
-    //TODO: Move to dedicated class
-    // private void InitializeLodArgsBuffers(out ComputeBuffer lodArgs0, 
-    //     out ComputeBuffer lodArgs1, out ComputeBuffer lodArgs2)
-    // {
-    //     lodArgs0 = Context.Arguments.LodArgs0;
-    //     lodArgs1 = Context.Arguments.LodArgs1;
-    //     lodArgs2 = Context.Arguments.LodArgs2;
-    // }
 }

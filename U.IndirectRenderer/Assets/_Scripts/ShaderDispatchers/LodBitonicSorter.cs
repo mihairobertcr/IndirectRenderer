@@ -5,7 +5,7 @@ using IndirectRendering;
 
 public class LodBitonicSorter : ComputeShaderDispatcher
 {
-    private const uint NUMBER_OF_ARGS_PER_INSTANCE_TYPE = 15;
+    // private const uint NUMBER_OF_ARGS_PER_INSTANCE_TYPE = 15;
     private const uint BITONIC_BLOCK_SIZE = 256;
     private const uint TRANSPOSE_BLOCK_SIZE = 8;
 
@@ -34,15 +34,16 @@ public class LodBitonicSorter : ComputeShaderDispatcher
         var cameraPosition = camera.transform.position;
         var sortingData = new List<SortingData>();
         
-        var instancesCount = 0;
-        for (var i = 0; i < meshes.Length; i++)
+        var instancesCount = 0u;
+        for (var i = 0u; i < meshes.Length; i++)
         {
             var mesh = meshes[i];
             foreach (var transform in mesh.Transforms)
             {
+                var drawCallIndex = ((i * (uint)Context.Arguments.InstanceArgumentsCount) << 16) + instancesCount;
                 sortingData.Add(new SortingData
                 {
-                    DrawCallInstanceIndex = (((uint)i * NUMBER_OF_ARGS_PER_INSTANCE_TYPE) << 16) + (uint)instancesCount,
+                    DrawCallInstanceIndex = drawCallIndex,
                     DistanceToCamera = Vector3.Distance(transform.Position, cameraPosition)
                 });
 

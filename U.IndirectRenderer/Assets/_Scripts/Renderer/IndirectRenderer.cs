@@ -32,7 +32,7 @@ public class IndirectRenderer : IDisposable
         InitializeMeshProperties();
         _bounds.extents = Vector3.one * 10000; // ???
         
-        _context = new RendererDataContext(_instances, _numberOfInstances * _instances.Length);
+        _context = new RendererDataContext(config, _instances);
 
         _matricesInitializerDispatcher = new MatricesInitializerDispatcher(_config.MatricesInitializer, _context);
         _lodBitonicSorter = new LodBitonicSorter(_config.LodBitonicSorter, _context);
@@ -65,7 +65,7 @@ public class IndirectRenderer : IDisposable
             .SubmitTransformsData()
             .Dispatch();
 
-        _lodBitonicSorter.SetSortingData(_instances, _config.Camera)
+        _lodBitonicSorter.SetSortingData(_instances, _config.RenderCamera)
             .SetupSortingCommand()
             .EnabledAsyncComputing(true);
         
@@ -114,7 +114,7 @@ public class IndirectRenderer : IDisposable
     private void CalculateVisibleInstances()
     {
         // Global data
-        _bounds.center = _config.Camera.transform.position;
+        _bounds.center = _config.RenderCamera.transform.position;
         
         if (_settings.LogMatrices)
         {
@@ -141,7 +141,7 @@ public class IndirectRenderer : IDisposable
         Profiler.EndSample();
 
         Profiler.BeginSample("Occlusion");
-        _instancesCuller.SubmitCameraData(_config.Camera).Dispatch();
+        _instancesCuller.SubmitCameraData(_config.RenderCamera).Dispatch();
         if (_settings.LogArgumentsAfterOcclusion)
         {
             _settings.LogArgumentsAfterOcclusion = false;

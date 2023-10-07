@@ -619,7 +619,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _config:
-    Camera: {fileID: 330585545}
+    RenderCamera: {fileID: 330585545}
+    NumberOfInstances: 16384
+    NumberOfLods: 3
     MatricesInitializer: {fileID: 7200000, guid: 08d7ec0392f7748948199728f40cbc7f,
       type: 3}
     LodBitonicSorter: {fileID: 7200000, guid: 6f7afd63860da43238b81f2a660befc9, type: 3}

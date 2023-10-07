@@ -15,18 +15,18 @@ public class RendererDataContext : IDisposable
     public InstancesDataBuffer ScannedPredicates { get; }
     public InstancesDataBuffer ScannedGroupSums { get; }
 
-    public RendererDataContext(InstanceProperties[] meshProperties, int meshesCount)
+    public RendererDataContext(IndirectRendererConfig config, InstanceProperties[] meshProperties)
     {
-        MeshesCount = meshesCount;
+        MeshesCount = (int)config.NumberOfInstances * meshProperties.Length;
         BoundingBoxes = new ComputeBuffer(MeshesCount, BoundsData.Size, ComputeBufferType.Default);
 
-        Arguments = new ArgumentsBuffer(meshProperties);
-        Transforms = new TransformBuffer(meshesCount);
-        Sorting = new SortingBuffer(meshesCount);
-        Visibility = new InstancesDataBuffer(meshesCount);
-        GroupSums = new InstancesDataBuffer(meshesCount);
-        ScannedPredicates = new InstancesDataBuffer(meshesCount);
-        ScannedGroupSums = new InstancesDataBuffer(meshesCount);
+        Arguments = new ArgumentsBuffer(meshProperties, config.NumberOfLods);
+        Transforms = new TransformBuffer(MeshesCount);
+        Sorting = new SortingBuffer(MeshesCount);
+        Visibility = new InstancesDataBuffer(MeshesCount);
+        GroupSums = new InstancesDataBuffer(MeshesCount);
+        ScannedPredicates = new InstancesDataBuffer(MeshesCount);
+        ScannedGroupSums = new InstancesDataBuffer(MeshesCount);
     }
 
     public void Dispose()
