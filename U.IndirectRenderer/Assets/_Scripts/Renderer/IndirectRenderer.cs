@@ -131,6 +131,15 @@ public class IndirectRenderer : IDisposable
         }
         Profiler.EndSample();
         
+        Profiler.BeginSample("LOD Sorting");
+        _lodBitonicSorter.Dispatch();
+        if (_settings.LogSortingData)
+        {
+            _settings.LogSortingData = false;
+            _context.Sorting.Log("Sorting Data");
+        }
+        Profiler.EndSample();
+
         Profiler.BeginSample("Occlusion");
         _instancesCuller.SubmitCameraData(_config.Camera).Dispatch();
         if (_settings.LogArgumentsAfterOcclusion)
@@ -189,15 +198,7 @@ public class IndirectRenderer : IDisposable
         }
         Profiler.EndSample();
         
-        Profiler.BeginSample("LOD Sorting");
-        _lodBitonicSorter.Dispatch();
-        Profiler.EndSample();
-        
-        if (_settings.LogSortingData)
-        {
-            _settings.LogSortingData = false;
-            _context.Sorting.Log("Sorting Data");
-        }
+
     }
 
     private void DrawInstances()
@@ -211,14 +212,14 @@ public class IndirectRenderer : IDisposable
             if (_settings.EnableLod)
             {
                 rp.matProps = property.Lod0PropertyBlock;
-                Graphics.RenderMeshIndirect(rp, property.CombinedMesh, _context.Arguments.MeshesBuffer, 1, i * 3 + 0);
+                Graphics.RenderMeshIndirect(rp, property.Lod0Mesh, _context.Arguments.MeshesBuffer, 1, i * 3 + 0);
         
                 rp.matProps = property.Lod1PropertyBlock;
-                Graphics.RenderMeshIndirect(rp, property.CombinedMesh, _context.Arguments.MeshesBuffer, 1, i * 3 + 1);
+                Graphics.RenderMeshIndirect(rp, property.Lod1Mesh, _context.Arguments.MeshesBuffer, 1, i * 3 + 1);
             }
 
             rp.matProps = property.Lod2PropertyBlock;
-            Graphics.RenderMeshIndirect(rp, property.CombinedMesh, _context.Arguments.MeshesBuffer, 1, i * 3 + 2);
+            Graphics.RenderMeshIndirect(rp, property.Lod2Mesh, _context.Arguments.MeshesBuffer, 1, i * 3 + 2);
         }
     }
     

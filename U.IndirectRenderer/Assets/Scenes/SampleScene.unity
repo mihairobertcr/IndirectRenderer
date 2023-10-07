@@ -655,7 +655,7 @@ MonoBehaviour:
     Material: {fileID: 2100000, guid: 316b8a94b405b47c1936fdc01c350bf6, type: 2}
     CombinedMesh: {fileID: 5668788170693331272, guid: fedd82e62536149f188064201b715ac8,
       type: 3}
-    RecombineLods: 0
+    RecombineLods: 1
     Lod0Mesh: {fileID: -1224505478118319035, guid: 57f354831b1044a33b5a0a6164e68490,
       type: 3}
     Lod1Mesh: {fileID: 5368998524920036126, guid: 57f354831b1044a33b5a0a6164e68490,
