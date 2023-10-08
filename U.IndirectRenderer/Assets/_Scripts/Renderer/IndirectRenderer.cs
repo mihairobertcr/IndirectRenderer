@@ -17,8 +17,6 @@ public class IndirectRenderer : IDisposable
     private readonly GroupSumsScanner _groupSumsScanner;
     private readonly InstancesDataCopier _dataCopier;
 
-    private int _numberOfInstances = 16384;
-
     private Bounds _bounds;
     
     public IndirectRenderer(InstanceProperties[] instances,

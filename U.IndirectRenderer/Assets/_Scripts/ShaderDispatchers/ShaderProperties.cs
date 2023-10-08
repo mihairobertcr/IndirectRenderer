@@ -39,6 +39,9 @@ public static class ShaderProperties
     public static readonly int HiZMap = Shader.PropertyToID("_HiZMap");
     public static readonly int MvpMatrix = Shader.PropertyToID("_MvpMatrix");
     public static readonly int CameraPosition = Shader.PropertyToID("_CameraPosition");
+    
+    public static readonly int LodsIntervals = Shader.PropertyToID("_LodsIntervals");
+    public static readonly int LodsCount = Shader.PropertyToID("_LodsCount");
 
     public static readonly int PredicatesInput = Shader.PropertyToID("_PredicatesInput");
     public static readonly int GroupSums = Shader.PropertyToID("_GroupSums");

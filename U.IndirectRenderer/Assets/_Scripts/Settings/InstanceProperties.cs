@@ -103,6 +103,9 @@ public class InstanceProperties
 public class LodProperty
 {
     public Mesh Mesh;
+    public int CameraDistanceReach;
+    public bool IsDefault;
+    
     public MaterialPropertyBlock MeshPropertyBlock;
     public MaterialPropertyBlock ShadowPropertyBlock;
 

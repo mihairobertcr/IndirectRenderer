@@ -5,8 +5,10 @@ using IndirectRendering;
 public class RendererDataContext : IDisposable
 {
     public int MeshesCount { get; }
+    public int LodsCount { get; }
     public ComputeBuffer BoundingBoxes { get; }
-    
+    public ComputeBuffer LodsRanges { get; }
+
     public ArgumentsBuffer Arguments { get; }
     public TransformBuffer Transforms { get; }
     public SortingBuffer Sorting { get; }
@@ -19,7 +21,9 @@ public class RendererDataContext : IDisposable
     {
         MeshesCount = (int)config.NumberOfInstances * meshProperties.Length;
         BoundingBoxes = new ComputeBuffer(MeshesCount, BoundsData.Size, ComputeBufferType.Default);
-
+        LodsRanges = new ComputeBuffer(meshProperties.Length * config.NumberOfLods, sizeof(float), ComputeBufferType.Default);
+        LodsCount = config.NumberOfLods;
+        
         Arguments = new ArgumentsBuffer(meshProperties, config.NumberOfLods);
         Transforms = new TransformBuffer(MeshesCount);
         Sorting = new SortingBuffer(MeshesCount);
@@ -32,6 +36,7 @@ public class RendererDataContext : IDisposable
     public void Dispose()
     {
         BoundingBoxes?.Dispose();
+        LodsRanges?.Dispose();
 
         Arguments?.Dispose();
         Transforms?.Dispose();

@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class InstancesDataCopier : ComputeShaderDispatcher
 {
-    private readonly int _dataCopierKernel;
+    private readonly int _kernel;
     private readonly int _threadGroupX;
 
     private readonly ComputeBuffer _matricesRows01;
@@ -30,7 +30,7 @@ public class InstancesDataCopier : ComputeShaderDispatcher
     public InstancesDataCopier(ComputeShader computeShader, RendererDataContext context)
         : base(computeShader, context)
     {
-        _dataCopierKernel = GetKernel("CSMain");
+        _kernel = GetKernel("CSMain");
         _threadGroupX = Mathf.Max(1, context.MeshesCount / (2 * SCAN_THREAD_GROUP_SIZE));
 
         InitializeCopingBuffers(
@@ -63,11 +63,11 @@ public class InstancesDataCopier : ComputeShaderDispatcher
     {
         ComputeShader.SetInt(ShaderProperties.NumberOfDrawCalls, Context.Arguments.InstanceArgumentsCount);
 
-        ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.MatrixRows01, _matricesRows01);
-        ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.MatrixRows23, _matricesRows23);
-        ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.MatrixRows45, _matricesRows45);
-        ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.SortingData, _sortingData);
-        ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.BoundsData, _boundsData);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.MatrixRows01, _matricesRows01);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.MatrixRows23, _matricesRows23);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.MatrixRows45, _matricesRows45);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.SortingData, _sortingData);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.BoundsData, _boundsData);
     }
 
     public void BindMaterialProperties(InstanceProperties[] properties)
@@ -98,31 +98,31 @@ public class InstancesDataCopier : ComputeShaderDispatcher
 
     public InstancesDataCopier SubmitMeshesData()
     {
-        ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.PredicatesInput, _meshesVisibility);
-        ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.GroupSums, _meshesScannedGroupSums);
-        ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.ScannedPredicates, _meshesScannedPredicates);
-        ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.CulledMatrixRows01, _meshesCulledMatricesRows01);
-        ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.CulledMatrixRows23, _meshesCulledMatricesRows23);
-        ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.CulledMatrixRows45, _meshesCulledMatricesRows45);
-        ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.DrawCallsDataOutput, _meshesArguments);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.PredicatesInput, _meshesVisibility);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.GroupSums, _meshesScannedGroupSums);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.ScannedPredicates, _meshesScannedPredicates);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.CulledMatrixRows01, _meshesCulledMatricesRows01);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.CulledMatrixRows23, _meshesCulledMatricesRows23);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.CulledMatrixRows45, _meshesCulledMatricesRows45);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.DrawCallsDataOutput, _meshesArguments);
 
         return this;
     }
 
     public InstancesDataCopier SubmitShadowsData()
     {
-        ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.PredicatesInput, _shadowsVisibility);
-        ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.GroupSums, _shadowsScannedGroupSums);
-        ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.ScannedPredicates, _shadowsScannedPredicates);
-        ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.CulledMatrixRows01, _shadowsCulledMatricesRows01);
-        ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.CulledMatrixRows23, _shadowsCulledMatricesRows23);
-        ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.CulledMatrixRows45, _shadowsCulledMatricesRows45);
-        ComputeShader.SetBuffer(_dataCopierKernel, ShaderProperties.DrawCallsDataOutput, _shadowsArguments);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.PredicatesInput, _shadowsVisibility);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.GroupSums, _shadowsScannedGroupSums);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.ScannedPredicates, _shadowsScannedPredicates);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.CulledMatrixRows01, _shadowsCulledMatricesRows01);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.CulledMatrixRows23, _shadowsCulledMatricesRows23);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.CulledMatrixRows45, _shadowsCulledMatricesRows45);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.DrawCallsDataOutput, _shadowsArguments);
 
         return this;
     }
 
-    public override void Dispatch() => ComputeShader.Dispatch(_dataCopierKernel, _threadGroupX, 1, 1);
+    public override void Dispatch() => ComputeShader.Dispatch(_kernel, _threadGroupX, 1, 1);
 
     private void InitializeCopingBuffers(out ComputeBuffer matricesRows01,
         out ComputeBuffer matricesRows23, out ComputeBuffer matricesRows45,

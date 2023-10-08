@@ -6,6 +6,8 @@
 #define THREAD_GROUP_SIZE_Y 1
 #define THREAD_GROUP_SIZE_Z 1
 
+#define MESH_ARGUMENTS_COUNT 5
+
 #define LOD00_RANGE 20
 #define LOD01_RANGE 50
 
@@ -18,6 +20,7 @@ cbuffer CB
     uint _ShouldOnlyUseLod2Shadows;
     
     int _ShadowCascades;
+    int _LodsCount;
     float _ShadowDistance;
     float _DetailCullingScreenPercentage;
     float2 _HiZTextureSize;
@@ -29,6 +32,7 @@ cbuffer CB
 };
 
 StructuredBuffer<BoundsData> _BoundsDataBuffer;
+StructuredBuffer<float> _LodsIntervals;
 
 RWStructuredBuffer<uint> _ArgsBuffer;
 RWStructuredBuffer<uint> _ShadowArgsBuffer;
@@ -55,7 +59,6 @@ inline uint IsVisibleAfterOcclusionCulling(float clipMinX, float clipMaxX, float
     float2 uvLeftBottom = float2(clipMinX, clipMinY) * 0.5 + 0.5;
     float2 uvRightTop = float2(clipMaxX, clipMaxY) * 0.5 + 0.5;
 
-    // /* ***** First approach *****
     // Calculate hi-Z buffer mip
     int2 size = (uvRightTop - uvLeftBottom) * _HiZTextureSize.xy;
     float mip = ceil(log2(max(size.x, size.y)));
@@ -195,15 +198,28 @@ inline void CSMain (
         isVisible *= (_ShouldDetailCull * isVisible > 0) ? IsVisibleAfterDetailCulling(clipMinX, clipMaxX, clipMinY, clipMaxY) : 1;
     }
 
-    float lod0Range = LOD00_RANGE;
-    float lod1Range = LOD01_RANGE;
 
+    // float lod0Range = LOD00_RANGE;
+    // float lod1Range = LOD01_RANGE;
+
+    //TODO: Fix indexing
     // Calculate the correct index to the arguments buffers
     uint argsIndex = drawCall + 1;    
-    argsIndex += 5 * (minDistanceToCamera > lod0Range);
-    argsIndex += 5 * (minDistanceToCamera > lod1Range);
+    // argsIndex += MESH_ARGUMENTS_COUNT * (minDistanceToCamera > lod0Range);
+    // argsIndex += MESH_ARGUMENTS_COUNT * (minDistanceToCamera > lod1Range);
+
+    for (int k = 0; k < _LodsCount - 1; k++)
+    {
+        int rangeIndex = drawCall / (MESH_ARGUMENTS_COUNT * (_LodsCount - 1));
+        argsIndex += MESH_ARGUMENTS_COUNT * (minDistanceToCamera > _LodsIntervals[k + (rangeIndex * _LodsCount)]); //* (k < _LodsCount - 1);
+
+        // if (minDistanceToCamera > _LodsIntervals[k])
+        // {
+        // }
+    }
+
     argsIndex = _ShouldLod * argsIndex + ((_ShouldLod == 0) * (drawCall + 11));
-    
+
     uint shadowArgsIndex = argsIndex;//_ShouldOnlyUseLod2Shadows ? drawCall + 11 : argsIndex;
 
     // Mark it as a shadow caster if it's within shadow distance...
