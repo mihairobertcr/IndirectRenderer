@@ -69,6 +69,7 @@ public class IndirectRenderer : IDisposable
         
         _instancesCuller.SetSettings(_settings)
             .SetBoundsData(_instances)
+            .SetLodsData(_instances)
             .SetDepthMap()
             .SubmitCullingData();
 
@@ -139,7 +140,10 @@ public class IndirectRenderer : IDisposable
         Profiler.EndSample();
 
         Profiler.BeginSample("Occlusion");
-        _instancesCuller.SubmitCameraData(_config.RenderCamera).Dispatch();
+        _instancesCuller.SubmitCameraData(_config.RenderCamera)
+            .SubmitLodsData()
+            .Dispatch();
+        
         if (_settings.LogArgumentsAfterOcclusion)
         {
             _settings.LogArgumentsAfterOcclusion = false;

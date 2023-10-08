@@ -71,15 +71,22 @@ public class InstancesCuller : ComputeShaderDispatcher
                     BoundsExtents = bounds.extents,
                 });
             }
+        }
 
+        _boundsDataBuffer.SetData(_boundsData);
+
+        return this;
+    }
+
+    public InstancesCuller SetLodsData(InstanceProperties[] meshes)
+    {
+        foreach (var mesh in meshes)
+        {
             foreach (var lod in mesh.Lods)
             {
                 _lodsRanges.Add(lod.CameraDistanceReach);
             }
         }
-
-        _boundsDataBuffer.SetData(_boundsData);
-        _lodsRangesBuffer.SetData(_lodsRanges);
         
         return this;
     }
@@ -100,9 +107,6 @@ public class InstancesCuller : ComputeShaderDispatcher
         ComputeShader.SetBuffer(_kernel, ShaderProperties.IsShadowVisibleBuffer, _shadowsVisibilityBuffer);
         ComputeShader.SetBuffer(_kernel, ShaderProperties.BoundsData, _boundsDataBuffer);
         ComputeShader.SetBuffer(_kernel, ShaderProperties.SortingData, _sortingDataBuffer);
-        
-        ComputeShader.SetBuffer(_kernel, ShaderProperties.LodsIntervals, _lodsRangesBuffer);
-        ComputeShader.SetInt(ShaderProperties.LodsCount, Context.LodsCount);
     }
 
     public InstancesCuller SubmitCameraData(Camera camera)
@@ -114,7 +118,17 @@ public class InstancesCuller : ComputeShaderDispatcher
 
         ComputeShader.SetMatrix(ShaderProperties.MvpMatrix, modelViewProjection);
         ComputeShader.SetVector(ShaderProperties.CameraPosition, cameraPosition);
-        
+
+        return this;
+    }
+
+    //TODO: Revisit chaining and how data works in GPU
+    public InstancesCuller SubmitLodsData()
+    {
+        _lodsRangesBuffer.SetData(_lodsRanges);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.LodsIntervals, _lodsRangesBuffer);
+        ComputeShader.SetInt(ShaderProperties.LodsCount, Context.LodsCount);
+
         return this;
     }
 

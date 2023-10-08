@@ -32,7 +32,7 @@ cbuffer CB
 };
 
 StructuredBuffer<BoundsData> _BoundsDataBuffer;
-StructuredBuffer<float> _LodsIntervals;
+RWStructuredBuffer<float> _LodsIntervals;
 
 RWStructuredBuffer<uint> _ArgsBuffer;
 RWStructuredBuffer<uint> _ShadowArgsBuffer;
@@ -198,28 +198,19 @@ inline void CSMain (
         isVisible *= (_ShouldDetailCull * isVisible > 0) ? IsVisibleAfterDetailCulling(clipMinX, clipMaxX, clipMinY, clipMaxY) : 1;
     }
 
-
-    // float lod0Range = LOD00_RANGE;
-    // float lod1Range = LOD01_RANGE;
-
-    //TODO: Fix indexing
     // Calculate the correct index to the arguments buffers
-    uint argsIndex = drawCall + 1;    
-    // argsIndex += MESH_ARGUMENTS_COUNT * (minDistanceToCamera > lod0Range);
-    // argsIndex += MESH_ARGUMENTS_COUNT * (minDistanceToCamera > lod1Range);
-
+    uint argsIndex = drawCall + 1;
     for (int k = 0; k < _LodsCount - 1; k++)
     {
-        int rangeIndex = drawCall / (MESH_ARGUMENTS_COUNT * (_LodsCount - 1));
-        argsIndex += MESH_ARGUMENTS_COUNT * (minDistanceToCamera > _LodsIntervals[k + (rangeIndex * _LodsCount)]); //* (k < _LodsCount - 1);
-
-        // if (minDistanceToCamera > _LodsIntervals[k])
-        // {
-        // }
+        int rangeIndex = drawCall / (MESH_ARGUMENTS_COUNT * _LodsCount);
+        float range = _LodsIntervals[k + (rangeIndex * _LodsCount)];
+        if (minDistanceToCamera > range)
+        {
+            argsIndex += MESH_ARGUMENTS_COUNT;
+        }
     }
-
+    
     argsIndex = _ShouldLod * argsIndex + ((_ShouldLod == 0) * (drawCall + 11));
-
     uint shadowArgsIndex = argsIndex;//_ShouldOnlyUseLod2Shadows ? drawCall + 11 : argsIndex;
 
     // Mark it as a shadow caster if it's within shadow distance...
