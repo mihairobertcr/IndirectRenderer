@@ -21,11 +21,8 @@ public class InstanceProperties
     [Header("Mesh")]
     public Mesh CombinedMesh;
     public bool RecombineLods;
+    public uint DefaultLod;
     public List<LodProperty> Lods;
-    
-    // public Mesh Lod0Mesh;
-    // public Mesh Lod1Mesh;
-    // public Mesh Lod2Mesh;
 
     [Space] 
     [Header("Location")]
@@ -35,14 +32,6 @@ public class InstanceProperties
     [Space] 
     [Header("Instances")]
     public List<TransformDto> Transforms; //TODO: Consider making it an array
-    
-    // public MaterialPropertyBlock Lod0PropertyBlock;
-    // public MaterialPropertyBlock Lod1PropertyBlock;
-    // public MaterialPropertyBlock Lod2PropertyBlock;
-    //
-    // public MaterialPropertyBlock ShadowLod0PropertyBlock;
-    // public MaterialPropertyBlock ShadowLod1PropertyBlock;
-    // public MaterialPropertyBlock ShadowLod2PropertyBlock;
 
     public void Initialize()
     {
@@ -56,12 +45,6 @@ public class InstanceProperties
 
         CombinedMesh = new Mesh();
         CombinedMesh.name = Prefab.name;
-        // var combinedMeshes = new CombineInstance[]
-        // {
-        //     new() { mesh = Lod0Mesh },
-        //     new() { mesh = Lod1Mesh },
-        //     new() { mesh = Lod2Mesh }
-        // };
 
         var combinedMeshes = new CombineInstance[Lods.Count];
         for (var i = 0; i < Lods.Count; i++)
@@ -85,13 +68,6 @@ public class InstanceProperties
 
     private void InitializeMaterialPropertyBlocks()
     {
-        // Lod0PropertyBlock = new MaterialPropertyBlock();
-        // Lod1PropertyBlock = new MaterialPropertyBlock();
-        // Lod2PropertyBlock = new MaterialPropertyBlock();
-        //
-        // ShadowLod0PropertyBlock = new MaterialPropertyBlock();
-        // ShadowLod1PropertyBlock = new MaterialPropertyBlock();
-        // ShadowLod2PropertyBlock = new MaterialPropertyBlock();
         foreach (var lod in Lods)
         {
             lod.Initialize();
@@ -104,7 +80,6 @@ public class LodProperty
 {
     public Mesh Mesh;
     public int CameraDistanceReach;
-    public bool IsDefault;
     
     public MaterialPropertyBlock MeshPropertyBlock;
     public MaterialPropertyBlock ShadowPropertyBlock;

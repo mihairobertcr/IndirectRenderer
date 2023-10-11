@@ -47,6 +47,7 @@ public class LodBitonicSorter : ComputeShaderDispatcher
                 });
 
                 instancesCount++;
+                //Debug.Log(drawCallIndex >> 16);
             }
         }
 

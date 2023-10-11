@@ -11,12 +11,14 @@ public class InstancesCuller : ComputeShaderDispatcher
     private readonly GraphicsBuffer _shadowsArgumentsBuffer;
     private readonly ComputeBuffer _meshesVisibilityBuffer;
     private readonly ComputeBuffer _shadowsVisibilityBuffer;
-    private readonly ComputeBuffer _boundsDataBuffer;
+    private readonly ComputeBuffer _defaultLodsBuffer;
     private readonly ComputeBuffer _lodsRangesBuffer;
+    private readonly ComputeBuffer _boundsDataBuffer;
     private readonly ComputeBuffer _sortingDataBuffer;
 
-    private List<BoundsData> _boundsData;
+    private List<uint> _defaultLods;
     private List<float> _lodsRanges;
+    private List<BoundsData> _boundsData;
 
     public InstancesCuller(ComputeShader computeShader, RendererDataContext context)
         : base(computeShader, context)
@@ -29,8 +31,9 @@ public class InstancesCuller : ComputeShaderDispatcher
             out _shadowsArgumentsBuffer,
             out _meshesVisibilityBuffer,
             out _shadowsVisibilityBuffer,
-            out _boundsDataBuffer,
+            out _defaultLodsBuffer,
             out _lodsRangesBuffer,
+            out _boundsDataBuffer,
             out _sortingDataBuffer);
     }
 
@@ -52,8 +55,6 @@ public class InstancesCuller : ComputeShaderDispatcher
     public InstancesCuller SetBoundsData(InstanceProperties[] meshes)
     {
         _boundsData = new List<BoundsData>();
-        _lodsRanges = new List<float>();
-
         foreach (var mesh in meshes)
         {
             foreach (var transform in mesh.Transforms)
@@ -74,20 +75,25 @@ public class InstancesCuller : ComputeShaderDispatcher
         }
 
         _boundsDataBuffer.SetData(_boundsData);
-
         return this;
     }
 
     public InstancesCuller SetLodsData(InstanceProperties[] meshes)
     {
+        _defaultLods = new List<uint>();
+        _lodsRanges = new List<float>();
         foreach (var mesh in meshes)
         {
+            _defaultLods.Add(mesh.DefaultLod);
             foreach (var lod in mesh.Lods)
             {
                 _lodsRanges.Add(lod.CameraDistanceReach);
             }
         }
         
+        // _defaultLodsBuffer.SetData(_defaultLods);
+        // _lodsRangesBuffer.SetData(_lodsRanges);
+
         return this;
     }
 
@@ -125,10 +131,13 @@ public class InstancesCuller : ComputeShaderDispatcher
     //TODO: Revisit chaining and how data works in GPU
     public InstancesCuller SubmitLodsData()
     {
+        _defaultLodsBuffer.SetData(_defaultLods);
         _lodsRangesBuffer.SetData(_lodsRanges);
-        ComputeShader.SetBuffer(_kernel, ShaderProperties.LodsIntervals, _lodsRangesBuffer);
+        
         ComputeShader.SetInt(ShaderProperties.LodsCount, Context.LodsCount);
-
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.LodsIntervals, _lodsRangesBuffer);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.DefaultLods, _defaultLodsBuffer);
+        
         return this;
     }
 
@@ -145,15 +154,16 @@ public class InstancesCuller : ComputeShaderDispatcher
     }
 
     private void InitializeCullingBuffers(out GraphicsBuffer meshesArgs, out GraphicsBuffer shadowsArgs, 
-        out ComputeBuffer meshesVisibility, out ComputeBuffer shadowsVisibility, 
-        out ComputeBuffer bounds, out ComputeBuffer lodsRanges, out ComputeBuffer sortingData)
+        out ComputeBuffer meshesVisibility, out ComputeBuffer shadowsVisibility, out ComputeBuffer defaultLods,
+        out ComputeBuffer lodsRanges, out ComputeBuffer bounds, out ComputeBuffer sortingData)
     {
         meshesArgs = Context.Arguments.MeshesBuffer;
         shadowsArgs = Context.Arguments.ShadowsBuffer;
         meshesVisibility = Context.Visibility.Meshes;
         shadowsVisibility = Context.Visibility.Shadows;
-        bounds = Context.BoundingBoxes;
+        defaultLods = Context.DefaultLods;
         lodsRanges = Context.LodsRanges;
+        bounds = Context.BoundingBoxes;
         sortingData = Context.Sorting.Data;
     }
 

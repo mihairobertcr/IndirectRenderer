@@ -41,6 +41,7 @@ public static class ShaderProperties
     public static readonly int CameraPosition = Shader.PropertyToID("_CameraPosition");
     
     public static readonly int LodsIntervals = Shader.PropertyToID("_LodsIntervals");
+    public static readonly int DefaultLods = Shader.PropertyToID("_DefaultLods");
     public static readonly int LodsCount = Shader.PropertyToID("_LodsCount");
 
     public static readonly int PredicatesInput = Shader.PropertyToID("_PredicatesInput");

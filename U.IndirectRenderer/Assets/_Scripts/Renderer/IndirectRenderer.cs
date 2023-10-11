@@ -17,7 +17,7 @@ public class IndirectRenderer : IDisposable
     private readonly GroupSumsScanner _groupSumsScanner;
     private readonly InstancesDataCopier _dataCopier;
 
-    private Bounds _bounds;
+    private Bounds _worldBounds;
     
     public IndirectRenderer(InstanceProperties[] instances,
         IndirectRendererConfig config, 
@@ -28,7 +28,7 @@ public class IndirectRenderer : IDisposable
         _settings = settings;
         
         InitializeMeshProperties();
-        _bounds.extents = Vector3.one * 10000; // ???
+        _worldBounds.extents = Vector3.one * 10000; // ???
         
         _context = new RendererDataContext(config, _instances);
 
@@ -113,7 +113,7 @@ public class IndirectRenderer : IDisposable
     private void CalculateVisibleInstances()
     {
         // Global data
-        _bounds.center = _config.RenderCamera.transform.position;
+        _worldBounds.center = _config.RenderCamera.transform.position;
         
         if (_settings.LogMatrices)
         {
@@ -199,40 +199,40 @@ public class IndirectRenderer : IDisposable
             _context.Arguments.Log("Arguments Buffers - Meshes After Copy", "Arguments Buffers - Shadows After Copy");
         }
         Profiler.EndSample();
-        
-
     }
 
     private void DrawInstances()
     {
         for (var i = 0; i < _instances.Length; i++)
         {
-            var property = _instances[i];
-            var rp = new RenderParams(property.Material);
-            rp.worldBounds = _bounds;
-
-            // if (_settings.EnableLod)
-            // {
-            //     rp.matProps = property.Lod0PropertyBlock;
-            //     Graphics.RenderMeshIndirect(rp, property.Lod0Mesh, _context.Arguments.MeshesBuffer, 1, i * 3 + 0);
-            //
-            //     rp.matProps = property.Lod1PropertyBlock;
-            //     Graphics.RenderMeshIndirect(rp, property.Lod1Mesh, _context.Arguments.MeshesBuffer, 1, i * 3 + 1);
-            // }
-            //
-            // rp.matProps = property.Lod2PropertyBlock;
-            // Graphics.RenderMeshIndirect(rp, property.Lod2Mesh, _context.Arguments.MeshesBuffer, 1, i * 3 + 2);
-
-            for (var k = 0; k < property.Lods.Count; k++)
+            var instance = _instances[i];
+            var renderParams = new RenderParams(instance.Material)
             {
-                var lod = property.Lods[k];
-                rp.matProps = lod.MeshPropertyBlock;
-                var startCommand = i * property.Lods.Count + k;
-                Graphics.RenderMeshIndirect(rp, lod.Mesh, _context.Arguments.MeshesBuffer, 1, startCommand);
+                worldBounds = _worldBounds,
+                shadowCastingMode = ShadowCastingMode.Off
+            };
+
+            if (!_settings.EnableLod)
+            {
+                RenderInstances(i, (int)instance.DefaultLod, instance, renderParams);
+                continue;
+            }
+
+            for (var k = 0; k < instance.Lods.Count; k++)
+            {
+                RenderInstances(i, k, instance, renderParams);
             }
         }
     }
-    
+
+    private void RenderInstances(int instanceIndex, int lodIndex, InstanceProperties instance, RenderParams renderParams)
+    {
+        var lod = instance.Lods[lodIndex];
+        var startCommand = instanceIndex * instance.Lods.Count + lodIndex;
+        renderParams.matProps = lod.MeshPropertyBlock;
+        Graphics.RenderMeshIndirect(renderParams, lod.Mesh, _context.Arguments.MeshesBuffer, 1, startCommand);
+    }
+
     private void DrawShadows()
     {
         

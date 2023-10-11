@@ -621,7 +621,7 @@ MonoBehaviour:
   _config:
     RenderCamera: {fileID: 330585545}
     NumberOfInstances: 16384
-    NumberOfLods: 3
+    NumberOfLods: 4
     MatricesInitializer: {fileID: 7200000, guid: 08d7ec0392f7748948199728f40cbc7f,
       type: 3}
     LodBitonicSorter: {fileID: 7200000, guid: 6f7afd63860da43238b81f2a660befc9, type: 3}
@@ -638,14 +638,14 @@ MonoBehaviour:
     EnableFrustumCulling: 1
     EnableOcclusionCulling: 1
     EnableDetailCulling: 1
-    EnableLod: 1
+    EnableLod: 0
     EnableOnlyLod2Shadows: 0
     DetailCullingPercentage: 0.005
     DrawBounds: 1
     LogMatrices: 0
     LogArgumentsAfterReset: 0
-    LogArgumentsAfterOcclusion: 1
-    LogVisibilityBuffer: 1
+    LogArgumentsAfterOcclusion: 0
+    LogVisibilityBuffer: 0
     LogGroupSums: 0
     LogScannedPredicates: 0
     LogScannedGroupSums: 0
@@ -658,19 +658,19 @@ MonoBehaviour:
     CombinedMesh: {fileID: 5668788170693331272, guid: fedd82e62536149f188064201b715ac8,
       type: 3}
     RecombineLods: 1
+    DefaultLod: 1
     Lods:
     - Mesh: {fileID: -1224505478118319035, guid: 57f354831b1044a33b5a0a6164e68490,
         type: 3}
       CameraDistanceReach: 5
-      IsDefault: 0
     - Mesh: {fileID: 5368998524920036126, guid: 57f354831b1044a33b5a0a6164e68490,
         type: 3}
       CameraDistanceReach: 50
-      IsDefault: 0
+    - Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+      CameraDistanceReach: 70
     - Mesh: {fileID: -8750779691553580571, guid: 57f354831b1044a33b5a0a6164e68490,
         type: 3}
       CameraDistanceReach: 0
-      IsDefault: 0
     Offset:
       Position: {x: 0, y: 2.5, z: 0}
       Rotation: {x: 90, y: 0, z: 0}
@@ -684,16 +684,16 @@ MonoBehaviour:
     CombinedMesh: {fileID: 5668788170693331272, guid: fedd82e62536149f188064201b715ac8,
       type: 3}
     RecombineLods: 1
+    DefaultLod: 0
     Lods:
     - Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
       CameraDistanceReach: 30
-      IsDefault: 0
     - Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
       CameraDistanceReach: 50
-      IsDefault: 0
+    - Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+      CameraDistanceReach: 70
     - Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
       CameraDistanceReach: 0
-      IsDefault: 0
     Offset:
       Position: {x: 0, y: 5, z: 0}
       Rotation: {x: 0, y: 0, z: 0}

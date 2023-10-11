@@ -6,8 +6,9 @@ public class RendererDataContext : IDisposable
 {
     public int MeshesCount { get; }
     public int LodsCount { get; }
-    public ComputeBuffer BoundingBoxes { get; }
     public ComputeBuffer LodsRanges { get; }
+    public ComputeBuffer DefaultLods { get; }
+    public ComputeBuffer BoundingBoxes { get; }
 
     public ArgumentsBuffer Arguments { get; }
     public TransformBuffer Transforms { get; }
@@ -20,9 +21,10 @@ public class RendererDataContext : IDisposable
     public RendererDataContext(IndirectRendererConfig config, InstanceProperties[] meshProperties)
     {
         MeshesCount = (int)config.NumberOfInstances * meshProperties.Length;
-        BoundingBoxes = new ComputeBuffer(MeshesCount, BoundsData.Size, ComputeBufferType.Default);
-        LodsRanges = new ComputeBuffer(meshProperties.Length * config.NumberOfLods, sizeof(float), ComputeBufferType.Default);
         LodsCount = config.NumberOfLods;
+        LodsRanges = new ComputeBuffer(meshProperties.Length * config.NumberOfLods, sizeof(float), ComputeBufferType.Default);
+        DefaultLods = new ComputeBuffer(meshProperties.Length, sizeof(uint), ComputeBufferType.Default);
+        BoundingBoxes = new ComputeBuffer(MeshesCount, BoundsData.Size, ComputeBufferType.Default);
         
         Arguments = new ArgumentsBuffer(meshProperties, config.NumberOfLods);
         Transforms = new TransformBuffer(MeshesCount);
@@ -35,8 +37,9 @@ public class RendererDataContext : IDisposable
 
     public void Dispose()
     {
-        BoundingBoxes?.Dispose();
         LodsRanges?.Dispose();
+        DefaultLods?.Dispose();
+        BoundingBoxes?.Dispose();
 
         Arguments?.Dispose();
         Transforms?.Dispose();

@@ -33,6 +33,7 @@ cbuffer CB
 
 StructuredBuffer<BoundsData> _BoundsDataBuffer;
 RWStructuredBuffer<float> _LodsIntervals;
+RWStructuredBuffer<uint> _DefaultLods;
 
 RWStructuredBuffer<uint> _ArgsBuffer;
 RWStructuredBuffer<uint> _ShadowArgsBuffer;
@@ -200,17 +201,24 @@ inline void CSMain (
 
     // Calculate the correct index to the arguments buffers
     uint argsIndex = drawCall + 1;
-    for (int k = 0; k < _LodsCount - 1; k++)
+    int rangeIndex = drawCall / (MESH_ARGUMENTS_COUNT * _LodsCount);
+    if (_ShouldLod)
     {
-        int rangeIndex = drawCall / (MESH_ARGUMENTS_COUNT * _LodsCount);
-        float range = _LodsIntervals[k + (rangeIndex * _LodsCount)];
-        if (minDistanceToCamera > range)
+        for (int k = 0; k < _LodsCount - 1; k++)
         {
-            argsIndex += MESH_ARGUMENTS_COUNT;
+            float range = _LodsIntervals[k + (rangeIndex * _LodsCount)];
+            if (minDistanceToCamera > range)
+            {
+                argsIndex += MESH_ARGUMENTS_COUNT;
+            }
         }
     }
+    else
+    {
+        argsIndex += MESH_ARGUMENTS_COUNT * _DefaultLods[rangeIndex];
+    }
     
-    argsIndex = _ShouldLod * argsIndex + ((_ShouldLod == 0) * (drawCall + 11));
+    //argsIndex = _ShouldLod * argsIndex + ((_ShouldLod == 0) * (drawCall + 11));
     uint shadowArgsIndex = argsIndex;//_ShouldOnlyUseLod2Shadows ? drawCall + 11 : argsIndex;
 
     // Mark it as a shadow caster if it's within shadow distance...
