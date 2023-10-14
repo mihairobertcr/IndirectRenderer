@@ -20,8 +20,8 @@ public class InstanceProperties
     [Space] 
     [Header("Mesh")]
     public Mesh CombinedMesh;
-    public bool RecombineLods;
     public uint DefaultLod;
+    public bool RecombineLods;
     public List<LodProperty> Lods;
 
     [Space] 
@@ -72,21 +72,5 @@ public class InstanceProperties
         {
             lod.Initialize();
         }
-    }
-}
-
-[Serializable]
-public class LodProperty
-{
-    public Mesh Mesh;
-    public int CameraDistanceReach;
-    
-    public MaterialPropertyBlock MeshPropertyBlock;
-    public MaterialPropertyBlock ShadowPropertyBlock;
-
-    public void Initialize()
-    {
-        MeshPropertyBlock = new MaterialPropertyBlock();
-        ShadowPropertyBlock = new MaterialPropertyBlock();
     }
 }

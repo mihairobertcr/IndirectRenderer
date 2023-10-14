@@ -8,9 +8,6 @@
 
 #define MESH_ARGUMENTS_COUNT 5
 
-#define LOD00_RANGE 20
-#define LOD01_RANGE 50
-
 cbuffer CB
 {
     uint _ShouldFrustumCull;

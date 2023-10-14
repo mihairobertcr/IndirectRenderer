@@ -87,7 +87,7 @@ public class InstancesCuller : ComputeShaderDispatcher
             _defaultLods.Add(mesh.DefaultLod);
             foreach (var lod in mesh.Lods)
             {
-                _lodsRanges.Add(lod.CameraDistanceReach);
+                _lodsRanges.Add(lod.Range);
             }
         }
         

@@ -638,7 +638,7 @@ MonoBehaviour:
     EnableFrustumCulling: 1
     EnableOcclusionCulling: 1
     EnableDetailCulling: 1
-    EnableLod: 0
+    EnableLod: 1
     EnableOnlyLod2Shadows: 0
     DetailCullingPercentage: 0.005
     DrawBounds: 1
@@ -657,20 +657,24 @@ MonoBehaviour:
     Material: {fileID: 2100000, guid: 316b8a94b405b47c1936fdc01c350bf6, type: 2}
     CombinedMesh: {fileID: 5668788170693331272, guid: fedd82e62536149f188064201b715ac8,
       type: 3}
-    RecombineLods: 1
     DefaultLod: 1
+    RecombineLods: 0
     Lods:
     - Mesh: {fileID: -1224505478118319035, guid: 57f354831b1044a33b5a0a6164e68490,
         type: 3}
-      CameraDistanceReach: 5
+      Range: 20
+      CastsShadows: 1
     - Mesh: {fileID: 5368998524920036126, guid: 57f354831b1044a33b5a0a6164e68490,
         type: 3}
-      CameraDistanceReach: 50
+      Range: 50
+      CastsShadows: 1
     - Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
-      CameraDistanceReach: 70
+      Range: 75
+      CastsShadows: 0
     - Mesh: {fileID: -8750779691553580571, guid: 57f354831b1044a33b5a0a6164e68490,
         type: 3}
-      CameraDistanceReach: 0
+      Range: 50
+      CastsShadows: 0
     Offset:
       Position: {x: 0, y: 2.5, z: 0}
       Rotation: {x: 90, y: 0, z: 0}
@@ -683,17 +687,21 @@ MonoBehaviour:
     Material: {fileID: 2100000, guid: 316b8a94b405b47c1936fdc01c350bf6, type: 2}
     CombinedMesh: {fileID: 5668788170693331272, guid: fedd82e62536149f188064201b715ac8,
       type: 3}
-    RecombineLods: 1
     DefaultLod: 0
+    RecombineLods: 0
     Lods:
     - Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
-      CameraDistanceReach: 30
+      Range: 20
+      CastsShadows: 1
     - Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
-      CameraDistanceReach: 50
+      Range: 50
+      CastsShadows: 1
     - Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
-      CameraDistanceReach: 70
+      Range: 75
+      CastsShadows: 0
     - Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
-      CameraDistanceReach: 0
+      Range: 0
+      CastsShadows: 0
     Offset:
       Position: {x: 0, y: 5, z: 0}
       Rotation: {x: 0, y: 0, z: 0}

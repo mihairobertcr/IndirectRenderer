@@ -93,26 +93,10 @@ public class IndirectRenderer : IDisposable
             DrawInstances();
             Profiler.EndSample();
         }
-        
-        // if (_settings.DrawShadows)
-        // {
-        //     Profiler.BeginSample("DrawInstanceShadows");
-        //     DrawShadows();
-        //     Profiler.EndSample();
-        // }
-        
-        // if (debugDrawHiZ)
-        // {
-        //     Vector3 pos = transform.position;
-        //     pos.y = debugCamera.transform.position.y;
-        //     debugCamera.transform.position = pos;
-        //     debugCamera.Render();
-        // }
     }
 
     private void CalculateVisibleInstances()
     {
-        // Global data
         _worldBounds.center = _config.RenderCamera.transform.position;
         
         if (_settings.LogMatrices)
@@ -209,7 +193,6 @@ public class IndirectRenderer : IDisposable
             var renderParams = new RenderParams(instance.Material)
             {
                 worldBounds = _worldBounds,
-                shadowCastingMode = ShadowCastingMode.Off
             };
 
             if (!_settings.EnableLod)
@@ -230,12 +213,8 @@ public class IndirectRenderer : IDisposable
         var lod = instance.Lods[lodIndex];
         var startCommand = instanceIndex * instance.Lods.Count + lodIndex;
         renderParams.matProps = lod.MeshPropertyBlock;
+        renderParams.shadowCastingMode = lod.CastsShadows ? ShadowCastingMode.On : ShadowCastingMode.Off;
         Graphics.RenderMeshIndirect(renderParams, lod.Mesh, _context.Arguments.MeshesBuffer, 1, startCommand);
-    }
-
-    private void DrawShadows()
-    {
-        
     }
 
     private void InitializeMeshProperties()
