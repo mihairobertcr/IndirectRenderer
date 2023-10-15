@@ -14,5 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _maximumResolution: 1024
   _shader: {fileID: 4800000, guid: 483ebfd3207614b6692e71936dfc9844, type: 3}
-  <Texture>k__BackingField: {fileID: 0}
-  <Resolution>k__BackingField: {x: 0, y: 0}
+  _texture: {fileID: 0}
+  _resolution: {x: 1024, y: 1024}
+  _precision: 2

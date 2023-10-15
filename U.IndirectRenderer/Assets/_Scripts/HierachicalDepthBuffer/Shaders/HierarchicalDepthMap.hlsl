@@ -29,6 +29,8 @@ SamplerState sampler_LightTexture;
 
 float4 _MainTex_TexelSize;
 
+half _DepthMapPrecision;
+
 Varyings Vertex(in Input i)
 {
     Varyings output;
@@ -43,13 +45,13 @@ Varyings Vertex(in Input i)
 float4 Blit(in Varyings input) : SV_Target
 {
     float lightDepth = _LightTexture.Sample(sampler_LightTexture, input.uv).r;
-    float cameraDepth = _CameraDepthTexture.Sample(sampler_CameraDepthTexture, input.uv).r * 1.8;
+    float cameraDepth = _CameraDepthTexture.Sample(sampler_CameraDepthTexture, input.uv).r * _DepthMapPrecision;
     return float4(cameraDepth, lightDepth, 0 ,0);
 }
 
 float4 Reduce(in Varyings input) : SV_Target
 {
-    float4 r = _MainTex.GatherRed  (sampler_MainTex, input.uv);
+    float4 r = _MainTex.GatherRed(sampler_MainTex, input.uv);
     float4 g = _MainTex.GatherGreen(sampler_MainTex, input.uv);
 
     float minimum = min(min(min(r.x, r.y), r.z), r.w);

@@ -3,6 +3,7 @@ Shader "IndirectRendering/HiZ/Buffer"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" { }
+        _DepthMapPrecision("Depth Map Precision", Range(1.8, 2)) = 1.8
     }
 
     SubShader

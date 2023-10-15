@@ -68,6 +68,9 @@ public class HierarchicalDepthMap : ScriptableObject
     [SerializeField] private Shader _shader;
     [SerializeField] private RenderTexture _texture;
     [SerializeField] private Vector2 _resolution;
+    
+    [Range(1.8f, 2f)]
+    [SerializeField] private float _precision;
 
     private Material _material;
     private int _size;
@@ -82,8 +85,14 @@ public class HierarchicalDepthMap : ScriptableObject
     //TODO: Check if _texture gets disposed properly.
     private void OnDestroy() => _texture.Release();
 
-    private Material CreateMaterial() => CoreUtils.CreateEngineMaterial(_shader);
-    
+    private Material CreateMaterial()
+    {
+        var material = CoreUtils.CreateEngineMaterial(_shader);
+        material.SetFloat("_DepthMapPrecision", _precision);
+        
+        return material;
+    }
+
     private int CalculateTextureResolution()
     {
         var size = Mathf.Max(Screen.width, Screen.height);
