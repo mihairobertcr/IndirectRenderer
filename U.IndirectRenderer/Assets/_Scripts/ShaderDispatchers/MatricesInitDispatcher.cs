@@ -3,6 +3,10 @@ using UnityEngine;
 
 public class MatricesInitDispatcher : ComputeShaderDispatcher
 {
+    private static readonly int Positions = Shader.PropertyToID("_Positions");
+    private static readonly int Rotations = Shader.PropertyToID("_Rotations");
+    private static readonly int Scales = Shader.PropertyToID("_Scales");
+    
     private readonly int _kernel;
     private readonly int _threadGroupX;
 
@@ -49,12 +53,12 @@ public class MatricesInitDispatcher : ComputeShaderDispatcher
     
     public MatricesInitDispatcher SubmitTransformsData()
     {
-        ComputeShader.SetBuffer(_kernel, ShaderProperties.Positions, _positionsBuffer);
-        ComputeShader.SetBuffer(_kernel, ShaderProperties.Rotations, _rotationsBuffer);
-        ComputeShader.SetBuffer(_kernel, ShaderProperties.Scales, _scalesBuffer);
-        ComputeShader.SetBuffer(_kernel, ShaderProperties.MatrixRows01, _matrixBuffer.Rows01);
-        ComputeShader.SetBuffer(_kernel, ShaderProperties.MatrixRows23, _matrixBuffer.Rows23);
-        ComputeShader.SetBuffer(_kernel, ShaderProperties.MatrixRows45, _matrixBuffer.Rows45);
+        ComputeShader.SetBuffer(_kernel, Positions, _positionsBuffer);
+        ComputeShader.SetBuffer(_kernel, Rotations, _rotationsBuffer);
+        ComputeShader.SetBuffer(_kernel, Scales, _scalesBuffer);
+        ComputeShader.SetBuffer(_kernel, MatrixRows01, _matrixBuffer.Rows01);
+        ComputeShader.SetBuffer(_kernel, MatrixRows23, _matrixBuffer.Rows23);
+        ComputeShader.SetBuffer(_kernel, MatrixRows45, _matrixBuffer.Rows45);
         
         return this;
     }

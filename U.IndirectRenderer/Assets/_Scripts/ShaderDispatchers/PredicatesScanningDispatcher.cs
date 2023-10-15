@@ -19,9 +19,9 @@ public class PredicatesScanningDispatcher : ComputeShaderDispatcher
 
     public PredicatesScanningDispatcher SubmitMeshesData()
     {
-        ComputeShader.SetBuffer(_kernel, ShaderProperties.PredicatesInput, _visibility);
-        ComputeShader.SetBuffer(_kernel, ShaderProperties.GroupSums, _groupSums);
-        ComputeShader.SetBuffer(_kernel, ShaderProperties.ScannedPredicates, _scannedPredicates);
+        ComputeShader.SetBuffer(_kernel, PredicatesInput, _visibility);
+        ComputeShader.SetBuffer(_kernel, GroupSums, _groupSums);
+        ComputeShader.SetBuffer(_kernel, ScannedPredicates, _scannedPredicates);
 
         return this;
     }

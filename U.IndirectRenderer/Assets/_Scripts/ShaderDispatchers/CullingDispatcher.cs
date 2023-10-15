@@ -4,6 +4,23 @@ using IndirectRendering;
 
 public class CullingDispatcher : ComputeShaderDispatcher
 {
+    private static readonly int ShouldFrustumCull = Shader.PropertyToID("_ShouldFrustumCull");
+    private static readonly int ShouldOcclusionCull = Shader.PropertyToID("_ShouldOcclusionCull");
+    private static readonly int ShouldLod = Shader.PropertyToID("_ShouldLod");
+    private static readonly int ShouldDetailCull = Shader.PropertyToID("_ShouldDetailCull");
+    
+    private static readonly int IsVisibleBuffer = Shader.PropertyToID("_IsVisibleBuffer");
+    private static readonly int ShadowDistance = Shader.PropertyToID("_ShadowDistance");
+    private static readonly int DetailCullingScreenPercentage = Shader.PropertyToID("_DetailCullingScreenPercentage");
+    private static readonly int HiZTextureSize = Shader.PropertyToID("_HiZTextureSize");
+    private static readonly int HiZMap = Shader.PropertyToID("_HiZMap");
+    private static readonly int MvpMatrix = Shader.PropertyToID("_MvpMatrix");
+    private static readonly int CameraPosition = Shader.PropertyToID("_CameraPosition");
+    
+    private static readonly int LodsIntervals = Shader.PropertyToID("_LodsIntervals");
+    private static readonly int DefaultLods = Shader.PropertyToID("_DefaultLods");
+    private static readonly int LodsCount = Shader.PropertyToID("_LodsCount");
+    
     private readonly int _kernel;
     private readonly int _threadGroupX;
     
@@ -35,13 +52,13 @@ public class CullingDispatcher : ComputeShaderDispatcher
 
     public CullingDispatcher SetSettings(IndirectRendererSettings settings)
     {
-        ComputeShader.SetInt(ShaderProperties.ShouldFrustumCull, settings.EnableFrustumCulling ? 1 : 0);
-        ComputeShader.SetInt(ShaderProperties.ShouldOcclusionCull, settings.EnableOcclusionCulling ? 1 : 0);
-        ComputeShader.SetInt(ShaderProperties.ShouldDetailCull, settings.EnableDetailCulling ? 1 : 0);
-        ComputeShader.SetInt(ShaderProperties.ShouldLod, settings.EnableLod ? 1 : 0);
+        ComputeShader.SetInt(ShouldFrustumCull, settings.EnableFrustumCulling ? 1 : 0);
+        ComputeShader.SetInt(ShouldOcclusionCull, settings.EnableOcclusionCulling ? 1 : 0);
+        ComputeShader.SetInt(ShouldDetailCull, settings.EnableDetailCulling ? 1 : 0);
+        ComputeShader.SetInt(ShouldLod, settings.EnableLod ? 1 : 0);
 
-        ComputeShader.SetFloat(ShaderProperties.ShadowDistance, QualitySettings.shadowDistance);
-        ComputeShader.SetFloat(ShaderProperties.DetailCullingScreenPercentage, settings.DetailCullingPercentage);
+        ComputeShader.SetFloat(ShadowDistance, QualitySettings.shadowDistance);
+        ComputeShader.SetFloat(DetailCullingScreenPercentage, settings.DetailCullingPercentage);
 
         return this;
     }
@@ -93,18 +110,18 @@ public class CullingDispatcher : ComputeShaderDispatcher
 
     public CullingDispatcher SetDepthMap()
     {
-        ComputeShader.SetVector(ShaderProperties.HiZTextureSize, HierarchicalDepthMap.Resolution);
-        ComputeShader.SetTexture(_kernel, ShaderProperties.HiZMap, HierarchicalDepthMap.Texture);
+        ComputeShader.SetVector(HiZTextureSize, HierarchicalDepthMap.Resolution);
+        ComputeShader.SetTexture(_kernel, HiZMap, HierarchicalDepthMap.Texture);
         
         return this;
     }
     
     public CullingDispatcher SubmitCullingData()
     {
-        ComputeShader.SetBuffer(_kernel, ShaderProperties.ArgsBuffer, _argumentsBuffer);
-        ComputeShader.SetBuffer(_kernel, ShaderProperties.IsVisibleBuffer, _visibilityBuffer);
-        ComputeShader.SetBuffer(_kernel, ShaderProperties.BoundsData, _boundsDataBuffer);
-        ComputeShader.SetBuffer(_kernel, ShaderProperties.SortingData, _sortingDataBuffer);
+        ComputeShader.SetBuffer(_kernel, ArgsBuffer, _argumentsBuffer);
+        ComputeShader.SetBuffer(_kernel, IsVisibleBuffer, _visibilityBuffer);
+        ComputeShader.SetBuffer(_kernel, BoundsData, _boundsDataBuffer);
+        ComputeShader.SetBuffer(_kernel, SortingData, _sortingDataBuffer);
 
         return this;
     }
@@ -116,17 +133,17 @@ public class CullingDispatcher : ComputeShaderDispatcher
         var projectionMatrix = camera.projectionMatrix;
         var modelViewProjection = projectionMatrix * worldMatrix;
 
-        ComputeShader.SetMatrix(ShaderProperties.MvpMatrix, modelViewProjection);
-        ComputeShader.SetVector(ShaderProperties.CameraPosition, cameraPosition);
+        ComputeShader.SetMatrix(MvpMatrix, modelViewProjection);
+        ComputeShader.SetVector(CameraPosition, cameraPosition);
 
         return this;
     }
 
     public CullingDispatcher SubmitLodsData()
     {
-        ComputeShader.SetInt(ShaderProperties.LodsCount, Context.LodsCount);
-        ComputeShader.SetBuffer(_kernel, ShaderProperties.LodsIntervals, _lodsRangesBuffer);
-        ComputeShader.SetBuffer(_kernel, ShaderProperties.DefaultLods, _defaultLodsBuffer);
+        ComputeShader.SetInt(LodsCount, Context.LodsCount);
+        ComputeShader.SetBuffer(_kernel, LodsIntervals, _lodsRangesBuffer);
+        ComputeShader.SetBuffer(_kernel, DefaultLods, _defaultLodsBuffer);
         
         return this;
     }
