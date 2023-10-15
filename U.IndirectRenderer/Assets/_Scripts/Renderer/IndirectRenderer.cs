@@ -13,7 +13,7 @@ public class IndirectRenderer : IDisposable
     private readonly MatricesInitializingDispatcher _matricesInitializingDispatcher;
     private readonly LodsSortingDispatcher _lodsSortingDispatcher;
     private readonly CullingDispatcher _cullingDispatcher;
-    private readonly PredicatesScanning _predicatesScanning;
+    private readonly PredicatesScanningDispatcher _predicatesScanningDispatcher;
     private readonly GroupSumsScanningDispatcher _groupSumsScanningDispatcher;
     private readonly DataCopyingDispatcher _dataCopyingDispatcher;
 
@@ -35,7 +35,7 @@ public class IndirectRenderer : IDisposable
         _matricesInitializingDispatcher = new MatricesInitializingDispatcher(_config.MatricesInitializer, _context);
         _lodsSortingDispatcher = new LodsSortingDispatcher(_config.LodBitonicSorter, _context);
         _cullingDispatcher = new CullingDispatcher(_config.InstancesCuller, _context);
-        _predicatesScanning = new PredicatesScanning(_config.InstancesScanner, _context);
+        _predicatesScanningDispatcher = new PredicatesScanningDispatcher(_config.InstancesScanner, _context);
         _groupSumsScanningDispatcher = new GroupSumsScanningDispatcher(_config.GroupSumsScanner, _context);
         _dataCopyingDispatcher = new DataCopyingDispatcher(_config.InstancesDataCopier, _context);
 
@@ -142,7 +142,7 @@ public class IndirectRenderer : IDisposable
         Profiler.EndSample();
         
         Profiler.BeginSample("Scan Instances");
-        _predicatesScanning.SubmitMeshesData().Dispatch();
+        _predicatesScanningDispatcher.SubmitMeshesData().Dispatch();
         if (_settings.LogGroupSums)
         {
             _settings.LogGroupSums = false;

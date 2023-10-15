@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PredicatesScanning : ComputeShaderDispatcher
+public class PredicatesScanningDispatcher : ComputeShaderDispatcher
 {
     private readonly int _kernel;
     private readonly int _threadGroupX;
@@ -9,7 +9,7 @@ public class PredicatesScanning : ComputeShaderDispatcher
     private readonly ComputeBuffer _groupSums;
     private readonly ComputeBuffer _scannedPredicates;
 
-    public PredicatesScanning(ComputeShader computeShader, RendererDataContext context)
+    public PredicatesScanningDispatcher(ComputeShader computeShader, RendererDataContext context)
         : base(computeShader, context)
     {
         _kernel = GetKernel("CSMain");
@@ -17,7 +17,7 @@ public class PredicatesScanning : ComputeShaderDispatcher
         InitializeScanningBuffers(out _visibility, out _groupSums, out _scannedPredicates);
     }
 
-    public PredicatesScanning SubmitMeshesData()
+    public PredicatesScanningDispatcher SubmitMeshesData()
     {
         ComputeShader.SetBuffer(_kernel, ShaderProperties.PredicatesInput, _visibility);
         ComputeShader.SetBuffer(_kernel, ShaderProperties.GroupSums, _groupSums);
