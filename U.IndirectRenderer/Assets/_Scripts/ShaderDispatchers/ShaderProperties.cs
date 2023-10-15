@@ -3,12 +3,7 @@ using UnityEngine;
 public static class ShaderProperties
 {
     public static readonly int ArgsBuffer = Shader.PropertyToID("_ArgsBuffer");
-    public static readonly int ShadowArgsBuffer = Shader.PropertyToID("_ShadowArgsBuffer");
     public static readonly int ArgsOffset = Shader.PropertyToID("_ArgsOffset");
-
-    public static readonly int LodArgs0 = Shader.PropertyToID("_LodArgs0");
-    public static readonly int LodArgs1 = Shader.PropertyToID("_LodArgs1");
-    public static readonly int LodArgs2 = Shader.PropertyToID("_LodArgs2");
 
     public static readonly int Positions = Shader.PropertyToID("_Positions");
     public static readonly int Rotations = Shader.PropertyToID("_Rotations");
@@ -26,10 +21,8 @@ public static class ShaderProperties
     public static readonly int ShouldOcclusionCull = Shader.PropertyToID("_ShouldOcclusionCull");
     public static readonly int ShouldLod = Shader.PropertyToID("_ShouldLod");
     public static readonly int ShouldDetailCull = Shader.PropertyToID("_ShouldDetailCull");
-    public static readonly int ShouldOnlyUseLod2Shadows = Shader.PropertyToID("_ShouldOnlyUseLod2Shadows");
 
     public static readonly int IsVisibleBuffer = Shader.PropertyToID("_IsVisibleBuffer");
-    public static readonly int IsShadowVisibleBuffer = Shader.PropertyToID("_IsShadowVisibleBuffer");
     public static readonly int BoundsData = Shader.PropertyToID("_BoundsDataBuffer");
     public static readonly int SortingData = Shader.PropertyToID("_SortingData");
 

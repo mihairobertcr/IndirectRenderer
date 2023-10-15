@@ -14,8 +14,11 @@ public class GroupSumsScanningDispatcher : ComputeShaderDispatcher
         InitializeGroupSumsBuffers(out _groupSumsBuffer, out _scannedGroupSumsBuffer);
     }
 
-    public void SubmitGroupCount() => ComputeShader
-        .SetInt(ShaderProperties.NumberOfGroups, Context.MeshesCount / (2 * SCAN_THREAD_GROUP_SIZE));
+    public GroupSumsScanningDispatcher SubmitGroupCount()
+    {
+        ComputeShader.SetInt(ShaderProperties.NumberOfGroups, Context.MeshesCount / (2 * SCAN_THREAD_GROUP_SIZE));
+        return this;
+    }
 
     public GroupSumsScanningDispatcher SubmitGroupSumsData()
     {

@@ -43,7 +43,7 @@ public class DataCopyingDispatcher : ComputeShaderDispatcher
             out _arguments);
     }
 
-    public void SubmitCopingBuffers()
+    public DataCopyingDispatcher SubmitCopingBuffers()
     {
         ComputeShader.SetInt(ShaderProperties.NumberOfDrawCalls, Context.Arguments.InstanceArgumentsCount);
 
@@ -52,9 +52,11 @@ public class DataCopyingDispatcher : ComputeShaderDispatcher
         ComputeShader.SetBuffer(_kernel, ShaderProperties.MatrixRows45, _matricesRows45);
         ComputeShader.SetBuffer(_kernel, ShaderProperties.SortingData, _sortingData);
         ComputeShader.SetBuffer(_kernel, ShaderProperties.BoundsData, _boundsData);
+
+        return this;
     }
 
-    public void BindMaterialProperties(InstanceProperties[] properties)
+    public DataCopyingDispatcher BindMaterialProperties(InstanceProperties[] properties)
     {
         for (var i = 0; i < properties.Length; i++)
         {
@@ -72,6 +74,8 @@ public class DataCopyingDispatcher : ComputeShaderDispatcher
                 lod.MaterialPropertyBlock.SetBuffer(ShaderProperties.MatrixRows45, _culledMatricesRows45);
             }
         }
+
+        return this;
     }
 
     public DataCopyingDispatcher SubmitMeshesData()

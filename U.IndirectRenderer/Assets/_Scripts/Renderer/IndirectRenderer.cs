@@ -10,7 +10,7 @@ public class IndirectRenderer : IDisposable
     private readonly IndirectRendererSettings _settings;
     private readonly RendererDataContext _context;
 
-    private readonly MatricesInitializingDispatcher _matricesInitializingDispatcher;
+    private readonly MatricesInitDispatcher _matricesInitDispatcher;
     private readonly LodsSortingDispatcher _lodsSortingDispatcher;
     private readonly CullingDispatcher _cullingDispatcher;
     private readonly PredicatesScanningDispatcher _predicatesScanningDispatcher;
@@ -32,7 +32,7 @@ public class IndirectRenderer : IDisposable
         
         _context = new RendererDataContext(config, _instances);
 
-        _matricesInitializingDispatcher = new MatricesInitializingDispatcher(_config.MatricesInitializer, _context);
+        _matricesInitDispatcher = new MatricesInitDispatcher(_config.MatricesInitializer, _context);
         _lodsSortingDispatcher = new LodsSortingDispatcher(_config.LodBitonicSorter, _context);
         _cullingDispatcher = new CullingDispatcher(_config.InstancesCuller, _context);
         _predicatesScanningDispatcher = new PredicatesScanningDispatcher(_config.InstancesScanner, _context);
@@ -59,24 +59,35 @@ public class IndirectRenderer : IDisposable
     
     private void Initialize()
     {
-        _matricesInitializingDispatcher.SetTransformData(_instances)
+        _matricesInitDispatcher
+            .SetTransformData(_instances)
             .SubmitTransformsData()
             .Dispatch();
 
-        _lodsSortingDispatcher.SetSortingData(_instances, _config.RenderCamera)
+        _lodsSortingDispatcher
+            .SetSortingData(_instances, _config.RenderCamera)
             .SetupSortingCommand()
             .EnabledAsyncComputing(true);
         
-        _cullingDispatcher.SetSettings(_settings)
+        _cullingDispatcher
+            .SetSettings(_settings)
             .SetBoundsData(_instances)
             .SetLodsData(_instances)
             .SetDepthMap()
             .SubmitCullingData()
             .SubmitLodsData();
 
-        _groupSumsScanningDispatcher.SubmitGroupCount();
-        _dataCopyingDispatcher.SubmitCopingBuffers();
-        _dataCopyingDispatcher.BindMaterialProperties(_instances);
+        _predicatesScanningDispatcher
+            .SubmitMeshesData();
+        
+        _groupSumsScanningDispatcher
+            .SubmitGroupCount()
+            .SubmitGroupSumsData();
+        
+        _dataCopyingDispatcher
+            .BindMaterialProperties(_instances)
+            .SubmitCopingBuffers()
+            .SubmitMeshesData();
     }
 
     private void BeginFrameRendering(ScriptableRenderContext context, Camera[] camera)
@@ -125,7 +136,8 @@ public class IndirectRenderer : IDisposable
         Profiler.EndSample();
 
         Profiler.BeginSample("Occlusion");
-        _cullingDispatcher.SubmitCameraData(_config.RenderCamera)
+        _cullingDispatcher
+            .SubmitCameraData(_config.RenderCamera)
             .Dispatch();
         
         if (_settings.LogArgumentsAfterOcclusion)
@@ -142,7 +154,7 @@ public class IndirectRenderer : IDisposable
         Profiler.EndSample();
         
         Profiler.BeginSample("Scan Instances");
-        _predicatesScanningDispatcher.SubmitMeshesData().Dispatch();
+        _predicatesScanningDispatcher.Dispatch();
         if (_settings.LogGroupSums)
         {
             _settings.LogGroupSums = false;
@@ -157,7 +169,7 @@ public class IndirectRenderer : IDisposable
         Profiler.EndSample();
         
         Profiler.BeginSample("Scan Thread Groups");
-        _groupSumsScanningDispatcher.SubmitGroupSumsData().Dispatch();
+        _groupSumsScanningDispatcher.Dispatch();
         if (_settings.LogScannedGroupSums)
         {
             _settings.LogScannedGroupSums = false;
@@ -166,7 +178,7 @@ public class IndirectRenderer : IDisposable
         Profiler.EndSample();
         
         Profiler.BeginSample("Copy Instances Data");
-        _dataCopyingDispatcher.SubmitMeshesData().Dispatch();
+        _dataCopyingDispatcher.Dispatch();
         if (_settings.LogCulledMatrices)
         {
             _settings.LogCulledMatrices = false;

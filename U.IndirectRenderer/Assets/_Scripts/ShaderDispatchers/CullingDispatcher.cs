@@ -46,7 +46,6 @@ public class CullingDispatcher : ComputeShaderDispatcher
         return this;
     }
     
-    //TODO: Enforce that this should be called only in initialization faze
     public CullingDispatcher SetBoundsData(InstanceProperties[] meshes)
     {
         _boundsData = new List<BoundsData>();
@@ -123,12 +122,8 @@ public class CullingDispatcher : ComputeShaderDispatcher
         return this;
     }
 
-    //TODO: Revisit chaining and how data works in GPU
     public CullingDispatcher SubmitLodsData()
     {
-        // _defaultLodsBuffer.SetData(_defaultLods);
-        // _lodsRangesBuffer.SetData(_lodsRanges);
-        
         ComputeShader.SetInt(ShaderProperties.LodsCount, Context.LodsCount);
         ComputeShader.SetBuffer(_kernel, ShaderProperties.LodsIntervals, _lodsRangesBuffer);
         ComputeShader.SetBuffer(_kernel, ShaderProperties.DefaultLods, _defaultLodsBuffer);
@@ -160,29 +155,4 @@ public class CullingDispatcher : ComputeShaderDispatcher
         bounds = Context.BoundingBoxes;
         sortingData = Context.Sorting.Data;
     }
-
-    // private Bounds CreateBounds(GameObject prefab)
-    // {
-    //     var gameObject = Object.Instantiate(prefab);
-    //     gameObject.transform.position = Vector3.zero;
-    //     gameObject.transform.rotation = Quaternion.Euler(Vector3.zero);
-    //     gameObject.transform.localScale = Vector3.one;
-    //     
-    //     var renderers = gameObject.GetComponentsInChildren<Renderer>();
-    //     
-    //     var bounds = new Bounds();
-    //     if (renderers.Length > 0)
-    //     {
-    //         bounds = new Bounds(renderers[0].bounds.center, renderers[0].bounds.size);
-    //         for (var r = 1; r < renderers.Length; r++)
-    //         {
-    //             bounds.Encapsulate(renderers[r].bounds);
-    //         }
-    //     }
-    //     
-    //     bounds.center = Vector3.zero;
-    //     Object.DestroyImmediate(gameObject);
-    //     
-    //     return bounds;
-    // }
 }
