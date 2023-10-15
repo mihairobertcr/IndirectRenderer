@@ -71,7 +71,8 @@ public class IndirectRenderer : IDisposable
             .SetBoundsData(_instances)
             .SetLodsData(_instances)
             .SetDepthMap()
-            .SubmitCullingData();
+            .SubmitCullingData()
+            .SubmitLodsData();
 
         _groupSumsScanningDispatcher.SubmitGroupCount();
         _dataCopyingDispatcher.SubmitCopingBuffers();
@@ -125,7 +126,6 @@ public class IndirectRenderer : IDisposable
 
         Profiler.BeginSample("Occlusion");
         _cullingDispatcher.SubmitCameraData(_config.RenderCamera)
-            .SubmitLodsData()
             .Dispatch();
         
         if (_settings.LogArgumentsAfterOcclusion)

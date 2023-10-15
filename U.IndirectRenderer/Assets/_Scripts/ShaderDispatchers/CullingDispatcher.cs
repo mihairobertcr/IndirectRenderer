@@ -86,8 +86,8 @@ public class CullingDispatcher : ComputeShaderDispatcher
             }
         }
         
-        // _defaultLodsBuffer.SetData(_defaultLods);
-        // _lodsRangesBuffer.SetData(_lodsRanges);
+        _defaultLodsBuffer.SetData(_defaultLods);
+        _lodsRangesBuffer.SetData(_lodsRanges);
 
         return this;
     }
@@ -100,12 +100,14 @@ public class CullingDispatcher : ComputeShaderDispatcher
         return this;
     }
     
-    public void SubmitCullingData()
+    public CullingDispatcher SubmitCullingData()
     {
         ComputeShader.SetBuffer(_kernel, ShaderProperties.ArgsBuffer, _argumentsBuffer);
         ComputeShader.SetBuffer(_kernel, ShaderProperties.IsVisibleBuffer, _visibilityBuffer);
         ComputeShader.SetBuffer(_kernel, ShaderProperties.BoundsData, _boundsDataBuffer);
         ComputeShader.SetBuffer(_kernel, ShaderProperties.SortingData, _sortingDataBuffer);
+
+        return this;
     }
 
     public CullingDispatcher SubmitCameraData(Camera camera)
@@ -124,8 +126,8 @@ public class CullingDispatcher : ComputeShaderDispatcher
     //TODO: Revisit chaining and how data works in GPU
     public CullingDispatcher SubmitLodsData()
     {
-        _defaultLodsBuffer.SetData(_defaultLods);
-        _lodsRangesBuffer.SetData(_lodsRanges);
+        // _defaultLodsBuffer.SetData(_defaultLods);
+        // _lodsRangesBuffer.SetData(_lodsRanges);
         
         ComputeShader.SetInt(ShaderProperties.LodsCount, Context.LodsCount);
         ComputeShader.SetBuffer(_kernel, ShaderProperties.LodsIntervals, _lodsRangesBuffer);
