@@ -10,28 +10,29 @@
 
 cbuffer CB
 {
-    uint _ShouldFrustumCull;
-    uint _ShouldOcclusionCull;
-    uint _ShouldDetailCull;
-    uint _ShouldLod;
+    uint _EnableFrustumCulling;
+    uint _EnableOcclusionCulling;
+    uint _EnableDetailCulling;
+    uint _EnableLods;
     
-    int _LodsCount;
     float _DetailCullingScreenPercentage;
-    float2 _HiZTextureSize;
+    float2 _DepthMapResolution;
     float3 _CameraPosition;
+    uint _LodsCount;
     
     float4x4 _MvpMatrix;
-    Texture2D _HiZMap;
-    SamplerState sampler_HiZMap; // "sampler" + “_HiZMap”
+    Texture2D _DepthMap;
+    SamplerState sampler_DepthMap;
 };
 
-StructuredBuffer<BoundsData> _BoundsDataBuffer;
-RWStructuredBuffer<float> _LodsIntervals;
-RWStructuredBuffer<uint> _DefaultLods;
+StructuredBuffer<BoundsData> _BoundsData;
+RWStructuredBuffer<SortingData> _SortingData;
 
 RWStructuredBuffer<uint> _ArgsBuffer;
-RWStructuredBuffer<uint> _IsVisibleBuffer;
-RWStructuredBuffer<SortingData> _SortingData;
+RWStructuredBuffer<uint> _VisibilityBuffer;
+RWStructuredBuffer<float> _LodsRangesBuffer;
+RWStructuredBuffer<uint> _DefaultLodsBuffer;
+
 
 inline uint IsCameraOutsideObjBounds(float3 position, float3 min, float3 max)
 {
@@ -53,7 +54,7 @@ inline uint IsVisibleAfterOcclusionCulling(float clipMinX, float clipMaxX, float
     float2 uvRightTop = float2(clipMaxX, clipMaxY) * 0.5 + 0.5;
 
     // Calculate hi-Z buffer mip
-    int2 size = (uvRightTop - uvLeftBottom) * _HiZTextureSize.xy;
+    int2 size = (uvRightTop - uvLeftBottom) * _DepthMapResolution.xy;
     float mip = ceil(log2(max(size.x, size.y)));
     mip = clamp(mip, 0, 10);
     
@@ -79,7 +80,7 @@ inline uint IsVisibleAfterOcclusionCulling(float clipMinX, float clipMaxX, float
     
     const float widthSS = (uvRightTop.x - uvLeftBottom.x);
     const float heightSS = (uvRightTop.y - uvLeftBottom.y);    
-    // const float maxSizeSS = max(widthSS * _HiZTextureSize.x, heightSS * _HiZTextureSize.y);    
+    // const float maxSizeSS = max(widthSS * _DepthMapResolution.x, heightSS * _DepthMapResolution.y);    
     const float stepX = widthSS / xSamples;    
     const float stepY = heightSS / ySamples;    
     
@@ -91,7 +92,7 @@ inline uint IsVisibleAfterOcclusionCulling(float clipMinX, float clipMaxX, float
         for(int x = 0; x < xSamples; ++x)
         {
             const float2 nCoords0 = float2(xPosition, yPosition);
-            hiZDepth = min(hiZDepth, _HiZMap.SampleLevel(sampler_HiZMap, nCoords0, mip).r);
+            hiZDepth = min(hiZDepth, _DepthMap.SampleLevel(sampler_DepthMap, nCoords0, mip).r);
             xPosition += stepX;
         }
         
@@ -125,10 +126,10 @@ inline void CSMain (
     uint index = (sortingData.DrawCallInstanceIndex) & 0xFFFF;
 
     // Reset the is visible state
-    _IsVisibleBuffer[threadId] = 0;
+    _VisibilityBuffer[threadId] = 0;
 
     // Get the instance data
-    BoundsData instance = _BoundsDataBuffer[index];
+    BoundsData instance = _BoundsData[index];
 
     // Check if the instance is visible
     float3 minPosition = instance.BoundsCenter - instance.BoundsExtents;
@@ -181,23 +182,23 @@ inline void CSMain (
     if (IsCameraOutsideObjBounds(_CameraPosition, minPosition, maxPosition))
     {
         // Do we pass the frustum culling...?
-        isVisible *= _ShouldFrustumCull ? isInFrustum : 1;
+        isVisible *= _EnableFrustumCulling ? isInFrustum : 1;
 
         // Do we pass the occlusion culling...?
-        isVisible *= (_ShouldOcclusionCull * isVisible > 0) ? IsVisibleAfterOcclusionCulling(clipMinX, clipMaxX, clipMinY, clipMaxY, clipMinZ) : 1;
+        isVisible *= (_EnableOcclusionCulling * isVisible > 0) ? IsVisibleAfterOcclusionCulling(clipMinX, clipMaxX, clipMinY, clipMaxY, clipMinZ) : 1;
         
         // Do we pass the detail (screen size) culling...?
-        isVisible *= (_ShouldDetailCull * isVisible > 0) ? IsVisibleAfterDetailCulling(clipMinX, clipMaxX, clipMinY, clipMaxY) : 1;
+        isVisible *= (_EnableDetailCulling * isVisible > 0) ? IsVisibleAfterDetailCulling(clipMinX, clipMaxX, clipMinY, clipMaxY) : 1;
     }
 
     // Calculate the correct index to the arguments buffers
     uint argsIndex = drawCall + 1;
     uint rangeIndex = drawCall / (MESH_ARGUMENTS_COUNT * _LodsCount);
-    if (_ShouldLod)
+    if (_EnableLods)
     {
         for (uint k = 0; k < _LodsCount - 1; k++)
         {
-            float range = _LodsIntervals[k + (rangeIndex * _LodsCount)];
+            float range = _LodsRangesBuffer[k + (rangeIndex * _LodsCount)];
             if (minDistanceToCamera > range)
             {
                 argsIndex += MESH_ARGUMENTS_COUNT;
@@ -206,11 +207,11 @@ inline void CSMain (
     }
     else
     {
-        argsIndex += MESH_ARGUMENTS_COUNT * _DefaultLods[rangeIndex];
+        argsIndex += MESH_ARGUMENTS_COUNT * _DefaultLodsBuffer[rangeIndex];
     }
     
     // Output
-    _IsVisibleBuffer[threadId] = isVisible;
+    _VisibilityBuffer[threadId] = isVisible;
     InterlockedAdd(_ArgsBuffer[argsIndex], isVisible);
 
     sortingData.DistanceToCamera = minDistanceToCamera;

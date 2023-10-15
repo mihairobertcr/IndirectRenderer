@@ -8,13 +8,13 @@ public class LodsSortingDispatcher : ComputeShaderDispatcher
     private const uint BITONIC_BLOCK_SIZE = 256;
     private const uint TRANSPOSE_BLOCK_SIZE = 8;
     
-    private static readonly int Data = Shader.PropertyToID("_Data");
-    private static readonly int Input = Shader.PropertyToID("_Input");
+    private static readonly int DataId = Shader.PropertyToID("_Data");
+    private static readonly int InputId = Shader.PropertyToID("_Input");
 
-    private static readonly int Level = Shader.PropertyToID("_Level");
-    private static readonly int LevelMask = Shader.PropertyToID("_LevelMask");
-    private static readonly int Width = Shader.PropertyToID("_Width");
-    private static readonly int Height = Shader.PropertyToID("_Height");
+    private static readonly int LevelId = Shader.PropertyToID("_Level");
+    private static readonly int LevelMaskId = Shader.PropertyToID("_LevelMask");
+    private static readonly int WidthId = Shader.PropertyToID("_Width");
+    private static readonly int HeightId = Shader.PropertyToID("_Height");
 
     private readonly int _sortKernel;
     private readonly int _transposedSortKernel;
@@ -80,7 +80,7 @@ public class LodsSortingDispatcher : ComputeShaderDispatcher
             SetGpuSortConstants(level, level, height, width);
 
             // Sort the row data
-            _command.SetComputeBufferParam(ComputeShader, _sortKernel, Data, _dataBuffer);
+            _command.SetComputeBufferParam(ComputeShader, _sortKernel, DataId, _dataBuffer);
             _command.DispatchCompute(ComputeShader, _sortKernel, (int)(elements / BITONIC_BLOCK_SIZE), 1, 1);
         }
 
@@ -93,22 +93,22 @@ public class LodsSortingDispatcher : ComputeShaderDispatcher
             var mask = (l & ~elements) / BITONIC_BLOCK_SIZE;
             SetGpuSortConstants(level, mask, width, height);
 
-            _command.SetComputeBufferParam(ComputeShader, _transposedSortKernel, Input, _dataBuffer);
-            _command.SetComputeBufferParam(ComputeShader, _transposedSortKernel, Data, _tempBuffer);
+            _command.SetComputeBufferParam(ComputeShader, _transposedSortKernel, InputId, _dataBuffer);
+            _command.SetComputeBufferParam(ComputeShader, _transposedSortKernel, DataId, _tempBuffer);
             _command.DispatchCompute(ComputeShader, _transposedSortKernel, (int)(width / TRANSPOSE_BLOCK_SIZE), (int)(height / TRANSPOSE_BLOCK_SIZE), 1);
 
             // Sort the transposed column data
-            _command.SetComputeBufferParam(ComputeShader, _sortKernel, Data, _tempBuffer);
+            _command.SetComputeBufferParam(ComputeShader, _sortKernel, DataId, _tempBuffer);
             _command.DispatchCompute(ComputeShader, _sortKernel, (int)(elements / BITONIC_BLOCK_SIZE), 1, 1);
 
             // Transpose the data from buffer 2 back into buffer 1
             SetGpuSortConstants(BITONIC_BLOCK_SIZE, l, height, width);
-            _command.SetComputeBufferParam(ComputeShader, _transposedSortKernel, Input, _tempBuffer);
-            _command.SetComputeBufferParam(ComputeShader, _transposedSortKernel, Data, _dataBuffer);
+            _command.SetComputeBufferParam(ComputeShader, _transposedSortKernel, InputId, _tempBuffer);
+            _command.SetComputeBufferParam(ComputeShader, _transposedSortKernel, DataId, _dataBuffer);
             _command.DispatchCompute(ComputeShader, _transposedSortKernel, (int)(height / TRANSPOSE_BLOCK_SIZE), (int)(width / TRANSPOSE_BLOCK_SIZE), 1);
 
             // Sort the row data
-            _command.SetComputeBufferParam(ComputeShader, _sortKernel,  Data, _dataBuffer);
+            _command.SetComputeBufferParam(ComputeShader, _sortKernel,  DataId, _dataBuffer);
             _command.DispatchCompute(ComputeShader, _sortKernel, (int)(elements / BITONIC_BLOCK_SIZE), 1, 1);
         }
 
@@ -138,9 +138,9 @@ public class LodsSortingDispatcher : ComputeShaderDispatcher
 
     private void SetGpuSortConstants(uint level, uint levelMask, uint width, uint height)
     {
-        _command.SetComputeIntParam(ComputeShader, Level, (int)level);
-        _command.SetComputeIntParam(ComputeShader, LevelMask, (int)levelMask);
-        _command.SetComputeIntParam(ComputeShader, Width, (int)width);
-        _command.SetComputeIntParam(ComputeShader, Height, (int)height);
+        _command.SetComputeIntParam(ComputeShader, LevelId, (int)level);
+        _command.SetComputeIntParam(ComputeShader, LevelMaskId, (int)levelMask);
+        _command.SetComputeIntParam(ComputeShader, WidthId, (int)width);
+        _command.SetComputeIntParam(ComputeShader, HeightId, (int)height);
     }
 }

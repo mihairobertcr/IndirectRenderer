@@ -6,7 +6,7 @@
 
 cbuffer CB
 {
-    int _NumberOfGroups;
+    int _GroupsCount;
     groupshared uint temp[2 * THREAD_GROUP_SIZE_X];
 }
 
@@ -31,7 +31,7 @@ inline void CSMain (
 
     // Perform reduction
     int d;
-    for (d = _NumberOfGroups >> 1; d > 0; d >>= 1)
+    for (d = _GroupsCount >> 1; d > 0; d >>= 1)
     {
         GroupMemoryBarrierWithGroupSync();
 
@@ -47,11 +47,11 @@ inline void CSMain (
     // Clear the last element
     if (threadId == 0)
     {
-        temp[_NumberOfGroups - 1] = 0;
+        temp[_GroupsCount - 1] = 0;
     }
 
     // Perform down sweep and build scan
-    for (d = 1; d < _NumberOfGroups; d *= 2)
+    for (d = 1; d < _GroupsCount; d *= 2)
     {
         offset >>= 1;
 

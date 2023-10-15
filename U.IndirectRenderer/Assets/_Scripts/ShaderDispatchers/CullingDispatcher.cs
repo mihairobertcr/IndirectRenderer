@@ -4,22 +4,21 @@ using IndirectRendering;
 
 public class CullingDispatcher : ComputeShaderDispatcher
 {
-    private static readonly int ShouldFrustumCull = Shader.PropertyToID("_ShouldFrustumCull");
-    private static readonly int ShouldOcclusionCull = Shader.PropertyToID("_ShouldOcclusionCull");
-    private static readonly int ShouldLod = Shader.PropertyToID("_ShouldLod");
-    private static readonly int ShouldDetailCull = Shader.PropertyToID("_ShouldDetailCull");
+    private static readonly int EnableFrustumCullingId = Shader.PropertyToID("_EnableFrustumCulling");
+    private static readonly int EnableOcclusionCullingId = Shader.PropertyToID("_EnableOcclusionCulling");
+    private static readonly int EnableDetailCullingId = Shader.PropertyToID("_EnableDetailCulling");
+    private static readonly int EnableLodsId = Shader.PropertyToID("_EnableLods");
     
-    private static readonly int IsVisibleBuffer = Shader.PropertyToID("_IsVisibleBuffer");
-    private static readonly int ShadowDistance = Shader.PropertyToID("_ShadowDistance");
-    private static readonly int DetailCullingScreenPercentage = Shader.PropertyToID("_DetailCullingScreenPercentage");
-    private static readonly int HiZTextureSize = Shader.PropertyToID("_HiZTextureSize");
-    private static readonly int HiZMap = Shader.PropertyToID("_HiZMap");
-    private static readonly int MvpMatrix = Shader.PropertyToID("_MvpMatrix");
-    private static readonly int CameraPosition = Shader.PropertyToID("_CameraPosition");
+    private static readonly int DetailCullingScreenPercentageId = Shader.PropertyToID("_DetailCullingScreenPercentage");
+    private static readonly int DepthMapResolutionId = Shader.PropertyToID("_DepthMapResolution");
+    private static readonly int CameraPositionId = Shader.PropertyToID("_CameraPosition");
+    private static readonly int LodsCountId = Shader.PropertyToID("_LodsCount");
+    private static readonly int MvpMatrixId = Shader.PropertyToID("_MvpMatrix");
+    private static readonly int DepthMapId = Shader.PropertyToID("_DepthMap");
     
-    private static readonly int LodsIntervals = Shader.PropertyToID("_LodsIntervals");
-    private static readonly int DefaultLods = Shader.PropertyToID("_DefaultLods");
-    private static readonly int LodsCount = Shader.PropertyToID("_LodsCount");
+    private static readonly int VisibilityBufferId = Shader.PropertyToID("_VisibilityBuffer");
+    private static readonly int LodsRangesBufferId = Shader.PropertyToID("_LodsRangesBuffer");
+    private static readonly int DefaultLodsBufferId = Shader.PropertyToID("_DefaultLodsBuffer");
     
     private readonly int _kernel;
     private readonly int _threadGroupX;
@@ -52,13 +51,12 @@ public class CullingDispatcher : ComputeShaderDispatcher
 
     public CullingDispatcher SetSettings(IndirectRendererSettings settings)
     {
-        ComputeShader.SetInt(ShouldFrustumCull, settings.EnableFrustumCulling ? 1 : 0);
-        ComputeShader.SetInt(ShouldOcclusionCull, settings.EnableOcclusionCulling ? 1 : 0);
-        ComputeShader.SetInt(ShouldDetailCull, settings.EnableDetailCulling ? 1 : 0);
-        ComputeShader.SetInt(ShouldLod, settings.EnableLod ? 1 : 0);
-
-        ComputeShader.SetFloat(ShadowDistance, QualitySettings.shadowDistance);
-        ComputeShader.SetFloat(DetailCullingScreenPercentage, settings.DetailCullingPercentage);
+        ComputeShader.SetInt(EnableFrustumCullingId, settings.EnableFrustumCulling ? 1 : 0);
+        ComputeShader.SetInt(EnableOcclusionCullingId, settings.EnableOcclusionCulling ? 1 : 0);
+        ComputeShader.SetInt(EnableDetailCullingId, settings.EnableDetailCulling ? 1 : 0);
+        ComputeShader.SetInt(EnableLodsId, settings.EnableLod ? 1 : 0);
+        
+        ComputeShader.SetFloat(DetailCullingScreenPercentageId, settings.DetailCullingPercentage);
 
         return this;
     }
@@ -110,18 +108,18 @@ public class CullingDispatcher : ComputeShaderDispatcher
 
     public CullingDispatcher SetDepthMap()
     {
-        ComputeShader.SetVector(HiZTextureSize, HierarchicalDepthMap.Resolution);
-        ComputeShader.SetTexture(_kernel, HiZMap, HierarchicalDepthMap.Texture);
+        ComputeShader.SetVector(DepthMapResolutionId, HierarchicalDepthMap.Resolution);
+        ComputeShader.SetTexture(_kernel, DepthMapId, HierarchicalDepthMap.Texture);
         
         return this;
     }
     
     public CullingDispatcher SubmitCullingData()
     {
-        ComputeShader.SetBuffer(_kernel, ArgsBuffer, _argumentsBuffer);
-        ComputeShader.SetBuffer(_kernel, IsVisibleBuffer, _visibilityBuffer);
-        ComputeShader.SetBuffer(_kernel, BoundsData, _boundsDataBuffer);
-        ComputeShader.SetBuffer(_kernel, SortingData, _sortingDataBuffer);
+        ComputeShader.SetBuffer(_kernel, ArgsBufferId, _argumentsBuffer);
+        ComputeShader.SetBuffer(_kernel, VisibilityBufferId, _visibilityBuffer);
+        ComputeShader.SetBuffer(_kernel, BoundsDataId, _boundsDataBuffer);
+        ComputeShader.SetBuffer(_kernel, SortingDataId, _sortingDataBuffer);
 
         return this;
     }
@@ -133,17 +131,17 @@ public class CullingDispatcher : ComputeShaderDispatcher
         var projectionMatrix = camera.projectionMatrix;
         var modelViewProjection = projectionMatrix * worldMatrix;
 
-        ComputeShader.SetMatrix(MvpMatrix, modelViewProjection);
-        ComputeShader.SetVector(CameraPosition, cameraPosition);
+        ComputeShader.SetMatrix(MvpMatrixId, modelViewProjection);
+        ComputeShader.SetVector(CameraPositionId, cameraPosition);
 
         return this;
     }
 
     public CullingDispatcher SubmitLodsData()
     {
-        ComputeShader.SetInt(LodsCount, Context.LodsCount);
-        ComputeShader.SetBuffer(_kernel, LodsIntervals, _lodsRangesBuffer);
-        ComputeShader.SetBuffer(_kernel, DefaultLods, _defaultLodsBuffer);
+        ComputeShader.SetInt(LodsCountId, Context.LodsCount);
+        ComputeShader.SetBuffer(_kernel, LodsRangesBufferId, _lodsRangesBuffer);
+        ComputeShader.SetBuffer(_kernel, DefaultLodsBufferId, _defaultLodsBuffer);
         
         return this;
     }

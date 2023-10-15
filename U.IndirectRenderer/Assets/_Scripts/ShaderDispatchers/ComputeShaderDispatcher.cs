@@ -6,18 +6,18 @@ public abstract class ComputeShaderDispatcher
     
     protected const int SCAN_THREAD_GROUP_SIZE = 64;
 
-    protected static readonly int ArgsBuffer = Shader.PropertyToID("_ArgsBuffer");
+    protected static readonly int ArgsBufferId = Shader.PropertyToID("_ArgsBuffer");
 
-    protected static readonly int MatrixRows01 = Shader.PropertyToID("_MatrixRows01");
-    protected static readonly int MatrixRows23 = Shader.PropertyToID("_MatrixRows23");
-    protected static readonly int MatrixRows45 = Shader.PropertyToID("_MatrixRows45");
+    protected static readonly int MatrixRows01Id = Shader.PropertyToID("_MatrixRows01");
+    protected static readonly int MatrixRows23Id = Shader.PropertyToID("_MatrixRows23");
+    protected static readonly int MatrixRows45Id = Shader.PropertyToID("_MatrixRows45");
 
-    protected static readonly int BoundsData = Shader.PropertyToID("_BoundsDataBuffer");
-    protected static readonly int SortingData = Shader.PropertyToID("_SortingData");
+    protected static readonly int BoundsDataId = Shader.PropertyToID("_BoundsData");
+    protected static readonly int SortingDataId = Shader.PropertyToID("_SortingData");
 
-    protected static readonly int PredicatesInput = Shader.PropertyToID("_PredicatesInput");
-    protected static readonly int GroupSums = Shader.PropertyToID("_GroupSums");
-    protected static readonly int ScannedPredicates = Shader.PropertyToID("_ScannedPredicates");
+    protected static readonly int PredicatesInputId = Shader.PropertyToID("_PredicatesInput");
+    protected static readonly int GroupSumsId = Shader.PropertyToID("_GroupSums");
+    protected static readonly int ScannedPredicatesId = Shader.PropertyToID("_ScannedPredicates");
     
     protected readonly ComputeShader ComputeShader;
     protected readonly RendererDataContext Context;

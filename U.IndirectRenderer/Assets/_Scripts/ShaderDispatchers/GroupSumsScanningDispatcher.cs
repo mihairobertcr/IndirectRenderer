@@ -2,9 +2,9 @@ using UnityEngine;
 
 public class GroupSumsScanningDispatcher : ComputeShaderDispatcher
 {
-    private static readonly int NumberOfGroups = Shader.PropertyToID("_NumberOfGroups");
-    private static readonly int GroupSumsInput = Shader.PropertyToID("_GroupSumsInput");
-    private static readonly int GroupSumsOutput = Shader.PropertyToID("_GroupSumsOutput");
+    private static readonly int GroupsCountId = Shader.PropertyToID("_GroupsCount");
+    private static readonly int GroupSumsInputId = Shader.PropertyToID("_GroupSumsInput");
+    private static readonly int GroupSumsOutputId = Shader.PropertyToID("_GroupSumsOutput");
     
     private readonly int _kernel;
     
@@ -20,14 +20,14 @@ public class GroupSumsScanningDispatcher : ComputeShaderDispatcher
 
     public GroupSumsScanningDispatcher SubmitGroupCount()
     {
-        ComputeShader.SetInt(NumberOfGroups, Context.MeshesCount / (2 * SCAN_THREAD_GROUP_SIZE));
+        ComputeShader.SetInt(GroupsCountId, Context.MeshesCount / (2 * SCAN_THREAD_GROUP_SIZE));
         return this;
     }
 
     public GroupSumsScanningDispatcher SubmitGroupSumsData()
     {
-        ComputeShader.SetBuffer(_kernel, GroupSumsInput, _groupSumsBuffer);
-        ComputeShader.SetBuffer(_kernel, GroupSumsOutput, _scannedGroupSumsBuffer);
+        ComputeShader.SetBuffer(_kernel, GroupSumsInputId, _groupSumsBuffer);
+        ComputeShader.SetBuffer(_kernel, GroupSumsOutputId, _scannedGroupSumsBuffer);
         
         return this;
     }
