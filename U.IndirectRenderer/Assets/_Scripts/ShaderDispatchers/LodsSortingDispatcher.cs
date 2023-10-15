@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using IndirectRendering;
 
-public class LodBitonicSorter : ComputeShaderDispatcher
+public class LodsSortingDispatcher : ComputeShaderDispatcher
 {
     private const uint BITONIC_BLOCK_SIZE = 256;
     private const uint TRANSPOSE_BLOCK_SIZE = 8;
@@ -17,7 +17,7 @@ public class LodBitonicSorter : ComputeShaderDispatcher
     
     private bool _computeAsync;
 
-    public LodBitonicSorter(ComputeShader computeShader, RendererDataContext context)
+    public LodsSortingDispatcher(ComputeShader computeShader, RendererDataContext context)
         : base(computeShader, context)
     {
         _sortKernel = GetKernel("BitonicSort");
@@ -26,9 +26,9 @@ public class LodBitonicSorter : ComputeShaderDispatcher
         InitializeSortingBuffers(out _command, out _dataBuffer, out _tempBuffer);
     }
     
-    ~LodBitonicSorter() => _command.Release();
+    ~LodsSortingDispatcher() => _command.Release();
 
-    public LodBitonicSorter SetSortingData(InstanceProperties[] meshes, Camera camera)
+    public LodsSortingDispatcher SetSortingData(InstanceProperties[] meshes, Camera camera)
     {
         var cameraPosition = camera.transform.position;
         var sortingData = new List<SortingData>();
@@ -47,7 +47,6 @@ public class LodBitonicSorter : ComputeShaderDispatcher
                 });
 
                 instancesCount++;
-                //Debug.Log(drawCallIndex >> 16);
             }
         }
 
@@ -57,7 +56,7 @@ public class LodBitonicSorter : ComputeShaderDispatcher
         return this;
     }
 
-    public LodBitonicSorter SetupSortingCommand()
+    public LodsSortingDispatcher SetupSortingCommand()
     {
         // Parameters
         var elements = (uint)Context.MeshesCount;

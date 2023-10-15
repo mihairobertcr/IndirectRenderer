@@ -7,16 +7,13 @@ public class IndirectRendererSettings
     [Header("Execution")]
     public bool RunCompute = true;
     public bool DrawInstances = true;
-    public bool DrawShadows = true;
-    public bool ComputeAsync = true;
-    
+
     [Space]
     [Header("Features")]
     public bool EnableFrustumCulling = true;
     public bool EnableOcclusionCulling = true;
     public bool EnableDetailCulling = true;
     public bool EnableLod = true;
-    public bool EnableOnlyLod2Shadows = true;
     
     [Space]
     [Header("Details")]

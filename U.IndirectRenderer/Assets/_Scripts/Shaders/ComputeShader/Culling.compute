@@ -14,11 +14,8 @@ cbuffer CB
     uint _ShouldOcclusionCull;
     uint _ShouldDetailCull;
     uint _ShouldLod;
-    uint _ShouldOnlyUseLod2Shadows;
     
-    int _ShadowCascades;
     int _LodsCount;
-    float _ShadowDistance;
     float _DetailCullingScreenPercentage;
     float2 _HiZTextureSize;
     float3 _CameraPosition;
@@ -33,9 +30,7 @@ RWStructuredBuffer<float> _LodsIntervals;
 RWStructuredBuffer<uint> _DefaultLods;
 
 RWStructuredBuffer<uint> _ArgsBuffer;
-RWStructuredBuffer<uint> _ShadowArgsBuffer;
 RWStructuredBuffer<uint> _IsVisibleBuffer;
-RWStructuredBuffer<uint> _IsShadowVisibleBuffer;
 RWStructuredBuffer<SortingData> _SortingData;
 
 inline uint IsCameraOutsideObjBounds(float3 position, float3 min, float3 max)
@@ -131,7 +126,6 @@ inline void CSMain (
 
     // Reset the is visible state
     _IsVisibleBuffer[threadId] = 0;
-    _IsShadowVisibleBuffer[threadId] = 0;
 
     // Get the instance data
     BoundsData instance = _BoundsDataBuffer[index];
@@ -198,10 +192,10 @@ inline void CSMain (
 
     // Calculate the correct index to the arguments buffers
     uint argsIndex = drawCall + 1;
-    int rangeIndex = drawCall / (MESH_ARGUMENTS_COUNT * _LodsCount);
+    uint rangeIndex = drawCall / (MESH_ARGUMENTS_COUNT * _LodsCount);
     if (_ShouldLod)
     {
-        for (int k = 0; k < _LodsCount - 1; k++)
+        for (uint k = 0; k < _LodsCount - 1; k++)
         {
             float range = _LodsIntervals[k + (rangeIndex * _LodsCount)];
             if (minDistanceToCamera > range)
@@ -215,18 +209,9 @@ inline void CSMain (
         argsIndex += MESH_ARGUMENTS_COUNT * _DefaultLods[rangeIndex];
     }
     
-    //argsIndex = _ShouldLod * argsIndex + ((_ShouldLod == 0) * (drawCall + 11));
-    uint shadowArgsIndex = argsIndex;//_ShouldOnlyUseLod2Shadows ? drawCall + 11 : argsIndex;
-
-    // Mark it as a shadow caster if it's within shadow distance...
-    uint isCastingShadow = minDistanceToCamera < _ShadowDistance ? 1 : 0;
-
     // Output
     _IsVisibleBuffer[threadId] = isVisible;
     InterlockedAdd(_ArgsBuffer[argsIndex], isVisible);
-    
-    _IsShadowVisibleBuffer[threadId] = isCastingShadow;
-    InterlockedAdd(_ShadowArgsBuffer[shadowArgsIndex], isCastingShadow);
 
     sortingData.DistanceToCamera = minDistanceToCamera;
     _SortingData[threadId] = sortingData;

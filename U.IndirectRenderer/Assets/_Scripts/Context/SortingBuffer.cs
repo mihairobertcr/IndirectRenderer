@@ -1,7 +1,7 @@
 using System;
 using System.Text;
-using IndirectRendering;
 using UnityEngine;
+using IndirectRendering;
 
 public class SortingBuffer : IDisposable
 {

@@ -2,15 +2,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using IndirectRendering;
 
-public class InstancesCuller : ComputeShaderDispatcher
+public class CullingDispatcher : ComputeShaderDispatcher
 {
     private readonly int _kernel;
     private readonly int _threadGroupX;
     
-    private readonly GraphicsBuffer _meshesArgumentsBuffer;
-    private readonly GraphicsBuffer _shadowsArgumentsBuffer;
-    private readonly ComputeBuffer _meshesVisibilityBuffer;
-    private readonly ComputeBuffer _shadowsVisibilityBuffer;
+    private readonly GraphicsBuffer _argumentsBuffer;
+    private readonly ComputeBuffer _visibilityBuffer;
     private readonly ComputeBuffer _defaultLodsBuffer;
     private readonly ComputeBuffer _lodsRangesBuffer;
     private readonly ComputeBuffer _boundsDataBuffer;
@@ -20,30 +18,27 @@ public class InstancesCuller : ComputeShaderDispatcher
     private List<float> _lodsRanges;
     private List<BoundsData> _boundsData;
 
-    public InstancesCuller(ComputeShader computeShader, RendererDataContext context)
+    public CullingDispatcher(ComputeShader computeShader, RendererDataContext context)
         : base(computeShader, context)
     {
         _kernel = GetKernel("CSMain");
         _threadGroupX = Mathf.Max(1, context.MeshesCount / 64);
         
         InitializeCullingBuffers(
-            out _meshesArgumentsBuffer,
-            out _shadowsArgumentsBuffer,
-            out _meshesVisibilityBuffer,
-            out _shadowsVisibilityBuffer,
+            out _argumentsBuffer,
+            out _visibilityBuffer,
             out _defaultLodsBuffer,
             out _lodsRangesBuffer,
             out _boundsDataBuffer,
             out _sortingDataBuffer);
     }
 
-    public InstancesCuller SetSettings(IndirectRendererSettings settings)
+    public CullingDispatcher SetSettings(IndirectRendererSettings settings)
     {
         ComputeShader.SetInt(ShaderProperties.ShouldFrustumCull, settings.EnableFrustumCulling ? 1 : 0);
         ComputeShader.SetInt(ShaderProperties.ShouldOcclusionCull, settings.EnableOcclusionCulling ? 1 : 0);
         ComputeShader.SetInt(ShaderProperties.ShouldDetailCull, settings.EnableDetailCulling ? 1 : 0);
         ComputeShader.SetInt(ShaderProperties.ShouldLod, settings.EnableLod ? 1 : 0);
-        ComputeShader.SetInt(ShaderProperties.ShouldOnlyUseLod2Shadows, settings.EnableOnlyLod2Shadows ? 1 : 0);
 
         ComputeShader.SetFloat(ShaderProperties.ShadowDistance, QualitySettings.shadowDistance);
         ComputeShader.SetFloat(ShaderProperties.DetailCullingScreenPercentage, settings.DetailCullingPercentage);
@@ -52,7 +47,7 @@ public class InstancesCuller : ComputeShaderDispatcher
     }
     
     //TODO: Enforce that this should be called only in initialization faze
-    public InstancesCuller SetBoundsData(InstanceProperties[] meshes)
+    public CullingDispatcher SetBoundsData(InstanceProperties[] meshes)
     {
         _boundsData = new List<BoundsData>();
         foreach (var mesh in meshes)
@@ -78,7 +73,7 @@ public class InstancesCuller : ComputeShaderDispatcher
         return this;
     }
 
-    public InstancesCuller SetLodsData(InstanceProperties[] meshes)
+    public CullingDispatcher SetLodsData(InstanceProperties[] meshes)
     {
         _defaultLods = new List<uint>();
         _lodsRanges = new List<float>();
@@ -97,7 +92,7 @@ public class InstancesCuller : ComputeShaderDispatcher
         return this;
     }
 
-    public InstancesCuller SetDepthMap()
+    public CullingDispatcher SetDepthMap()
     {
         ComputeShader.SetVector(ShaderProperties.HiZTextureSize, HierarchicalDepthMap.Resolution);
         ComputeShader.SetTexture(_kernel, ShaderProperties.HiZMap, HierarchicalDepthMap.Texture);
@@ -107,15 +102,13 @@ public class InstancesCuller : ComputeShaderDispatcher
     
     public void SubmitCullingData()
     {
-        ComputeShader.SetBuffer(_kernel, ShaderProperties.ArgsBuffer, _meshesArgumentsBuffer);
-        ComputeShader.SetBuffer(_kernel, ShaderProperties.ShadowArgsBuffer, _shadowsArgumentsBuffer);
-        ComputeShader.SetBuffer(_kernel, ShaderProperties.IsVisibleBuffer, _meshesVisibilityBuffer);
-        ComputeShader.SetBuffer(_kernel, ShaderProperties.IsShadowVisibleBuffer, _shadowsVisibilityBuffer);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.ArgsBuffer, _argumentsBuffer);
+        ComputeShader.SetBuffer(_kernel, ShaderProperties.IsVisibleBuffer, _visibilityBuffer);
         ComputeShader.SetBuffer(_kernel, ShaderProperties.BoundsData, _boundsDataBuffer);
         ComputeShader.SetBuffer(_kernel, ShaderProperties.SortingData, _sortingDataBuffer);
     }
 
-    public InstancesCuller SubmitCameraData(Camera camera)
+    public CullingDispatcher SubmitCameraData(Camera camera)
     {
         var cameraPosition = camera.transform.position;
         var worldMatrix = camera.worldToCameraMatrix;
@@ -129,7 +122,7 @@ public class InstancesCuller : ComputeShaderDispatcher
     }
 
     //TODO: Revisit chaining and how data works in GPU
-    public InstancesCuller SubmitLodsData()
+    public CullingDispatcher SubmitLodsData()
     {
         _defaultLodsBuffer.SetData(_defaultLods);
         _lodsRangesBuffer.SetData(_lodsRanges);
@@ -153,14 +146,13 @@ public class InstancesCuller : ComputeShaderDispatcher
         }
     }
 
-    private void InitializeCullingBuffers(out GraphicsBuffer meshesArgs, out GraphicsBuffer shadowsArgs, 
-        out ComputeBuffer meshesVisibility, out ComputeBuffer shadowsVisibility, out ComputeBuffer defaultLods,
-        out ComputeBuffer lodsRanges, out ComputeBuffer bounds, out ComputeBuffer sortingData)
+    private void InitializeCullingBuffers(out GraphicsBuffer args,
+        out ComputeBuffer visibility, out ComputeBuffer defaultLods, 
+        out ComputeBuffer lodsRanges, out ComputeBuffer bounds, 
+        out ComputeBuffer sortingData)
     {
-        meshesArgs = Context.Arguments.MeshesBuffer;
-        shadowsArgs = Context.Arguments.ShadowsBuffer;
-        meshesVisibility = Context.Visibility.Meshes;
-        shadowsVisibility = Context.Visibility.Shadows;
+        args = Context.Arguments.GraphicsBuffer;
+        visibility = Context.Visibility;
         defaultLods = Context.DefaultLods;
         lodsRanges = Context.LodsRanges;
         bounds = Context.BoundingBoxes;

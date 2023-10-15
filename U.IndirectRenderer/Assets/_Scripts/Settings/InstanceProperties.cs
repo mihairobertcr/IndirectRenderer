@@ -22,7 +22,7 @@ public class InstanceProperties
     public Mesh CombinedMesh;
     public uint DefaultLod;
     public bool RecombineLods;
-    public List<LodProperty> Lods;
+    public List<LodProperties> Lods;
 
     [Space] 
     [Header("Location")]

@@ -5,156 +5,76 @@ using UnityEngine;
 
 public class ArgumentsBuffer : IDisposable
 {
-    public const int MESH_ARGUMENTS_COUNT = 5;
+    public const int ARGUMENTS_COUNT = 5;
 
     public int InstanceArgumentsCount { get; }
-    public GraphicsBuffer MeshesBuffer { get; }
-    public GraphicsBuffer ShadowsBuffer { get; }
+    public GraphicsBuffer GraphicsBuffer { get; }
 
-    private readonly InstanceProperties[] _meshProperties;
+    private readonly InstanceProperties[] _properties;
     private readonly GraphicsBuffer.IndirectDrawIndexedArgs[] _parameters;
 
-    public ArgumentsBuffer(InstanceProperties[] meshProperties, int lodsCount)
+    public ArgumentsBuffer(InstanceProperties[] properties, int lodsCount)
     {
-        _meshProperties = meshProperties;
+        _properties = properties;
         _parameters = InitializeArgumentsBuffer();
         
-        InstanceArgumentsCount = MESH_ARGUMENTS_COUNT * lodsCount;
-        MeshesBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, _meshProperties.Length * lodsCount, GraphicsBuffer.IndirectDrawIndexedArgs.size);
-        ShadowsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, _meshProperties.Length * lodsCount, GraphicsBuffer.IndirectDrawIndexedArgs.size);
+        InstanceArgumentsCount = ARGUMENTS_COUNT * lodsCount;
+        GraphicsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, _properties.Length * lodsCount, GraphicsBuffer.IndirectDrawIndexedArgs.size);
 
         Reset();
     }
 
     public void Reset()
     {
-        MeshesBuffer.SetData(_parameters);
-        ShadowsBuffer.SetData(_parameters);
+        GraphicsBuffer.SetData(_parameters);
     }
 
     public void Dispose()
     {
-        MeshesBuffer?.Dispose();
-        ShadowsBuffer?.Dispose();
+        GraphicsBuffer?.Dispose();
     }
 
     //TODO: Change to GraphicsBuffer
-    public void Log(string meshesPrefix = "", string shadowPrefix = "")
+    public void Log(string meshesPrefix = "")
     {
-        var meshesArgs = new uint[InstanceArgumentsCount * _meshProperties.Length];
-        var shadowArgs = new uint[InstanceArgumentsCount * _meshProperties.Length];
-        MeshesBuffer.GetData(meshesArgs);
-        ShadowsBuffer.GetData(shadowArgs);
+        var args = new uint[InstanceArgumentsCount * _properties.Length];
+        GraphicsBuffer.GetData(args);
     
-        var meshesLog = new StringBuilder();
-        var shadowsLog = new StringBuilder();
-
+        var log = new StringBuilder();
         if (!string.IsNullOrEmpty(meshesPrefix))
         {
-            meshesLog.AppendLine(meshesPrefix);
+            log.AppendLine(meshesPrefix);
         }
-
-        if (!string.IsNullOrEmpty(shadowPrefix))
-        {
-            shadowsLog.AppendLine(shadowPrefix);
-        }
-    
-        meshesLog.AppendLine("");
-        shadowsLog.AppendLine("");
-    
-        meshesLog.AppendLine("IndexCountPerInstance InstanceCount StartIndex BaseVertexIndex StartInstance");
-        shadowsLog.AppendLine("IndexCountPerInstance InstanceCount StartIndex BaseVertexIndex StartInstance");
+        
+        // log.AppendLine("");
+        log.AppendLine("IndexCountPerInstance InstanceCount StartIndex BaseVertexIndex StartInstance");
     
         var counter = 0;
-        meshesLog.AppendLine(_meshProperties[counter].CombinedMesh.name);
-        shadowsLog.AppendLine(_meshProperties[counter].CombinedMesh.name);
-        for (var i = 0; i < meshesArgs.Length; i++)
+        log.AppendLine(_properties[counter].CombinedMesh.name);
+        for (var i = 0; i < args.Length; i++)
         {
-            meshesLog.Append($"{meshesArgs[i]} ");
-            shadowsLog.Append($"{shadowArgs[i]} ");
+            log.Append($"{args[i]} ");
+            
+            if ((i + 1) % ARGUMENTS_COUNT != 0) continue;
+            log.AppendLine("");
 
-            if ((i + 1) % 5 == 0)
-            {
-                meshesLog.AppendLine("");
-                shadowsLog.AppendLine("");
-                if ((i + 1) < meshesArgs.Length && (i + 1) % InstanceArgumentsCount == 0)
-                {
-                    meshesLog.AppendLine("");
-                    shadowsLog.AppendLine("");
+            if ((i + 1) >= args.Length || (i + 1) % InstanceArgumentsCount != 0) continue;
+            log.AppendLine("");
 
-                    counter++;
-                    var properties = _meshProperties[counter];
-                    var mesh = properties.CombinedMesh;
-                    meshesLog.AppendLine(mesh.name);
-                    shadowsLog.AppendLine(mesh.name);
-                }
-            }
+            counter++;
+            var properties = _properties[counter];
+            var mesh = properties.CombinedMesh;
+            log.AppendLine(mesh.name);
         }
     
-        Debug.Log(meshesLog.ToString());
-        Debug.Log(shadowsLog.ToString());
+        Debug.Log(log.ToString());
     }
 
     private GraphicsBuffer.IndirectDrawIndexedArgs[] InitializeArgumentsBuffer()
     {
         var parameters = new List<GraphicsBuffer.IndirectDrawIndexedArgs>();
-
-        foreach (var property in _meshProperties)
+        foreach (var property in _properties)
         {
-            // parameters.Add(new GraphicsBuffer.IndirectDrawIndexedArgs
-            // {
-            //     indexCountPerInstance = property.CombinedMesh.GetIndexCount(0),
-            //     instanceCount = 0,
-            //     startIndex = property.CombinedMesh.GetIndexStart(0),
-            //     baseVertexIndex = property.CombinedMesh.GetBaseVertex(0),
-            //     startInstance = 0
-            // });
-            //
-            // parameters.Add(new GraphicsBuffer.IndirectDrawIndexedArgs
-            // {
-            //     indexCountPerInstance = property.CombinedMesh.GetIndexCount(1),
-            //     instanceCount = 0,
-            //     startIndex = property.CombinedMesh.GetIndexStart(1),
-            //     baseVertexIndex = property.CombinedMesh.GetBaseVertex(1),
-            //     startInstance = 0
-            // });
-            //
-            // parameters.Add(new GraphicsBuffer.IndirectDrawIndexedArgs
-            // {
-            //     indexCountPerInstance = property.CombinedMesh.GetIndexCount(2),
-            //     instanceCount = 0,
-            //     startIndex = property.CombinedMesh.GetIndexStart(2),
-            //     baseVertexIndex = property.CombinedMesh.GetBaseVertex(2),
-            //     startInstance = 0
-            // });
-            
-            // parameters.Add(new GraphicsBuffer.IndirectDrawIndexedArgs
-            // {
-            //     indexCountPerInstance = property.Lod0Mesh.GetIndexCount(0),
-            //     instanceCount = 0,
-            //     startIndex = property.Lod0Mesh.GetIndexStart(0),
-            //     baseVertexIndex = property.Lod0Mesh.GetBaseVertex(0),
-            //     startInstance = 0
-            // });
-            //
-            // parameters.Add(new GraphicsBuffer.IndirectDrawIndexedArgs
-            // {
-            //     indexCountPerInstance = property.Lod1Mesh.GetIndexCount(0),
-            //     instanceCount = 0,
-            //     startIndex = property.Lod1Mesh.GetIndexStart(0),
-            //     baseVertexIndex = property.Lod1Mesh.GetBaseVertex(0),
-            //     startInstance = 0
-            // });
-            //
-            // parameters.Add(new GraphicsBuffer.IndirectDrawIndexedArgs
-            // {
-            //     indexCountPerInstance = property.Lod2Mesh.GetIndexCount(0),
-            //     instanceCount = 0,
-            //     startIndex = property.Lod2Mesh.GetIndexStart(0),
-            //     baseVertexIndex = property.Lod2Mesh.GetBaseVertex(0),
-            //     startInstance = 0
-            // });   
-            
             foreach (var lod in property.Lods)
             {
                 parameters.Add(new GraphicsBuffer.IndirectDrawIndexedArgs

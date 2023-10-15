@@ -10,12 +10,12 @@ public class IndirectRenderer : IDisposable
     private readonly IndirectRendererSettings _settings;
     private readonly RendererDataContext _context;
 
-    private readonly MatricesInitializerDispatcher _matricesInitializerDispatcher;
-    private readonly LodBitonicSorter _lodBitonicSorter;
-    private readonly InstancesCuller _instancesCuller;
-    private readonly InstancesScanner _instancesScanner;
-    private readonly GroupSumsScanner _groupSumsScanner;
-    private readonly InstancesDataCopier _dataCopier;
+    private readonly MatricesInitializingDispatcher _matricesInitializingDispatcher;
+    private readonly LodsSortingDispatcher _lodsSortingDispatcher;
+    private readonly CullingDispatcher _cullingDispatcher;
+    private readonly PredicatesScanning _predicatesScanning;
+    private readonly GroupSumsScanningDispatcher _groupSumsScanningDispatcher;
+    private readonly DataCopyingDispatcher _dataCopyingDispatcher;
 
     private Bounds _worldBounds;
     
@@ -32,12 +32,12 @@ public class IndirectRenderer : IDisposable
         
         _context = new RendererDataContext(config, _instances);
 
-        _matricesInitializerDispatcher = new MatricesInitializerDispatcher(_config.MatricesInitializer, _context);
-        _lodBitonicSorter = new LodBitonicSorter(_config.LodBitonicSorter, _context);
-        _instancesCuller = new InstancesCuller(_config.InstancesCuller, _context);
-        _instancesScanner = new InstancesScanner(_config.InstancesScanner, _context);
-        _groupSumsScanner = new GroupSumsScanner(_config.GroupSumsScanner, _context);
-        _dataCopier = new InstancesDataCopier(_config.InstancesDataCopier, _context);
+        _matricesInitializingDispatcher = new MatricesInitializingDispatcher(_config.MatricesInitializer, _context);
+        _lodsSortingDispatcher = new LodsSortingDispatcher(_config.LodBitonicSorter, _context);
+        _cullingDispatcher = new CullingDispatcher(_config.InstancesCuller, _context);
+        _predicatesScanning = new PredicatesScanning(_config.InstancesScanner, _context);
+        _groupSumsScanningDispatcher = new GroupSumsScanningDispatcher(_config.GroupSumsScanner, _context);
+        _dataCopyingDispatcher = new DataCopyingDispatcher(_config.InstancesDataCopier, _context);
 
         Initialize();
         RenderPipelineManager.beginFrameRendering += BeginFrameRendering;
@@ -53,32 +53,32 @@ public class IndirectRenderer : IDisposable
     {
         if (_settings.DrawBounds)
         {
-            _instancesCuller.DrawGizmos();
+            _cullingDispatcher.DrawGizmos();
         }
     }
     
     private void Initialize()
     {
-        _matricesInitializerDispatcher.SetTransformData(_instances)
+        _matricesInitializingDispatcher.SetTransformData(_instances)
             .SubmitTransformsData()
             .Dispatch();
 
-        _lodBitonicSorter.SetSortingData(_instances, _config.RenderCamera)
+        _lodsSortingDispatcher.SetSortingData(_instances, _config.RenderCamera)
             .SetupSortingCommand()
             .EnabledAsyncComputing(true);
         
-        _instancesCuller.SetSettings(_settings)
+        _cullingDispatcher.SetSettings(_settings)
             .SetBoundsData(_instances)
             .SetLodsData(_instances)
             .SetDepthMap()
             .SubmitCullingData();
 
-        _groupSumsScanner.SubmitGroupCount();
-        _dataCopier.SubmitCopingBuffers();
-        _dataCopier.BindMaterialProperties(_instances);
+        _groupSumsScanningDispatcher.SubmitGroupCount();
+        _dataCopyingDispatcher.SubmitCopingBuffers();
+        _dataCopyingDispatcher.BindMaterialProperties(_instances);
     }
 
-    public void BeginFrameRendering(ScriptableRenderContext context, Camera[] camera)
+    private void BeginFrameRendering(ScriptableRenderContext context, Camera[] camera)
     {
         if (_settings.RunCompute)
         {
@@ -110,12 +110,12 @@ public class IndirectRenderer : IDisposable
         if (_settings.LogArgumentsAfterReset)
         {
             _settings.LogArgumentsAfterReset = false;
-            _context.Arguments.Log("Arguments Buffers - Meshes After Reset", "Arguments Buffers - Shadows After Reset");
+            _context.Arguments.Log("Arguments Buffers - Meshes After Reset");
         }
         Profiler.EndSample();
         
         Profiler.BeginSample("LOD Sorting");
-        _lodBitonicSorter.Dispatch();
+        _lodsSortingDispatcher.Dispatch();
         if (_settings.LogSortingData)
         {
             _settings.LogSortingData = false;
@@ -124,63 +124,59 @@ public class IndirectRenderer : IDisposable
         Profiler.EndSample();
 
         Profiler.BeginSample("Occlusion");
-        _instancesCuller.SubmitCameraData(_config.RenderCamera)
+        _cullingDispatcher.SubmitCameraData(_config.RenderCamera)
             .SubmitLodsData()
             .Dispatch();
         
         if (_settings.LogArgumentsAfterOcclusion)
         {
             _settings.LogArgumentsAfterOcclusion = false;
-            _context.Arguments.Log("Arguments Buffers - Meshes After Occlusion", "Arguments Buffers - Shadows After Occlusion");
+            _context.Arguments.Log("Arguments Buffers - Meshes After Occlusion");
         }
         
         if (_settings.LogVisibilityBuffer)
         {
             _settings.LogVisibilityBuffer = false;
-            _context.Visibility.Log("Visibility Buffers - Meshes", "Visibility Buffers - Shadows");
+            _context.LogVisibility("Visibility Buffers - Meshes");
         }
         Profiler.EndSample();
         
         Profiler.BeginSample("Scan Instances");
-        _instancesScanner.SubmitMeshesData().Dispatch();
-        _instancesScanner.SubmitShadowsData().Dispatch();
+        _predicatesScanning.SubmitMeshesData().Dispatch();
         if (_settings.LogGroupSums)
         {
             _settings.LogGroupSums = false;
-            _context.GroupSums.Log("Group Sums Buffer - Meshes", "Group Sums Buffer - Shadows");
+            _context.LogGroupSums("Group Sums Buffer - Meshes");
         }
         
         if (_settings.LogScannedPredicates)
         {
             _settings.LogScannedPredicates = false;
-            _context.ScannedPredicates.Log("Scanned Predicates - Meshes", "Scanned Predicates - Shadows");
+            _context.LogScannedPredicates("Scanned Predicates - Meshes");
         }
         Profiler.EndSample();
         
         Profiler.BeginSample("Scan Thread Groups");
-        _groupSumsScanner.SubmitMeshData().Dispatch();
-        _groupSumsScanner.SubmitShadowsData().Dispatch();
+        _groupSumsScanningDispatcher.SubmitGroupSumsData().Dispatch();
         if (_settings.LogScannedGroupSums)
         {
             _settings.LogScannedGroupSums = false;
-            _context.ScannedGroupSums.Log("Scanned Group Sums Buffer - Meshes", "Scanned Group Sums Buffer - Shadows");
+            _context.LogScannedGroupSums("Scanned Group Sums Buffer - Meshes");
         }
         Profiler.EndSample();
         
         Profiler.BeginSample("Copy Instances Data");
-        _dataCopier.SubmitMeshesData().Dispatch();
-        _dataCopier.SubmitShadowsData().Dispatch();
-
+        _dataCopyingDispatcher.SubmitMeshesData().Dispatch();
         if (_settings.LogCulledMatrices)
         {
             _settings.LogCulledMatrices = false;
-            _context.Transforms.LogCulledMatrices("Culled Matrices - Meshes", "Culled Matrices - Shadows");
+            _context.Transforms.LogCulledMatrices("Culled Matrices - Meshes");
         }
         
         if (_settings.LogArgumentsAfterCopy)
         {
             _settings.LogArgumentsAfterCopy = false;
-            _context.Arguments.Log("Arguments Buffers - Meshes After Copy", "Arguments Buffers - Shadows After Copy");
+            _context.Arguments.Log("Arguments Buffers - Meshes After Copy");
         }
         Profiler.EndSample();
     }
@@ -212,9 +208,9 @@ public class IndirectRenderer : IDisposable
     {
         var lod = instance.Lods[lodIndex];
         var startCommand = instanceIndex * instance.Lods.Count + lodIndex;
-        renderParams.matProps = lod.MeshPropertyBlock;
+        renderParams.matProps = lod.MaterialPropertyBlock;
         renderParams.shadowCastingMode = lod.CastsShadows ? ShadowCastingMode.On : ShadowCastingMode.Off;
-        Graphics.RenderMeshIndirect(renderParams, lod.Mesh, _context.Arguments.MeshesBuffer, 1, startCommand);
+        Graphics.RenderMeshIndirect(renderParams, lod.Mesh, _context.Arguments.GraphicsBuffer, 1, startCommand);
     }
 
     private void InitializeMeshProperties()

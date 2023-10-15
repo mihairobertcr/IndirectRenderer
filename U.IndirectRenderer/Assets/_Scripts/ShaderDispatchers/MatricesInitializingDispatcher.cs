@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MatricesInitializerDispatcher : ComputeShaderDispatcher
+public class MatricesInitializingDispatcher : ComputeShaderDispatcher
 {
     private readonly int _kernel;
     private readonly int _threadGroupX;
@@ -11,7 +11,7 @@ public class MatricesInitializerDispatcher : ComputeShaderDispatcher
     private readonly ComputeBuffer _scalesBuffer;
     private readonly MatrixBuffer _matrixBuffer;
 
-    public MatricesInitializerDispatcher(ComputeShader computeShader, RendererDataContext context)
+    public MatricesInitializingDispatcher(ComputeShader computeShader, RendererDataContext context)
         : base(computeShader, context)
     {
         _kernel = GetKernel("CSMain");
@@ -24,7 +24,7 @@ public class MatricesInitializerDispatcher : ComputeShaderDispatcher
             out _matrixBuffer);
     }
 
-    public MatricesInitializerDispatcher SetTransformData(InstanceProperties[] meshes)
+    public MatricesInitializingDispatcher SetTransformData(InstanceProperties[] meshes)
     {
         var positions = new List<Vector3>();
         var rotations = new List<Vector3>();
@@ -47,7 +47,7 @@ public class MatricesInitializerDispatcher : ComputeShaderDispatcher
         return this;
     }
     
-    public MatricesInitializerDispatcher SubmitTransformsData()
+    public MatricesInitializingDispatcher SubmitTransformsData()
     {
         ComputeShader.SetBuffer(_kernel, ShaderProperties.Positions, _positionsBuffer);
         ComputeShader.SetBuffer(_kernel, ShaderProperties.Rotations, _rotationsBuffer);
