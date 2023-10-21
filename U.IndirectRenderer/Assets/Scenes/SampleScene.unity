@@ -693,7 +693,7 @@ MonoBehaviour:
       CastsShadows: 0
     - Mesh: {fileID: -8750779691553580571, guid: 57f354831b1044a33b5a0a6164e68490,
         type: 3}
-      Range: 50
+      Range: 100
       CastsShadows: 0
     Offset:
       Position: {x: 0, y: 2.5, z: 0}
@@ -720,7 +720,7 @@ MonoBehaviour:
       Range: 75
       CastsShadows: 0
     - Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
-      Range: 0
+      Range: 100
       CastsShadows: 0
     Offset:
       Position: {x: 0, y: 5, z: 0}
