@@ -28,7 +28,7 @@ public class MatricesInitDispatcher : ComputeShaderDispatcher
             out _matrixBuffer);
     }
 
-    public MatricesInitDispatcher SetTransformData(InstanceProperties[] meshes)
+    public MatricesInitDispatcher SetTransformData(List<InstanceProperties> meshes)
     {
         var positions = new List<Vector3>();
         var rotations = new List<Vector3>();

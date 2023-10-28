@@ -2,6 +2,7 @@ using UnityEngine;
 
 public abstract class ComputeShaderDispatcher
 {
+    // public abstract void Initialize();
     public abstract void Dispatch();
     
     protected const int SCAN_THREAD_GROUP_SIZE = 64;

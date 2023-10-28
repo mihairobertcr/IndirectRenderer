@@ -16,4 +16,4 @@ MonoBehaviour:
   _shader: {fileID: 4800000, guid: 483ebfd3207614b6692e71936dfc9844, type: 3}
   _texture: {fileID: 0}
   _resolution: {x: 1024, y: 1024}
-  _precision: 2
+  _precision: 1.8

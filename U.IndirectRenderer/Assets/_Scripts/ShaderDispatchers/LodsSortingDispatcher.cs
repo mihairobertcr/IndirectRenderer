@@ -36,18 +36,18 @@ public class LodsSortingDispatcher : ComputeShaderDispatcher
     
     ~LodsSortingDispatcher() => _command.Release();
 
-    public LodsSortingDispatcher SetSortingData(InstanceProperties[] meshes, Camera camera)
+    public LodsSortingDispatcher SetSortingData(List<InstanceProperties> meshes, Camera camera)
     {
         var cameraPosition = camera.transform.position;
         var sortingData = new List<SortingData>();
         
         var instancesCount = 0u;
-        for (var i = 0u; i < meshes.Length; i++)
+        for (var i = 0; i < meshes.Count; i++)
         {
             var mesh = meshes[i];
             foreach (var transform in mesh.Transforms)
             {
-                var drawCallIndex = ((i * (uint)Context.Arguments.InstanceArgumentsCount) << 16) + instancesCount;
+                var drawCallIndex = (((uint)i * (uint)Context.Arguments.InstanceArgumentsCount) << 16) + instancesCount;
                 sortingData.Add(new SortingData
                 {
                     DrawCallInstanceIndex = drawCallIndex,

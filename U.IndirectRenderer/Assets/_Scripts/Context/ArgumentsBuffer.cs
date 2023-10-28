@@ -10,16 +10,16 @@ public class ArgumentsBuffer : IDisposable
     public int InstanceArgumentsCount { get; }
     public GraphicsBuffer GraphicsBuffer { get; }
 
-    private readonly InstanceProperties[] _properties;
+    private readonly List<InstanceProperties> _properties;
     private readonly GraphicsBuffer.IndirectDrawIndexedArgs[] _parameters;
 
-    public ArgumentsBuffer(InstanceProperties[] properties, int lodsCount)
+    public ArgumentsBuffer(List<InstanceProperties> properties, int lodsCount)
     {
         _properties = properties;
         _parameters = InitializeArgumentsBuffer();
         
         InstanceArgumentsCount = ARGUMENTS_COUNT * lodsCount;
-        GraphicsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, _properties.Length * lodsCount, GraphicsBuffer.IndirectDrawIndexedArgs.size);
+        GraphicsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, _properties.Count * lodsCount, GraphicsBuffer.IndirectDrawIndexedArgs.size);
 
         Reset();
     }
@@ -37,7 +37,7 @@ public class ArgumentsBuffer : IDisposable
     //TODO: Change to GraphicsBuffer
     public void Log(string meshesPrefix = "")
     {
-        var args = new uint[InstanceArgumentsCount * _properties.Length];
+        var args = new uint[InstanceArgumentsCount * _properties.Count];
         GraphicsBuffer.GetData(args);
     
         var log = new StringBuilder();

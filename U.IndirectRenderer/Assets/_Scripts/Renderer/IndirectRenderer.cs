@@ -1,13 +1,14 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 
 public class IndirectRenderer : IDisposable
 {
-    private readonly InstanceProperties[] _instances;
-    private readonly IndirectRendererConfig _config;
-    private readonly IndirectRendererSettings _settings;
+    private readonly Camera _camera;
+    private readonly List<InstanceProperties> _instances;
+    private readonly RendererConfig _config;
     private readonly RendererDataContext _context;
 
     private readonly MatricesInitDispatcher _matricesInitDispatcher;
@@ -19,25 +20,23 @@ public class IndirectRenderer : IDisposable
 
     private Bounds _worldBounds;
     
-    public IndirectRenderer(InstanceProperties[] instances,
-        IndirectRendererConfig config, 
-        IndirectRendererSettings settings)
+    public IndirectRenderer(Camera camera, RendererConfig config, List<InstanceProperties> instances)
     {
+        _camera = camera;
         _instances = instances;
         _config = config;
-        _settings = settings;
         
         InitializeMeshProperties();
         _worldBounds.extents = Vector3.one * 10000; // ???
         
         _context = new RendererDataContext(config, _instances);
 
-        _matricesInitDispatcher = new MatricesInitDispatcher(_config.MatricesInitializer, _context);
-        _lodsSortingDispatcher = new LodsSortingDispatcher(_config.LodBitonicSorter, _context);
-        _cullingDispatcher = new CullingDispatcher(_config.InstancesCuller, _context);
-        _predicatesScanningDispatcher = new PredicatesScanningDispatcher(_config.InstancesScanner, _context);
-        _groupSumsScanningDispatcher = new GroupSumsScanningDispatcher(_config.GroupSumsScanner, _context);
-        _dataCopyingDispatcher = new DataCopyingDispatcher(_config.InstancesDataCopier, _context);
+        _matricesInitDispatcher = new MatricesInitDispatcher(_config.MatricesInit, _context);
+        _lodsSortingDispatcher = new LodsSortingDispatcher(_config.LodSorting, _context);
+        _cullingDispatcher = new CullingDispatcher(_config.VisibilityCulling, _context);
+        _predicatesScanningDispatcher = new PredicatesScanningDispatcher(_config.PredicatesScanning, _context);
+        _groupSumsScanningDispatcher = new GroupSumsScanningDispatcher(_config.GroupSumsScanning, _context);
+        _dataCopyingDispatcher = new DataCopyingDispatcher(_config.DataCopying, _context);
 
         Initialize();
         RenderPipelineManager.beginFrameRendering += BeginFrameRendering;
@@ -51,7 +50,7 @@ public class IndirectRenderer : IDisposable
 
     public void DrawGizmos()
     {
-        if (_settings.DrawBounds)
+        if (_config.Debugger.DrawBounds)
         {
             _cullingDispatcher.DrawGizmos();
         }
@@ -65,12 +64,12 @@ public class IndirectRenderer : IDisposable
             .Dispatch();
 
         _lodsSortingDispatcher
-            .SetSortingData(_instances, _config.RenderCamera)
+            .SetSortingData(_instances, _camera)
             .SetupSortingCommand()
             .EnabledAsyncComputing(true);
         
         _cullingDispatcher
-            .SetSettings(_settings)
+            .SetSettings(_config)
             .SetBoundsData(_instances)
             .SetLodsData(_instances)
             .SetDepthMap()
@@ -92,131 +91,125 @@ public class IndirectRenderer : IDisposable
 
     private void BeginFrameRendering(ScriptableRenderContext context, Camera[] camera)
     {
-        if (_settings.RunCompute)
-        {
-            Profiler.BeginSample("CalculateVisibleInstances");
-            CalculateVisibleInstances();
-            Profiler.EndSample();
-        }
+        Profiler.BeginSample("CalculateVisibleInstances");
+        CalculateVisibleInstances();
+        Profiler.EndSample();
         
-        if (_settings.DrawInstances)
-        {
-            Profiler.BeginSample("DrawMeshes");
-            DrawInstances();
-            Profiler.EndSample();
-        }
+        Profiler.BeginSample("DrawMeshes");
+        RenderInstances();
+        Profiler.EndSample();
     }
 
     private void CalculateVisibleInstances()
     {
-        _worldBounds.center = _config.RenderCamera.transform.position;
+        _worldBounds.center = _camera.transform.position;
         
-        if (_settings.LogMatrices)
+        if (_config.Debugger.LogMatrices)
         {
-            _settings.LogMatrices = false;
+            _config.Debugger.LogMatrices = false;
             _context.Transforms.LogMatrices("Matrices");
         }
         
         Profiler.BeginSample("Resetting Args Buffer");
         _context.Arguments.Reset();
-        if (_settings.LogArgumentsAfterReset)
+        if (_config.Debugger.LogArgumentsAfterReset)
         {
-            _settings.LogArgumentsAfterReset = false;
+            _config.Debugger.LogArgumentsAfterReset = false;
             _context.Arguments.Log("Arguments Buffers - Meshes After Reset");
         }
         Profiler.EndSample();
         
         Profiler.BeginSample("LOD Sorting");
         _lodsSortingDispatcher.Dispatch();
-        if (_settings.LogSortingData)
+        if (_config.Debugger.LogSortingData)
         {
-            _settings.LogSortingData = false;
+            _config.Debugger.LogSortingData = false;
             _context.Sorting.Log("Sorting Data");
         }
         Profiler.EndSample();
 
         Profiler.BeginSample("Occlusion");
         _cullingDispatcher
-            .SubmitCameraData(_config.RenderCamera)
+            .SubmitCameraData(_camera)
             .Dispatch();
         
-        if (_settings.LogArgumentsAfterOcclusion)
+        if (_config.Debugger.LogArgumentsAfterOcclusion)
         {
-            _settings.LogArgumentsAfterOcclusion = false;
+            _config.Debugger.LogArgumentsAfterOcclusion = false;
             _context.Arguments.Log("Arguments Buffers - Meshes After Occlusion");
         }
         
-        if (_settings.LogVisibilityBuffer)
+        if (_config.Debugger.LogVisibilityBuffer)
         {
-            _settings.LogVisibilityBuffer = false;
+            _config.Debugger.LogVisibilityBuffer = false;
             _context.LogVisibility("Visibility Buffers - Meshes");
         }
         Profiler.EndSample();
         
         Profiler.BeginSample("Scan Instances");
         _predicatesScanningDispatcher.Dispatch();
-        if (_settings.LogGroupSums)
+        if (_config.Debugger.LogGroupSums)
         {
-            _settings.LogGroupSums = false;
+            _config.Debugger.LogGroupSums = false;
             _context.LogGroupSums("Group Sums Buffer - Meshes");
         }
         
-        if (_settings.LogScannedPredicates)
+        if (_config.Debugger.LogScannedPredicates)
         {
-            _settings.LogScannedPredicates = false;
+            _config.Debugger.LogScannedPredicates = false;
             _context.LogScannedPredicates("Scanned Predicates - Meshes");
         }
         Profiler.EndSample();
         
         Profiler.BeginSample("Scan Thread Groups");
         _groupSumsScanningDispatcher.Dispatch();
-        if (_settings.LogScannedGroupSums)
+        if (_config.Debugger.LogScannedGroupSums)
         {
-            _settings.LogScannedGroupSums = false;
+            _config.Debugger.LogScannedGroupSums = false;
             _context.LogScannedGroupSums("Scanned Group Sums Buffer - Meshes");
         }
         Profiler.EndSample();
         
         Profiler.BeginSample("Copy Instances Data");
         _dataCopyingDispatcher.Dispatch();
-        if (_settings.LogCulledMatrices)
+        if (_config.Debugger.LogCulledMatrices)
         {
-            _settings.LogCulledMatrices = false;
+            _config.Debugger.LogCulledMatrices = false;
             _context.Transforms.LogCulledMatrices("Culled Matrices - Meshes");
         }
         
-        if (_settings.LogArgumentsAfterCopy)
+        if (_config.Debugger.LogArgumentsAfterCopy)
         {
-            _settings.LogArgumentsAfterCopy = false;
+            _config.Debugger.LogArgumentsAfterCopy = false;
             _context.Arguments.Log("Arguments Buffers - Meshes After Copy");
         }
         Profiler.EndSample();
     }
 
-    private void DrawInstances()
+    private void RenderInstances()
     {
-        for (var i = 0; i < _instances.Length; i++)
+        for (var i = 0; i < _instances.Count; i++)
         {
             var instance = _instances[i];
             var renderParams = new RenderParams(instance.Material)
             {
                 worldBounds = _worldBounds,
             };
-
-            if (!_settings.EnableLod)
+    
+            if (!_config.EnableLod)
             {
-                RenderInstances(i, (int)instance.DefaultLod, instance, renderParams);
+                DrawInstances(i, (int)instance.DefaultLod, instance, renderParams);
                 continue;
             }
-
+    
             for (var k = 0; k < instance.Lods.Count; k++)
             {
-                RenderInstances(i, k, instance, renderParams);
+                DrawInstances(i, k, instance, renderParams);
             }
         }
     }
 
-    private void RenderInstances(int instanceIndex, int lodIndex, InstanceProperties instance, RenderParams renderParams)
+    private void DrawInstances(int instanceIndex, int lodIndex, InstanceProperties instance, RenderParams renderParams)
     {
         var lod = instance.Lods[lodIndex];
         var startCommand = instanceIndex * instance.Lods.Count + lodIndex;

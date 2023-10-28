@@ -191,9 +191,8 @@ inline void CSMain (
         isVisible *= (_EnableDetailCulling * isVisible > 0) ? IsVisibleAfterDetailCulling(clipMinX, clipMaxX, clipMinY, clipMaxY) : 1;
     }
 
-    uint argsIndex = drawCall + 1;
-
     // See if survives distance culling
+    uint argsIndex = drawCall + 1;
     if (minDistanceToCamera <= _LodsRangesBuffer[_LodsCount - 1])
     {
         // Calculate the correct index to the arguments buffers

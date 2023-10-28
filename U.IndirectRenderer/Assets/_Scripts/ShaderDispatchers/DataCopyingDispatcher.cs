@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class DataCopyingDispatcher : ComputeShaderDispatcher
@@ -63,9 +64,9 @@ public class DataCopyingDispatcher : ComputeShaderDispatcher
         return this;
     }
 
-    public DataCopyingDispatcher BindMaterialProperties(InstanceProperties[] properties)
+    public DataCopyingDispatcher BindMaterialProperties(List<InstanceProperties> properties)
     {
-        for (var i = 0; i < properties.Length; i++)
+        for (var i = 0; i < properties.Count; i++)
         {
             var property = properties[i];
             for (var k = 0; k < property.Lods.Count; k++)

@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22c49eb456d44450a4d4feb5bd512310, type: 3}
+  m_Name: RendererConfig
+  m_EditorClassIdentifier: 
+  NumberOfInstances: 16384
+  NumberOfLods: 3
+  SortLodsAsync: 1
+  DetailCullingPercentage: 0.005
+  MatricesInit: {fileID: 7200000, guid: 08d7ec0392f7748948199728f40cbc7f, type: 3}
+  LodSorting: {fileID: 7200000, guid: 6f7afd63860da43238b81f2a660befc9, type: 3}
+  VisibilityCulling: {fileID: 7200000, guid: 33fbcc6be2866431cb42e4a688e83cea, type: 3}
+  PredicatesScanning: {fileID: 7200000, guid: 734cfd04ff92d4db8a4a713ce9c0d92b, type: 3}
+  GroupSumsScanning: {fileID: 7200000, guid: c5b9ba8237ff641d8a7c10c4148e1eee, type: 3}
+  DataCopying: {fileID: 7200000, guid: 266562bdb8f774ae2872176ce62aca32, type: 3}
+  EnableLod: 1
+  EnableFrustumCulling: 1
+  EnableOcclusionCulling: 1
+  EnableDetailCulling: 1
+  Debugger:
+    DrawBounds: 0
+    LogMatrices: 0
+    LogArgumentsAfterReset: 0
+    LogArgumentsAfterOcclusion: 0
+    LogVisibilityBuffer: 0
+    LogGroupSums: 0
+    LogScannedPredicates: 0
+    LogScannedGroupSums: 0
+    LogCulledMatrices: 0
+    LogArgumentsAfterCopy: 0
+    LogSortingData: 0

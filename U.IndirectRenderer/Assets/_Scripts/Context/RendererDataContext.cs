@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using IndirectRendering;
@@ -20,17 +21,17 @@ public class RendererDataContext : IDisposable
     public ComputeBuffer ScannedPredicates { get; }
     public ComputeBuffer ScannedGroupSums { get; }
 
-    public RendererDataContext(IndirectRendererConfig config, InstanceProperties[] meshProperties)
+    public RendererDataContext(RendererConfig config, List<InstanceProperties> meshProperties)
     {
-        MeshesCount = (int)config.NumberOfInstances * meshProperties.Length;
+        MeshesCount = (int)config.NumberOfInstances * meshProperties.Count;
         LodsCount = config.NumberOfLods;
         
         Arguments = new ArgumentsBuffer(meshProperties, config.NumberOfLods);
         Transforms = new TransformBuffer(MeshesCount);
         Sorting = new SortingBuffer(MeshesCount);
         
-        LodsRanges = new ComputeBuffer(meshProperties.Length * config.NumberOfLods, sizeof(float), ComputeBufferType.Default);
-        DefaultLods = new ComputeBuffer(meshProperties.Length, sizeof(uint), ComputeBufferType.Default);
+        LodsRanges = new ComputeBuffer(meshProperties.Count * config.NumberOfLods, sizeof(float), ComputeBufferType.Default);
+        DefaultLods = new ComputeBuffer(meshProperties.Count, sizeof(uint), ComputeBufferType.Default);
         BoundingBoxes = new ComputeBuffer(MeshesCount, BoundsData.Size, ComputeBufferType.Default);
         Visibility = new ComputeBuffer(MeshesCount, sizeof(uint), ComputeBufferType.Default);
         GroupSums = new ComputeBuffer(MeshesCount, sizeof(uint), ComputeBufferType.Default);

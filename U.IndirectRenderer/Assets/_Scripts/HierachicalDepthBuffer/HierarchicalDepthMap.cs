@@ -1,9 +1,9 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-[CreateAssetMenu(
-    fileName = "HierarchicalDepthMap", 
-    menuName = "Indirect Renderer/HierarchicalDepthMap")]
+[CreateAssetMenu(order = 2,
+    menuName = "Indirect Renderer/HierarchicalDepthMap",
+    fileName = "HierarchicalDepthMap")]
 public class HierarchicalDepthMap : ScriptableObject
 {
     public static RenderTexture Texture

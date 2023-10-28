@@ -2,23 +2,22 @@ using UnityEngine;
 
 public class IndirectRendererComponent : MonoBehaviour
 {
-    [SerializeField] 
-    private IndirectRendererConfig _config;
+    [SerializeField]
+    private Camera _renderCamera;
+
+    [SerializeField]
+    private RendererConfig _config;
     
-    [Space] 
     [SerializeField] 
-    private IndirectRendererSettings _settings;
-    
-    [Space] 
-    [SerializeField] 
-    private InstanceProperties[] _instances;
+    private InstancesCollection _instances;
 
     private IndirectRenderer _renderer;
 
     private void Start()
     {
-        foreach (var instance in _instances)
+        foreach (var instance in _instances.Data)
         {
+            instance.Transforms.Clear();
             for (var i = 0; i < 128; i++)
             {
                 for (var j = 0; j < 128; j++)
@@ -46,7 +45,8 @@ public class IndirectRendererComponent : MonoBehaviour
                             z = .75f
                         }
                     };
-
+        
+                    //TODO: Move to InstanceProperties
                     data.Position += instance.Offset.Position;
                     data.Rotation += instance.Offset.Rotation;
                     data.Scale += instance.Offset.Scale;
@@ -56,7 +56,7 @@ public class IndirectRendererComponent : MonoBehaviour
             }
         }
 
-        _renderer = new IndirectRenderer(_instances, _config, _settings);
+        _renderer = new IndirectRenderer(_renderCamera, _config, _instances.Data);
     }
 
     private void OnDestroy()

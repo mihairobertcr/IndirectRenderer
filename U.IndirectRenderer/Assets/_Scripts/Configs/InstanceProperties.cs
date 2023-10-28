@@ -2,8 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-[Serializable]
-public class InstanceProperties
+public class InstanceProperties : ScriptableObject
 {
     [Serializable]
     public class TransformDto
@@ -12,26 +11,23 @@ public class InstanceProperties
         public Vector3 Rotation;
         public Vector3 Scale;
     }
-    
-    [Header("Rendering")]
+
+    [Header("Rendering")] 
     public GameObject Prefab;
     public Material Material;
-
-    [Space] 
+    
+    [Space]
     [Header("Mesh")]
     public Mesh CombinedMesh;
     public uint DefaultLod;
     public bool RecombineLods;
-    public List<LodProperties> Lods;
+    public List<LodProperties> Lods = new();
 
     [Space] 
     [Header("Location")]
     public TransformDto Offset;
     public Bounds Bounds;
-
-    [Space] 
-    [Header("Instances")]
-    public List<TransformDto> Transforms; //TODO: Consider making it an array
+    public List<TransformDto> Transforms = new();
 
     public void Initialize()
     {

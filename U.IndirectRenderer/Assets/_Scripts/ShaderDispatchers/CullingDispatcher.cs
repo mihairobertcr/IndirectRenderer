@@ -49,19 +49,19 @@ public class CullingDispatcher : ComputeShaderDispatcher
             out _sortingDataBuffer);
     }
 
-    public CullingDispatcher SetSettings(IndirectRendererSettings settings)
+    public CullingDispatcher SetSettings(RendererConfig config)
     {
-        ComputeShader.SetInt(EnableFrustumCullingId, settings.EnableFrustumCulling ? 1 : 0);
-        ComputeShader.SetInt(EnableOcclusionCullingId, settings.EnableOcclusionCulling ? 1 : 0);
-        ComputeShader.SetInt(EnableDetailCullingId, settings.EnableDetailCulling ? 1 : 0);
-        ComputeShader.SetInt(EnableLodsId, settings.EnableLod ? 1 : 0);
+        ComputeShader.SetInt(EnableFrustumCullingId, config.EnableFrustumCulling ? 1 : 0);
+        ComputeShader.SetInt(EnableOcclusionCullingId, config.EnableOcclusionCulling ? 1 : 0);
+        ComputeShader.SetInt(EnableDetailCullingId, config.EnableDetailCulling ? 1 : 0);
+        ComputeShader.SetInt(EnableLodsId, config.EnableLod ? 1 : 0);
         
-        ComputeShader.SetFloat(DetailCullingScreenPercentageId, settings.DetailCullingPercentage);
+        ComputeShader.SetFloat(DetailCullingScreenPercentageId, config.DetailCullingPercentage);
 
         return this;
     }
     
-    public CullingDispatcher SetBoundsData(InstanceProperties[] meshes)
+    public CullingDispatcher SetBoundsData(List<InstanceProperties> meshes)
     {
         _boundsData = new List<BoundsData>();
         foreach (var mesh in meshes)
@@ -87,7 +87,7 @@ public class CullingDispatcher : ComputeShaderDispatcher
         return this;
     }
 
-    public CullingDispatcher SetLodsData(InstanceProperties[] meshes)
+    public CullingDispatcher SetLodsData(List<InstanceProperties> meshes)
     {
         _defaultLods = new List<uint>();
         _lodsRanges = new List<float>();
