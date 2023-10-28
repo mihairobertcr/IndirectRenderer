@@ -10,8 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4cae78e9437f4fcbbe56d13c72b3230e, type: 3}
-  m_Name: 
+  m_Name: Trunk
   m_EditorClassIdentifier: 
+  Container: {fileID: 11400000}
   Prefab: {fileID: 919132149155446097, guid: 57f354831b1044a33b5a0a6164e68490, type: 3}
   Material: {fileID: 2100000, guid: 316b8a94b405b47c1936fdc01c350bf6, type: 2}
   CombinedMesh: {fileID: 0}

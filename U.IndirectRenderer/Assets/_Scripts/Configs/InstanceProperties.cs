@@ -1,32 +1,28 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class InstanceProperties : ScriptableObject
+public partial class InstanceProperties : ScriptableObject
 {
-    [Serializable]
-    public class TransformDto
-    {
-        public Vector3 Position;
-        public Vector3 Rotation;
-        public Vector3 Scale;
-    }
+#if UNITY_EDITOR
+    [HideInInspector, SerializeField]
+    internal InstancesCollection Container;
+#endif
 
-    [Header("Rendering")] 
+    [Header("Rendering"), Space(5)] 
     public GameObject Prefab;
     public Material Material;
     
-    [Space]
-    [Header("Mesh")]
+    [Space, Header("Mesh"), Space(5)]
     public Mesh CombinedMesh;
     public uint DefaultLod;
     public bool RecombineLods;
     public List<LodProperties> Lods = new();
 
-    [Space] 
-    [Header("Location")]
+    [Space, Header("Location"), Space(5)]
     public TransformDto Offset;
     public Bounds Bounds;
+    
+    [Space(5)]
     public List<TransformDto> Transforms = new();
 
     public void Initialize()

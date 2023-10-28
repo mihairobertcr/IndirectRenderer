@@ -34,7 +34,6 @@ public class ArgumentsBuffer : IDisposable
         GraphicsBuffer?.Dispose();
     }
 
-    //TODO: Change to GraphicsBuffer
     public void Log(string meshesPrefix = "")
     {
         var args = new uint[InstanceArgumentsCount * _properties.Count];

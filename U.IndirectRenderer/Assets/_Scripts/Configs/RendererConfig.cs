@@ -6,7 +6,7 @@ using UnityEngine;
     fileName = "RendererConfig")]
 public class RendererConfig : ScriptableObject
 {
-    [Header("Rendering")]
+    [Header("Rendering"), Space(5)]
     public PowersOfTwo NumberOfInstances;
     public int NumberOfLods;
     public bool SortLodsAsync;
@@ -14,8 +14,7 @@ public class RendererConfig : ScriptableObject
     [Range(00.00f, 00.02f)] 
     public float DetailCullingPercentage = 0.005f;
     
-    [Space]
-    [Header("Compute Shaders")]
+    [Space, Header("Compute Shaders"), Space(5)]
     public ComputeShader MatricesInit;
     public ComputeShader LodSorting;
     public ComputeShader VisibilityCulling;
@@ -23,8 +22,7 @@ public class RendererConfig : ScriptableObject
     public ComputeShader GroupSumsScanning;
     public ComputeShader DataCopying;
     
-    [Space]
-    [Header("Features")]
+    [Space ,Header("Features"), Space(5)]
     public bool EnableLod = true;
     public bool EnableFrustumCulling = true;
     public bool EnableOcclusionCulling = true;
@@ -47,7 +45,7 @@ public class RendererConfig : ScriptableObject
         public bool LogSortingData;
     }
     
-    [Space] 
+    [Space(5)] 
     public DebuggerConfig Debugger;
     #endif
 }

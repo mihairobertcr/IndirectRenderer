@@ -10,39 +10,13 @@ using UnityEditor;
     fileName = "InstancesCollection")]
 public class InstancesCollection : ScriptableObject
 {
-    [CustomEditor(typeof(InstancesCollection))]
-    public class Inspector : Editor
-    {
-        public override void OnInspectorGUI()
-        {
-            var collection = target as InstancesCollection;
-            var dataProperty = serializedObject.FindProperty("Data");
-            
-            GUI.enabled = false;
-            EditorGUILayout.PropertyField(dataProperty, true);
-            GUI.enabled = true;
-            EditorGUILayout.Space(10);
-            
-            if (GUILayout.Button("Add Instance"))
-            {
-                collection.CreateNewInstance();
-                Repaint();
-            }
-            
-            if (GUILayout.Button("Remove Selected Instance"))
-            {
-                collection.RemoveSelectedInstance();
-                Repaint();
-            }
-        }
-    }
-
     public List<InstanceProperties> Data;
 
 #if UNITY_EDITOR
     public void CreateNewInstance()
     {
         var instance = CreateInstance<InstanceProperties>();
+        instance.Container = this;
         Data.Insert(0, instance);
         
         AssetDatabase.AddObjectToAsset(instance, this);
@@ -52,17 +26,10 @@ public class InstancesCollection : ScriptableObject
         EditorUtility.SetDirty(instance);
     }
 
-    public void RemoveSelectedInstance()
+    public void RemoveSelectedInstance(InstanceProperties properties)
     {
-        var selected = Selection.activeObject as InstanceProperties;
-        if (selected is null || !Data.Contains(selected))
-        {
-            Debug.Log("An item belonging to this collection has to be selected in order to be removed!");
-            return;
-        }
-
-        Data.Remove(selected);
-        Undo.DestroyObjectImmediate(selected);
+        Data.Remove(properties);
+        Undo.DestroyObjectImmediate(properties);
         AssetDatabase.SaveAssets();
     }
 #endif

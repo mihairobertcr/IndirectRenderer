@@ -82,7 +82,6 @@ public class HierarchicalDepthMap : ScriptableObject
         _texture = CreateRenderTexture();
     }
 
-    //TODO: Check if _texture gets disposed properly.
     private void OnDestroy() => _texture.Release();
 
     private Material CreateMaterial()
