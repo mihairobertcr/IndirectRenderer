@@ -35,7 +35,7 @@ public class RendererConfig : ScriptableObject
         public bool DrawBounds;
         public bool LogMatrices;
         public bool LogArgumentsAfterReset;
-        public bool LogArgumentsAfterOcclusion;
+        public bool LogArgumentsAfterCulling;
         public bool LogVisibilityBuffer;
         public bool LogGroupSums;
         public bool LogScannedPredicates;

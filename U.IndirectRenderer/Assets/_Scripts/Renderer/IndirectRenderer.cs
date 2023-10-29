@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Profiling;
 using UnityEngine.Rendering;
+
+using Unity.Profiling;
 
 public class IndirectRenderer : IDisposable
 {
@@ -68,101 +69,43 @@ public class IndirectRenderer : IDisposable
 
     private void BeginFrameRendering(ScriptableRenderContext context, Camera[] camera)
     {
-        Profiler.BeginSample("CalculateVisibleInstances");
-        CalculateVisibleInstances();
-        Profiler.EndSample();
-        
-        Profiler.BeginSample("DrawMeshes");
-        RenderInstances();
-        Profiler.EndSample();
+        CalculateVisibleMeshes();
+        RenderMeshes();
     }
 
-    private void CalculateVisibleInstances()
+    private void CalculateVisibleMeshes()
     {
+        using var profiler = new ProfilerMarker(ProfilerCategory.Render, "01.CalculateVisibleMeshes").Auto();
+
         _worldBounds.center = _camera.transform.position;
-        
-        if (_config.Debugger.LogMatrices)
-        {
-            _config.Debugger.LogMatrices = false;
-            _context.Transforms.LogMatrices("Matrices");
-        }
-        
-        Profiler.BeginSample("Resetting Args Buffer");
-        _context.Arguments.Reset();
-        if (_config.Debugger.LogArgumentsAfterReset)
-        {
-            _config.Debugger.LogArgumentsAfterReset = false;
-            _context.Arguments.Log("Arguments Buffers - Meshes After Reset");
-        }
-        Profiler.EndSample();
-        
-        Profiler.BeginSample("LOD Sorting");
-        _lodsSortingDispatcher.Dispatch();
-        if (_config.Debugger.LogSortingData)
-        {
-            _config.Debugger.LogSortingData = false;
-            _context.Sorting.Log("Sorting Data");
-        }
-        Profiler.EndSample();
+        LogMatrices();
 
-        Profiler.BeginSample("Occlusion");
-        _visibilityCullingDispatcher.Update().Dispatch();
+        ResetArgumentsBuffer();
+        LogArgumentsAfterReset();
+
+        SortLods();
+        LogSortingData();
+
+        CalculateVisibilityCulling();
+        LogArgumentsBufferAfterCulling();
+        LogVisibilityBuffer();
         
-        if (_config.Debugger.LogArgumentsAfterOcclusion)
-        {
-            _config.Debugger.LogArgumentsAfterOcclusion = false;
-            _context.Arguments.Log("Arguments Buffers - Meshes After Occlusion");
-        }
+        ScanPredicates();
+        LogScannedPredicates();
+        LogLogGroupSums();
         
-        if (_config.Debugger.LogVisibilityBuffer)
-        {
-            _config.Debugger.LogVisibilityBuffer = false;
-            _context.LogVisibility("Visibility Buffers - Meshes");
-        }
-        Profiler.EndSample();
-        
-        Profiler.BeginSample("Scan Instances");
-        _predicatesScanningDispatcher.Dispatch();
-        if (_config.Debugger.LogGroupSums)
-        {
-            _config.Debugger.LogGroupSums = false;
-            _context.LogGroupSums("Group Sums Buffer - Meshes");
-        }
-        
-        if (_config.Debugger.LogScannedPredicates)
-        {
-            _config.Debugger.LogScannedPredicates = false;
-            _context.LogScannedPredicates("Scanned Predicates - Meshes");
-        }
-        Profiler.EndSample();
-        
-        Profiler.BeginSample("Scan Thread Groups");
-        _groupSumsScanningDispatcher.Dispatch();
-        if (_config.Debugger.LogScannedGroupSums)
-        {
-            _config.Debugger.LogScannedGroupSums = false;
-            _context.LogScannedGroupSums("Scanned Group Sums Buffer - Meshes");
-        }
-        Profiler.EndSample();
-        
-        Profiler.BeginSample("Copy Instances Data");
-        _dataCopyingDispatcher.Dispatch();
-        if (_config.Debugger.LogCulledMatrices)
-        {
-            _config.Debugger.LogCulledMatrices = false;
-            _context.Transforms.LogCulledMatrices("Culled Matrices - Meshes");
-        }
-        
-        if (_config.Debugger.LogArgumentsAfterCopy)
-        {
-            _config.Debugger.LogArgumentsAfterCopy = false;
-            _context.Arguments.Log("Arguments Buffers - Meshes After Copy");
-        }
-        Profiler.EndSample();
+        ScanGroupSums();
+        LogScannedGroupSums();
+
+        CopyMeshesData();
+        LogCulledMatrices();
+        LogArgumentsAfterCopy();
     }
 
-    private void RenderInstances()
+    private void RenderMeshes()
     {
+        using var profiler = new ProfilerMarker(ProfilerCategory.Render, "02.RenderIndirectMeshes").Auto();
+
         for (var i = 0; i < _instances.Count; i++)
         {
             var instance = _instances[i];
@@ -173,18 +116,18 @@ public class IndirectRenderer : IDisposable
     
             if (!_config.EnableLod)
             {
-                DrawInstances(i, (int)instance.DefaultLod, instance, renderParams);
+                RenderInstances(i, (int)instance.DefaultLod, instance, renderParams);
                 continue;
             }
     
             for (var k = 0; k < instance.Lods.Count; k++)
             {
-                DrawInstances(i, k, instance, renderParams);
+                RenderInstances(i, k, instance, renderParams);
             }
         }
     }
 
-    private void DrawInstances(int instanceIndex, int lodIndex, MeshProperties mesh, RenderParams renderParams)
+    private void RenderInstances(int instanceIndex, int lodIndex, MeshProperties mesh, RenderParams renderParams)
     {
         var lod = mesh.Lods[lodIndex];
         var startCommand = instanceIndex * mesh.Lods.Count + lodIndex;
@@ -199,5 +142,127 @@ public class IndirectRenderer : IDisposable
         {
             instance.Initialize();
         }
+    }
+
+    private void ResetArgumentsBuffer()
+    {
+        using var profiler = new ProfilerMarker(ProfilerCategory.Render, "01.ResetArgumentsBuffer").Auto();
+        
+        _context.Arguments.Reset();
+    }
+
+    private void SortLods()
+    {
+        using var profiler = new ProfilerMarker(ProfilerCategory.Render, "02.SortLods").Auto();
+
+        _lodsSortingDispatcher.Dispatch();
+    }
+
+    private void CalculateVisibilityCulling()
+    {
+        using var profiler = new ProfilerMarker(ProfilerCategory.Render, "03.Culling").Auto();
+
+        _visibilityCullingDispatcher.Update().Dispatch();
+    }
+    
+    private void ScanPredicates()
+    {
+        using var profiler = new ProfilerMarker(ProfilerCategory.Render, "04.ScanPredicates").Auto();
+
+        _predicatesScanningDispatcher.Dispatch();
+    }
+
+    private void ScanGroupSums()
+    {
+        using var profiler = new ProfilerMarker(ProfilerCategory.Render, "05.ScanGroupSums").Auto();
+
+        _groupSumsScanningDispatcher.Dispatch();
+    }
+
+    private void CopyMeshesData()
+    {
+        using var profiler = new ProfilerMarker(ProfilerCategory.Render, "06.CopyMeshesData").Auto();
+
+        _dataCopyingDispatcher.Dispatch();
+    }
+
+    private void LogMatrices()
+    {
+        if (!_config.Debugger.LogMatrices) return;
+        
+        _config.Debugger.LogMatrices = false;
+        _context.Transforms.LogMatrices("Matrices");
+    }
+
+    private void LogArgumentsAfterReset()
+    {
+        if (!_config.Debugger.LogArgumentsAfterReset) return;
+        
+        _config.Debugger.LogArgumentsAfterReset = false;
+        _context.Arguments.Log("Arguments Buffers - After Reset");
+    }
+    
+    private void LogSortingData()
+    {
+        if (!_config.Debugger.LogSortingData) return;
+        
+        _config.Debugger.LogSortingData = false;
+        _context.Sorting.Log("Sorting Data");
+    }
+
+    private void LogArgumentsBufferAfterCulling()
+    {
+        if (!_config.Debugger.LogArgumentsAfterCulling) return;
+        
+        _config.Debugger.LogArgumentsAfterCulling = false;
+        _context.Arguments.Log("Arguments Buffers - After Culling");
+    }
+
+    private void LogVisibilityBuffer()
+    {
+        if (!_config.Debugger.LogVisibilityBuffer) return;
+        
+        _config.Debugger.LogVisibilityBuffer = false;
+        _context.LogVisibility("Visibility Buffers");
+    }
+
+    private void LogScannedPredicates()
+    {
+        if (!_config.Debugger.LogScannedPredicates) return;
+        
+        _config.Debugger.LogScannedPredicates = false;
+        _context.LogScannedPredicates("Scanned Predicates");
+    }
+
+    private void LogLogGroupSums()
+    {
+        if (!_config.Debugger.LogGroupSums) return;
+        
+        _config.Debugger.LogGroupSums = false;
+        _context.LogGroupSums("Group Sums Buffer");
+    }
+
+    private void LogScannedGroupSums()
+    {
+        if (!_config.Debugger.LogScannedGroupSums) return;
+        
+        _config.Debugger.LogScannedGroupSums = false;
+        _context.LogScannedGroupSums("Scanned Group Sums");
+    }
+
+    private void LogCulledMatrices()
+    {
+        if (!_config.Debugger.LogCulledMatrices) return;
+        
+        _config.Debugger.LogCulledMatrices = false;
+        _context.Transforms.LogCulledMatrices("Culled Matrices");
+    }
+
+    private void LogArgumentsAfterCopy()
+    {
+        if (!_config.Debugger.LogArgumentsAfterCopy) return;
+        
+        _config.Debugger.LogArgumentsAfterCopy = false;
+        _context.Arguments.Log("Arguments Buffers - After Copy");
     }
 }
