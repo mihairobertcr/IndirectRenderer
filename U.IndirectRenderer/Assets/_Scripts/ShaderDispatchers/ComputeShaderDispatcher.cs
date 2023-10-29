@@ -2,9 +2,6 @@ using UnityEngine;
 
 public abstract class ComputeShaderDispatcher
 {
-    // public abstract void Initialize();
-    public abstract void Dispatch();
-    
     protected const int SCAN_THREAD_GROUP_SIZE = 64;
 
     protected static readonly int ArgsBufferId = Shader.PropertyToID("_ArgsBuffer");
@@ -21,9 +18,14 @@ public abstract class ComputeShaderDispatcher
     protected static readonly int ScannedPredicatesId = Shader.PropertyToID("_ScannedPredicates");
     
     protected readonly ComputeShader ComputeShader;
-    protected readonly RendererDataContext Context;
+    protected readonly RendererContext Context;
+    
+    public abstract ComputeShaderDispatcher Initialize();
+    public abstract void Dispatch();
 
-    protected ComputeShaderDispatcher(ComputeShader computeShader, RendererDataContext context)
+    public virtual ComputeShaderDispatcher Update() => this;
+
+    protected ComputeShaderDispatcher(ComputeShader computeShader, RendererContext context)
     {
         ComputeShader = computeShader;
         Context = context;

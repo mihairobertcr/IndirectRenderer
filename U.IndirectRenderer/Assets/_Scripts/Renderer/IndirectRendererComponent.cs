@@ -2,27 +2,22 @@ using UnityEngine;
 
 public class IndirectRendererComponent : MonoBehaviour
 {
-    [SerializeField]
-    private Camera _renderCamera;
-
-    [SerializeField]
-    private RendererConfig _config;
-    
-    [SerializeField] 
-    private InstancesCollection _instances;
+    [SerializeField] private Camera _renderCamera;
+    [SerializeField] private RendererConfig _config;
+    [SerializeField] private MeshesCollection _meshes;
 
     private IndirectRenderer _renderer;
 
     private void Start()
     {
-        foreach (var instance in _instances.Data)
+        foreach (var instance in _meshes.Data)
         {
             instance.Transforms.Clear();
             for (var i = 0; i < 128; i++)
             {
                 for (var j = 0; j < 128; j++)
                 {
-                    var data = new InstanceProperties.TransformDto
+                    var data = new MeshProperties.TransformDto
                     {
                         Position = new Vector3
                         {
@@ -46,7 +41,7 @@ public class IndirectRendererComponent : MonoBehaviour
                         }
                     };
         
-                    //TODO: Move to InstanceProperties
+                    //TODO: Move to MeshProperties
                     data.Position += instance.Offset.Position;
                     data.Rotation += instance.Offset.Rotation;
                     data.Scale += instance.Offset.Scale;
@@ -56,7 +51,7 @@ public class IndirectRendererComponent : MonoBehaviour
             }
         }
 
-        _renderer = new IndirectRenderer(_renderCamera, _config, _instances.Data);
+        _renderer = new IndirectRenderer(_renderCamera, _config, _meshes.Data);
     }
 
     private void OnDestroy()

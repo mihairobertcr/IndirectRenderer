@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public partial class InstanceProperties
+public partial class MeshProperties
 {
     [Serializable]
     public class TransformDto

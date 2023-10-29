@@ -10,10 +10,10 @@ public class ArgumentsBuffer : IDisposable
     public int InstanceArgumentsCount { get; }
     public GraphicsBuffer GraphicsBuffer { get; }
 
-    private readonly List<InstanceProperties> _properties;
+    private readonly List<MeshProperties> _properties;
     private readonly GraphicsBuffer.IndirectDrawIndexedArgs[] _parameters;
 
-    public ArgumentsBuffer(List<InstanceProperties> properties, int lodsCount)
+    public ArgumentsBuffer(List<MeshProperties> properties, int lodsCount)
     {
         _properties = properties;
         _parameters = InitializeArgumentsBuffer();

@@ -49198,7 +49198,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c36be3a876474c14afffa8f56091a968, type: 3}
-  m_Name: InstancesCollection
+  m_Name: MeshesCollection
   m_EditorClassIdentifier: 
   Data:
   - {fileID: -5818415290478784431}

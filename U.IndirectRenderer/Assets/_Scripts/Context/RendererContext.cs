@@ -4,8 +4,12 @@ using System.Text;
 using UnityEngine;
 using IndirectRendering;
 
-public class RendererDataContext : IDisposable
+public class RendererContext : IDisposable
 {
+    public RendererConfig Config { get; }
+    public List<MeshProperties> MeshesProperties { get; }
+    public Camera Camera { get; }
+
     public int MeshesCount { get; }
     public int LodsCount { get; }
     
@@ -20,18 +24,22 @@ public class RendererDataContext : IDisposable
     public ComputeBuffer GroupSums { get; }
     public ComputeBuffer ScannedPredicates { get; }
     public ComputeBuffer ScannedGroupSums { get; }
-
-    public RendererDataContext(RendererConfig config, List<InstanceProperties> meshProperties)
+    
+    public RendererContext(RendererConfig config, List<MeshProperties> meshesProperties, Camera camera)
     {
-        MeshesCount = (int)config.NumberOfInstances * meshProperties.Count;
+        Config = config;
+        MeshesProperties = meshesProperties;
+        Camera = camera;
+        
+        MeshesCount = (int)config.NumberOfInstances * meshesProperties.Count;
         LodsCount = config.NumberOfLods;
         
-        Arguments = new ArgumentsBuffer(meshProperties, config.NumberOfLods);
+        Arguments = new ArgumentsBuffer(meshesProperties, config.NumberOfLods);
         Transforms = new TransformBuffer(MeshesCount);
         Sorting = new SortingBuffer(MeshesCount);
         
-        LodsRanges = new ComputeBuffer(meshProperties.Count * config.NumberOfLods, sizeof(float), ComputeBufferType.Default);
-        DefaultLods = new ComputeBuffer(meshProperties.Count, sizeof(uint), ComputeBufferType.Default);
+        LodsRanges = new ComputeBuffer(meshesProperties.Count * config.NumberOfLods, sizeof(float), ComputeBufferType.Default);
+        DefaultLods = new ComputeBuffer(meshesProperties.Count, sizeof(uint), ComputeBufferType.Default);
         BoundingBoxes = new ComputeBuffer(MeshesCount, BoundsData.Size, ComputeBufferType.Default);
         Visibility = new ComputeBuffer(MeshesCount, sizeof(uint), ComputeBufferType.Default);
         GroupSums = new ComputeBuffer(MeshesCount, sizeof(uint), ComputeBufferType.Default);

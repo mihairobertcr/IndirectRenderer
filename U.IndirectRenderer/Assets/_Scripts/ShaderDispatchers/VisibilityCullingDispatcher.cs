@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using IndirectRendering;
 
-public class CullingDispatcher : ComputeShaderDispatcher
+public class VisibilityCullingDispatcher : ComputeShaderDispatcher
 {
     private static readonly int EnableFrustumCullingId = Shader.PropertyToID("_EnableFrustumCulling");
     private static readonly int EnableOcclusionCullingId = Shader.PropertyToID("_EnableOcclusionCulling");
@@ -34,8 +34,8 @@ public class CullingDispatcher : ComputeShaderDispatcher
     private List<float> _lodsRanges;
     private List<BoundsData> _boundsData;
 
-    public CullingDispatcher(ComputeShader computeShader, RendererDataContext context)
-        : base(computeShader, context)
+    public VisibilityCullingDispatcher(RendererContext context)
+        : base(context.Config.VisibilityCulling, context)
     {
         _kernel = GetKernel("CSMain");
         _threadGroupX = Mathf.Max(1, context.MeshesCount / 64);
@@ -48,23 +48,52 @@ public class CullingDispatcher : ComputeShaderDispatcher
             out _boundsDataBuffer,
             out _sortingDataBuffer);
     }
-
-    public CullingDispatcher SetSettings(RendererConfig config)
+    
+    public override ComputeShaderDispatcher Initialize()
     {
-        ComputeShader.SetInt(EnableFrustumCullingId, config.EnableFrustumCulling ? 1 : 0);
-        ComputeShader.SetInt(EnableOcclusionCullingId, config.EnableOcclusionCulling ? 1 : 0);
-        ComputeShader.SetInt(EnableDetailCullingId, config.EnableDetailCulling ? 1 : 0);
-        ComputeShader.SetInt(EnableLodsId, config.EnableLod ? 1 : 0);
-        
-        ComputeShader.SetFloat(DetailCullingScreenPercentageId, config.DetailCullingPercentage);
+        SetSettings();
+        SetBoundsData();
+        SetLodsData();
+        SetDepthMap();
+        SubmitCullingData();
+        SubmitLodsData();
 
         return this;
     }
+
+    public override ComputeShaderDispatcher Update()
+    {
+        SubmitCameraData();
+        
+        return this;
+    }
+
+    public override void Dispatch() => ComputeShader.Dispatch(_kernel, _threadGroupX, 1, 1);
+
+    // TODO: #EDITOR
+    public void DrawGizmos()
+    {
+        Gizmos.color = new Color(1f, 0f, 0f, 0.333f);
+        for (var i = 0; i < _boundsData.Count; i++)
+        {
+            Gizmos.DrawWireCube(_boundsData[i].BoundsCenter, _boundsData[i].BoundsExtents * 2f);
+        }
+    }
     
-    public CullingDispatcher SetBoundsData(List<InstanceProperties> meshes)
+    private void SetSettings()
+    {
+        ComputeShader.SetInt(EnableFrustumCullingId, Context.Config.EnableFrustumCulling ? 1 : 0);
+        ComputeShader.SetInt(EnableOcclusionCullingId, Context.Config.EnableOcclusionCulling ? 1 : 0);
+        ComputeShader.SetInt(EnableDetailCullingId, Context.Config.EnableDetailCulling ? 1 : 0);
+        ComputeShader.SetInt(EnableLodsId, Context.Config.EnableLod ? 1 : 0);
+        
+        ComputeShader.SetFloat(DetailCullingScreenPercentageId, Context.Config.DetailCullingPercentage);
+    }
+    
+    private void SetBoundsData()
     {
         _boundsData = new List<BoundsData>();
-        foreach (var mesh in meshes)
+        foreach (var mesh in Context.MeshesProperties)
         {
             foreach (var transform in mesh.Transforms)
             {
@@ -84,14 +113,13 @@ public class CullingDispatcher : ComputeShaderDispatcher
         }
 
         _boundsDataBuffer.SetData(_boundsData);
-        return this;
     }
 
-    public CullingDispatcher SetLodsData(List<InstanceProperties> meshes)
+    private void SetLodsData()
     {
         _defaultLods = new List<uint>();
         _lodsRanges = new List<float>();
-        foreach (var mesh in meshes)
+        foreach (var mesh in Context.MeshesProperties)
         {
             _defaultLods.Add(mesh.DefaultLod);
             foreach (var lod in mesh.Lods)
@@ -102,60 +130,38 @@ public class CullingDispatcher : ComputeShaderDispatcher
         
         _defaultLodsBuffer.SetData(_defaultLods);
         _lodsRangesBuffer.SetData(_lodsRanges);
-
-        return this;
     }
 
-    public CullingDispatcher SetDepthMap()
+    private void SetDepthMap()
     {
         ComputeShader.SetVector(DepthMapResolutionId, HierarchicalDepthMap.Resolution);
         ComputeShader.SetTexture(_kernel, DepthMapId, HierarchicalDepthMap.Texture);
-        
-        return this;
     }
     
-    public CullingDispatcher SubmitCullingData()
+    private void SubmitCullingData()
     {
         ComputeShader.SetBuffer(_kernel, ArgsBufferId, _argumentsBuffer);
         ComputeShader.SetBuffer(_kernel, VisibilityBufferId, _visibilityBuffer);
         ComputeShader.SetBuffer(_kernel, BoundsDataId, _boundsDataBuffer);
         ComputeShader.SetBuffer(_kernel, SortingDataId, _sortingDataBuffer);
-
-        return this;
     }
 
-    public CullingDispatcher SubmitCameraData(Camera camera)
+    private void SubmitCameraData()
     {
-        var cameraPosition = camera.transform.position;
-        var worldMatrix = camera.worldToCameraMatrix;
-        var projectionMatrix = camera.projectionMatrix;
+        var cameraPosition = Context.Camera.transform.position;
+        var worldMatrix = Context.Camera.worldToCameraMatrix;
+        var projectionMatrix = Context.Camera.projectionMatrix;
         var modelViewProjection = projectionMatrix * worldMatrix;
 
         ComputeShader.SetMatrix(MvpMatrixId, modelViewProjection);
         ComputeShader.SetVector(CameraPositionId, cameraPosition);
-
-        return this;
     }
 
-    public CullingDispatcher SubmitLodsData()
+    private void SubmitLodsData()
     {
         ComputeShader.SetInt(LodsCountId, Context.LodsCount);
         ComputeShader.SetBuffer(_kernel, LodsRangesBufferId, _lodsRangesBuffer);
         ComputeShader.SetBuffer(_kernel, DefaultLodsBufferId, _defaultLodsBuffer);
-        
-        return this;
-    }
-
-    public override void Dispatch() => ComputeShader.Dispatch(_kernel, _threadGroupX, 1, 1);
-
-    // TODO: #EDITOR
-    public void DrawGizmos()
-    {
-        Gizmos.color = new Color(1f, 0f, 0f, 0.333f);
-        for (var i = 0; i < _boundsData.Count; i++)
-        {
-            Gizmos.DrawWireCube(_boundsData[i].BoundsCenter, _boundsData[i].BoundsExtents * 2f);
-        }
     }
 
     private void InitializeCullingBuffers(out GraphicsBuffer args,

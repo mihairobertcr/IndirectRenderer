@@ -15,8 +15,8 @@ public class MatricesInitDispatcher : ComputeShaderDispatcher
     private readonly ComputeBuffer _scalesBuffer;
     private readonly MatrixBuffer _matrixBuffer;
 
-    public MatricesInitDispatcher(ComputeShader computeShader, RendererDataContext context)
-        : base(computeShader, context)
+    public MatricesInitDispatcher(RendererContext context)
+        : base(context.Config.MatricesInit, context)
     {
         _kernel = GetKernel("CSMain");
         _threadGroupX = Mathf.Max(1, Context.MeshesCount / (2 * SCAN_THREAD_GROUP_SIZE));
@@ -28,13 +28,23 @@ public class MatricesInitDispatcher : ComputeShaderDispatcher
             out _matrixBuffer);
     }
 
-    public MatricesInitDispatcher SetTransformData(List<InstanceProperties> meshes)
+    public override ComputeShaderDispatcher Initialize()
+    {
+        SetTransformData();
+        SubmitTransformsData();
+
+        return this;
+    }
+
+    public override void Dispatch() => ComputeShader.Dispatch(_kernel, _threadGroupX, 1, 1);
+    
+    private void SetTransformData()
     {
         var positions = new List<Vector3>();
         var rotations = new List<Vector3>();
         var scales = new List<Vector3>();
 
-        foreach (var mesh in meshes)
+        foreach (var mesh in Context.MeshesProperties)
         {
             foreach (var transform in mesh.Transforms)
             {
@@ -47,11 +57,9 @@ public class MatricesInitDispatcher : ComputeShaderDispatcher
         _positionsBuffer.SetData(positions);
         _rotationsBuffer.SetData(rotations);
         _scalesBuffer.SetData(scales);
-
-        return this;
     }
     
-    public MatricesInitDispatcher SubmitTransformsData()
+    private void SubmitTransformsData()
     {
         ComputeShader.SetBuffer(_kernel, PositionsId, _positionsBuffer);
         ComputeShader.SetBuffer(_kernel, RotationsId, _rotationsBuffer);
@@ -59,11 +67,7 @@ public class MatricesInitDispatcher : ComputeShaderDispatcher
         ComputeShader.SetBuffer(_kernel, MatrixRows01Id, _matrixBuffer.Rows01);
         ComputeShader.SetBuffer(_kernel, MatrixRows23Id, _matrixBuffer.Rows23);
         ComputeShader.SetBuffer(_kernel, MatrixRows45Id, _matrixBuffer.Rows45);
-        
-        return this;
     }
-
-    public override void Dispatch() => ComputeShader.Dispatch(_kernel, _threadGroupX, 1, 1);
 
     private void InitializeTransformBuffers(out ComputeBuffer position, out ComputeBuffer rotation, 
         out ComputeBuffer scale, out MatrixBuffer matrix)

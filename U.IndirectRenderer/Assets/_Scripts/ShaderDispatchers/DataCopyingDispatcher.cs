@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 public class DataCopyingDispatcher : ComputeShaderDispatcher
@@ -28,8 +27,8 @@ public class DataCopyingDispatcher : ComputeShaderDispatcher
     
     private readonly GraphicsBuffer _arguments;
 
-    public DataCopyingDispatcher(ComputeShader computeShader, RendererDataContext context)
-        : base(computeShader, context)
+    public DataCopyingDispatcher(RendererContext context)
+        : base(context.Config.DataCopying, context)
     {
         _kernel = GetKernel("CSMain");
         _threadGroupX = Mathf.Max(1, context.MeshesCount / (2 * SCAN_THREAD_GROUP_SIZE));
@@ -51,7 +50,18 @@ public class DataCopyingDispatcher : ComputeShaderDispatcher
             out _arguments);
     }
 
-    public DataCopyingDispatcher SubmitCopingBuffers()
+    public override ComputeShaderDispatcher Initialize()
+    {
+        BindMaterialProperties();
+        SubmitCopingBuffers();
+        SubmitMeshesData();
+        
+        return this;
+    }
+
+    public override void Dispatch() => ComputeShader.Dispatch(_kernel, _threadGroupX, 1, 1);
+    
+    private void SubmitCopingBuffers()
     {
         ComputeShader.SetInt(DrawCallsCountId, Context.Arguments.InstanceArgumentsCount);
 
@@ -60,15 +70,13 @@ public class DataCopyingDispatcher : ComputeShaderDispatcher
         ComputeShader.SetBuffer(_kernel, MatrixRows45Id, _matricesRows45);
         ComputeShader.SetBuffer(_kernel, SortingDataId, _sortingData);
         ComputeShader.SetBuffer(_kernel, BoundsDataId, _boundsData);
-
-        return this;
     }
 
-    public DataCopyingDispatcher BindMaterialProperties(List<InstanceProperties> properties)
+    private void BindMaterialProperties()
     {
-        for (var i = 0; i < properties.Count; i++)
+        for (var i = 0; i < Context.MeshesProperties.Count; i++)
         {
-            var property = properties[i];
+            var property = Context.MeshesProperties[i];
             for (var k = 0; k < property.Lods.Count; k++)
             {
                 var lod = property.Lods[k];
@@ -82,11 +90,9 @@ public class DataCopyingDispatcher : ComputeShaderDispatcher
                 lod.MaterialPropertyBlock.SetBuffer(MatrixRows45Id, _culledMatricesRows45);
             }
         }
-
-        return this;
     }
 
-    public DataCopyingDispatcher SubmitMeshesData()
+    private void SubmitMeshesData()
     {
         ComputeShader.SetBuffer(_kernel, PredicatesInputId, _visibility);
         ComputeShader.SetBuffer(_kernel, GroupSumsId, _scannedGroupSums);
@@ -95,11 +101,7 @@ public class DataCopyingDispatcher : ComputeShaderDispatcher
         ComputeShader.SetBuffer(_kernel, CulledMatrixRows23Id, _culledMatricesRows23);
         ComputeShader.SetBuffer(_kernel, CulledMatrixRows45Id, _culledMatricesRows45);
         ComputeShader.SetBuffer(_kernel, ArgsBufferId, _arguments);
-
-        return this;
     }
-
-    public override void Dispatch() => ComputeShader.Dispatch(_kernel, _threadGroupX, 1, 1);
 
     private void InitializeCopingBuffers(out ComputeBuffer matricesRows01,
         out ComputeBuffer matricesRows23, out ComputeBuffer matricesRows45,

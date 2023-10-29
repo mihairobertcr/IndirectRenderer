@@ -6,21 +6,21 @@ using UnityEngine.Rendering;
 
 public class IndirectRenderer : IDisposable
 {
-    private readonly Camera _camera;
-    private readonly List<InstanceProperties> _instances;
     private readonly RendererConfig _config;
-    private readonly RendererDataContext _context;
+    private readonly RendererContext _context;
+    private readonly List<MeshProperties> _instances;
+    private readonly Camera _camera;
 
     private readonly MatricesInitDispatcher _matricesInitDispatcher;
     private readonly LodsSortingDispatcher _lodsSortingDispatcher;
-    private readonly CullingDispatcher _cullingDispatcher;
+    private readonly VisibilityCullingDispatcher _visibilityCullingDispatcher;
     private readonly PredicatesScanningDispatcher _predicatesScanningDispatcher;
     private readonly GroupSumsScanningDispatcher _groupSumsScanningDispatcher;
     private readonly DataCopyingDispatcher _dataCopyingDispatcher;
 
     private Bounds _worldBounds;
     
-    public IndirectRenderer(Camera camera, RendererConfig config, List<InstanceProperties> instances)
+    public IndirectRenderer(Camera camera, RendererConfig config, List<MeshProperties> instances)
     {
         _camera = camera;
         _instances = instances;
@@ -29,14 +29,14 @@ public class IndirectRenderer : IDisposable
         InitializeMeshProperties();
         _worldBounds.extents = Vector3.one * 10000; // ???
         
-        _context = new RendererDataContext(config, _instances);
+        _context = new RendererContext(config, _instances, _camera);
 
-        _matricesInitDispatcher = new MatricesInitDispatcher(_config.MatricesInit, _context);
-        _lodsSortingDispatcher = new LodsSortingDispatcher(_config.LodSorting, _context);
-        _cullingDispatcher = new CullingDispatcher(_config.VisibilityCulling, _context);
-        _predicatesScanningDispatcher = new PredicatesScanningDispatcher(_config.PredicatesScanning, _context);
-        _groupSumsScanningDispatcher = new GroupSumsScanningDispatcher(_config.GroupSumsScanning, _context);
-        _dataCopyingDispatcher = new DataCopyingDispatcher(_config.DataCopying, _context);
+        _matricesInitDispatcher = new MatricesInitDispatcher(_context);
+        _lodsSortingDispatcher = new LodsSortingDispatcher(_context);
+        _visibilityCullingDispatcher = new VisibilityCullingDispatcher(_context);
+        _predicatesScanningDispatcher = new PredicatesScanningDispatcher(_context);
+        _groupSumsScanningDispatcher = new GroupSumsScanningDispatcher(_context);
+        _dataCopyingDispatcher = new DataCopyingDispatcher(_context);
 
         Initialize();
         RenderPipelineManager.beginFrameRendering += BeginFrameRendering;
@@ -52,41 +52,18 @@ public class IndirectRenderer : IDisposable
     {
         if (_config.Debugger.DrawBounds)
         {
-            _cullingDispatcher.DrawGizmos();
+            _visibilityCullingDispatcher.DrawGizmos();
         }
     }
     
     private void Initialize()
     {
-        _matricesInitDispatcher
-            .SetTransformData(_instances)
-            .SubmitTransformsData()
-            .Dispatch();
-
-        _lodsSortingDispatcher
-            .SetSortingData(_instances, _camera)
-            .SetupSortingCommand()
-            .EnabledAsyncComputing(true);
-        
-        _cullingDispatcher
-            .SetSettings(_config)
-            .SetBoundsData(_instances)
-            .SetLodsData(_instances)
-            .SetDepthMap()
-            .SubmitCullingData()
-            .SubmitLodsData();
-
-        _predicatesScanningDispatcher
-            .SubmitMeshesData();
-        
-        _groupSumsScanningDispatcher
-            .SubmitGroupCount()
-            .SubmitGroupSumsData();
-        
-        _dataCopyingDispatcher
-            .BindMaterialProperties(_instances)
-            .SubmitCopingBuffers()
-            .SubmitMeshesData();
+        _matricesInitDispatcher.Initialize().Dispatch();
+        _lodsSortingDispatcher.Initialize();
+        _visibilityCullingDispatcher.Initialize();
+        _predicatesScanningDispatcher.Initialize();
+        _groupSumsScanningDispatcher.Initialize();
+        _dataCopyingDispatcher.Initialize();
     }
 
     private void BeginFrameRendering(ScriptableRenderContext context, Camera[] camera)
@@ -129,9 +106,7 @@ public class IndirectRenderer : IDisposable
         Profiler.EndSample();
 
         Profiler.BeginSample("Occlusion");
-        _cullingDispatcher
-            .SubmitCameraData(_camera)
-            .Dispatch();
+        _visibilityCullingDispatcher.Update().Dispatch();
         
         if (_config.Debugger.LogArgumentsAfterOcclusion)
         {
@@ -209,10 +184,10 @@ public class IndirectRenderer : IDisposable
         }
     }
 
-    private void DrawInstances(int instanceIndex, int lodIndex, InstanceProperties instance, RenderParams renderParams)
+    private void DrawInstances(int instanceIndex, int lodIndex, MeshProperties mesh, RenderParams renderParams)
     {
-        var lod = instance.Lods[lodIndex];
-        var startCommand = instanceIndex * instance.Lods.Count + lodIndex;
+        var lod = mesh.Lods[lodIndex];
+        var startCommand = instanceIndex * mesh.Lods.Count + lodIndex;
         renderParams.matProps = lod.MaterialPropertyBlock;
         renderParams.shadowCastingMode = lod.CastsShadows ? ShadowCastingMode.On : ShadowCastingMode.Off;
         Graphics.RenderMeshIndirect(renderParams, lod.Mesh, _context.Arguments.GraphicsBuffer, 1, startCommand);

@@ -3,12 +3,12 @@
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(InstanceProperties))]
+[CustomEditor(typeof(MeshProperties))]
 public class InstancePropertiesEditor : Editor
 {
     public override void OnInspectorGUI()
     {
-        var properties = target as InstanceProperties;
+        var properties = target as MeshProperties;
         var containerField = serializedObject.FindProperty("Container");
             
         GUI.enabled = false;
@@ -28,9 +28,9 @@ public class InstancePropertiesEditor : Editor
         }
             
         EditorGUILayout.Space(10);
-        if (!GUILayout.Button("Remove Selected Instance")) return;
+        if (!GUILayout.Button("Delete Properties Assets")) return;
         
-        var container = containerField.objectReferenceValue as InstancesCollection;
+        var container = containerField.objectReferenceValue as MeshesCollection;
         container.RemoveSelectedInstance(properties);
     }
 }

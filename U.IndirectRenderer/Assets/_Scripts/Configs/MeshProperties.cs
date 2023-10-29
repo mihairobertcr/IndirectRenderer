@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public partial class InstanceProperties : ScriptableObject
+public partial class MeshProperties : ScriptableObject
 {
 #if UNITY_EDITOR
     [HideInInspector, SerializeField]
-    internal InstancesCollection Container;
+    internal MeshesCollection Container;
 #endif
 
     [Header("Rendering"), Space(5)] 

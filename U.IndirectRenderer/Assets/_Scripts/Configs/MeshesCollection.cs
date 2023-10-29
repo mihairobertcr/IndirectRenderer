@@ -6,16 +6,16 @@ using UnityEditor;
 #endif
 
 [CreateAssetMenu(order = 1,
-    menuName = "Indirect Renderer/InstancesCollection",
-    fileName = "InstancesCollection")]
-public class InstancesCollection : ScriptableObject
+    menuName = "Indirect Renderer/MeshesCollection",
+    fileName = "MeshesCollection")]
+public class MeshesCollection : ScriptableObject
 {
-    public List<InstanceProperties> Data;
+    public List<MeshProperties> Data;
 
 #if UNITY_EDITOR
     public void CreateNewInstance()
     {
-        var instance = CreateInstance<InstanceProperties>();
+        var instance = CreateInstance<MeshProperties>();
         instance.Container = this;
         Data.Insert(0, instance);
         
@@ -26,7 +26,7 @@ public class InstancesCollection : ScriptableObject
         EditorUtility.SetDirty(instance);
     }
 
-    public void RemoveSelectedInstance(InstanceProperties properties)
+    public void RemoveSelectedInstance(MeshProperties properties)
     {
         Data.Remove(properties);
         Undo.DestroyObjectImmediate(properties);

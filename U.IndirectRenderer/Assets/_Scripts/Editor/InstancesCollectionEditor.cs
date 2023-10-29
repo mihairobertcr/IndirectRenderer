@@ -3,12 +3,12 @@
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(InstancesCollection))]
+[CustomEditor(typeof(MeshesCollection))]
 public class InstancesCollectionEditor : Editor
 {
     public override void OnInspectorGUI()
     {
-        var collection = target as InstancesCollection;
+        var collection = target as MeshesCollection;
         var dataProperty = serializedObject.FindProperty("Data");
             
         GUI.enabled = false;
@@ -16,7 +16,7 @@ public class InstancesCollectionEditor : Editor
         GUI.enabled = true;
         EditorGUILayout.Space(10);
             
-        if (GUILayout.Button("Add Instance"))
+        if (GUILayout.Button("Add Properties Asset"))
         {
             collection.CreateNewInstance();
         }

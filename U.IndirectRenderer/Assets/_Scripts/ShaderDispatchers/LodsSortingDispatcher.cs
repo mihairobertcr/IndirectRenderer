@@ -23,10 +23,8 @@ public class LodsSortingDispatcher : ComputeShaderDispatcher
     private readonly ComputeBuffer _dataBuffer;
     private readonly ComputeBuffer _tempBuffer;
     
-    private bool _computeAsync;
-
-    public LodsSortingDispatcher(ComputeShader computeShader, RendererDataContext context)
-        : base(computeShader, context)
+    public LodsSortingDispatcher(RendererContext context)
+        : base(context.Config.LodSorting, context)
     {
         _sortKernel = GetKernel("BitonicSort");
         _transposedSortKernel = GetKernel("MatrixTranspose");
@@ -36,10 +34,31 @@ public class LodsSortingDispatcher : ComputeShaderDispatcher
     
     ~LodsSortingDispatcher() => _command.Release();
 
-    public LodsSortingDispatcher SetSortingData(List<InstanceProperties> meshes, Camera camera)
+    public override ComputeShaderDispatcher Initialize()
     {
-        var cameraPosition = camera.transform.position;
+        SetSortingData();
+        SetupSortingCommand();
+        
+        return this;
+    }
+
+    public override void Dispatch()
+    {
+        if (Context.Config.SortLodsAsync)
+        {
+            Graphics.ExecuteCommandBufferAsync(_command, ComputeQueueType.Background);
+        }
+        else
+        {
+            Graphics.ExecuteCommandBuffer(_command);
+        }
+    }
+    
+    private void SetSortingData()
+    {
+        var cameraPosition = Context.Camera.transform.position;
         var sortingData = new List<SortingData>();
+        var meshes = Context.MeshesProperties;
         
         var instancesCount = 0u;
         for (var i = 0; i < meshes.Count; i++)
@@ -60,11 +79,9 @@ public class LodsSortingDispatcher : ComputeShaderDispatcher
 
         Context.Sorting.Data.SetData(sortingData);
         Context.Sorting.Temp.SetData(sortingData);
-
-        return this;
     }
 
-    public LodsSortingDispatcher SetupSortingCommand()
+    public void SetupSortingCommand()
     {
         // Parameters
         var elements = (uint)Context.MeshesCount;
@@ -110,22 +127,6 @@ public class LodsSortingDispatcher : ComputeShaderDispatcher
             // Sort the row data
             _command.SetComputeBufferParam(ComputeShader, _sortKernel,  DataId, _dataBuffer);
             _command.DispatchCompute(ComputeShader, _sortKernel, (int)(elements / BITONIC_BLOCK_SIZE), 1, 1);
-        }
-
-        return this;
-    }
-
-    public void EnabledAsyncComputing(bool enable) => _computeAsync = enable;
-    
-    public override void Dispatch()
-    {
-        if (_computeAsync)
-        {
-            Graphics.ExecuteCommandBufferAsync(_command, ComputeQueueType.Background);
-        }
-        else
-        {
-            Graphics.ExecuteCommandBuffer(_command);
         }
     }
 

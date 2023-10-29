@@ -11,28 +11,30 @@ public class GroupSumsScanningDispatcher : ComputeShaderDispatcher
     private readonly ComputeBuffer _groupSumsBuffer;
     private readonly ComputeBuffer _scannedGroupSumsBuffer;
 
-    public GroupSumsScanningDispatcher(ComputeShader computeShader, RendererDataContext context)
-        : base(computeShader, context)
+    public GroupSumsScanningDispatcher(RendererContext context)
+        : base(context.Config.GroupSumsScanning, context)
     {
         _kernel = GetKernel("CSMain");
         InitializeGroupSumsBuffers(out _groupSumsBuffer, out _scannedGroupSumsBuffer);
     }
 
-    public GroupSumsScanningDispatcher SubmitGroupCount()
+    public override ComputeShaderDispatcher Initialize()
     {
-        ComputeShader.SetInt(GroupsCountId, Context.MeshesCount / (2 * SCAN_THREAD_GROUP_SIZE));
-        return this;
-    }
-
-    public GroupSumsScanningDispatcher SubmitGroupSumsData()
-    {
-        ComputeShader.SetBuffer(_kernel, GroupSumsInputId, _groupSumsBuffer);
-        ComputeShader.SetBuffer(_kernel, GroupSumsOutputId, _scannedGroupSumsBuffer);
+        SubmitGroupCount();
+        SubmitGroupSumsData();
         
         return this;
     }
 
     public override void Dispatch() => ComputeShader.Dispatch(_kernel, 1, 1, 1);
+    
+    private void SubmitGroupCount() => ComputeShader.SetInt(GroupsCountId, Context.MeshesCount / (2 * SCAN_THREAD_GROUP_SIZE));
+
+    private void SubmitGroupSumsData()
+    {
+        ComputeShader.SetBuffer(_kernel, GroupSumsInputId, _groupSumsBuffer);
+        ComputeShader.SetBuffer(_kernel, GroupSumsOutputId, _scannedGroupSumsBuffer);
+    }
 
     private void InitializeGroupSumsBuffers(out ComputeBuffer groupSums, out ComputeBuffer scannedGroupSums)
     {
