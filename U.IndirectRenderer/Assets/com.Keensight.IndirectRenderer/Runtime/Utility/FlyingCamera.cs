@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections;
 using UnityEngine.EventSystems;
 
-public class FlyCamera : MonoBehaviour
+public class FlyingCamera : MonoBehaviour
 {
     public EventSystem eventSystem;
 

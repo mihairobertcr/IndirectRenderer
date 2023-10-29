@@ -81,25 +81,11 @@ public class IndirectRenderer : IDisposable
         LogMatrices();
 
         ResetArgumentsBuffer();
-        LogArgumentsAfterReset();
-
         SortLods();
-        LogSortingData();
-
         CalculateVisibilityCulling();
-        LogArgumentsBufferAfterCulling();
-        LogVisibilityBuffer();
-        
         ScanPredicates();
-        LogScannedPredicates();
-        LogLogGroupSums();
-        
         ScanGroupSums();
-        LogScannedGroupSums();
-
         CopyMeshesData();
-        LogCulledMatrices();
-        LogArgumentsAfterCopy();
     }
 
     private void RenderMeshes()
@@ -149,6 +135,7 @@ public class IndirectRenderer : IDisposable
         using var profiler = new ProfilerMarker(ProfilerCategory.Render, "01.ResetArgumentsBuffer").Auto();
         
         _context.Arguments.Reset();
+        LogArgumentsAfterReset();
     }
 
     private void SortLods()
@@ -156,6 +143,7 @@ public class IndirectRenderer : IDisposable
         using var profiler = new ProfilerMarker(ProfilerCategory.Render, "02.SortLods").Auto();
 
         _lodsSortingDispatcher.Dispatch();
+        LogSortingData();
     }
 
     private void CalculateVisibilityCulling()
@@ -163,6 +151,8 @@ public class IndirectRenderer : IDisposable
         using var profiler = new ProfilerMarker(ProfilerCategory.Render, "03.Culling").Auto();
 
         _visibilityCullingDispatcher.Update().Dispatch();
+        LogArgumentsBufferAfterCulling();
+        LogVisibilityBuffer();
     }
     
     private void ScanPredicates()
@@ -170,6 +160,8 @@ public class IndirectRenderer : IDisposable
         using var profiler = new ProfilerMarker(ProfilerCategory.Render, "04.ScanPredicates").Auto();
 
         _predicatesScanningDispatcher.Dispatch();
+        LogScannedPredicates();
+        LogLogGroupSums();
     }
 
     private void ScanGroupSums()
@@ -177,6 +169,7 @@ public class IndirectRenderer : IDisposable
         using var profiler = new ProfilerMarker(ProfilerCategory.Render, "05.ScanGroupSums").Auto();
 
         _groupSumsScanningDispatcher.Dispatch();
+        LogScannedGroupSums();
     }
 
     private void CopyMeshesData()
@@ -184,6 +177,8 @@ public class IndirectRenderer : IDisposable
         using var profiler = new ProfilerMarker(ProfilerCategory.Render, "06.CopyMeshesData").Auto();
 
         _dataCopyingDispatcher.Dispatch();
+        LogCulledMatrices();
+        LogArgumentsAfterCopy();
     }
 
     private void LogMatrices()

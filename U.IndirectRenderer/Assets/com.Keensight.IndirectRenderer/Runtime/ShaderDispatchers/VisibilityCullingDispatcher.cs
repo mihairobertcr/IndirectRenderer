@@ -159,7 +159,7 @@ public class VisibilityCullingDispatcher : ComputeShaderDispatcher
 
     private void SubmitLodsData()
     {
-        ComputeShader.SetInt(LodsCountId, Context.LodsCount);
+        ComputeShader.SetInt(LodsCountId, Context.Config.NumberOfLods);
         ComputeShader.SetBuffer(_kernel, LodsRangesBufferId, _lodsRangesBuffer);
         ComputeShader.SetBuffer(_kernel, DefaultLodsBufferId, _defaultLodsBuffer);
     }

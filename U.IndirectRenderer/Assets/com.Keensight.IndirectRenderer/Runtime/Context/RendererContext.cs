@@ -9,9 +9,7 @@ public class RendererContext : IDisposable
     public RendererConfig Config { get; }
     public List<MeshProperties> MeshesProperties { get; }
     public Camera Camera { get; }
-
     public int MeshesCount { get; }
-    public int LodsCount { get; }
     
     public ArgumentsBuffer Arguments { get; }
     public TransformBuffer Transforms { get; }
@@ -30,9 +28,7 @@ public class RendererContext : IDisposable
         Config = config;
         MeshesProperties = meshesProperties;
         Camera = camera;
-        
         MeshesCount = (int)config.NumberOfInstances * meshesProperties.Count;
-        LodsCount = config.NumberOfLods;
         
         Arguments = new ArgumentsBuffer(meshesProperties, config.NumberOfLods);
         Transforms = new TransformBuffer(MeshesCount);
