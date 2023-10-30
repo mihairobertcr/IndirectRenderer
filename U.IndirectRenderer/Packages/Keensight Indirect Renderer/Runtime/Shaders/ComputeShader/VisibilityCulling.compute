@@ -1,0 +1,227 @@
+#include "../IndirectData.hlsl"
+
+#pragma kernel CSMain
+
+#define THREAD_GROUP_SIZE_X 64
+#define THREAD_GROUP_SIZE_Y 1
+#define THREAD_GROUP_SIZE_Z 1
+
+#define MESH_ARGUMENTS_COUNT 5
+
+cbuffer CB
+{
+    uint _EnableFrustumCulling;
+    uint _EnableOcclusionCulling;
+    uint _EnableDetailCulling;
+    uint _EnableLods;
+    
+    float _DetailCullingScreenPercentage;
+    float2 _DepthMapResolution;
+    float3 _CameraPosition;
+    uint _LodsCount;
+    
+    float4x4 _MvpMatrix;
+    Texture2D _DepthMap;
+    SamplerState sampler_DepthMap;
+};
+
+StructuredBuffer<BoundsData> _BoundsData;
+StructuredBuffer<float> _LodsRanges;
+StructuredBuffer<uint> _DefaultLods;
+
+RWStructuredBuffer<SortingData> _SortingData;
+RWStructuredBuffer<uint> _Visibilities;
+RWStructuredBuffer<uint> _Arguments;
+
+
+inline uint IsCameraOutsideObjBounds(float3 position, float3 min, float3 max)
+{
+    float boundsSize = distance(max, min);
+    return (distance(position, max) > boundsSize) + (distance(position, min) > boundsSize);
+}
+
+inline uint IsVisibleAfterDetailCulling(float clipMinX, float clipMaxX, float clipMinY, float clipMaxY)
+{
+    return saturate((distance(clipMinX, clipMaxX) >= _DetailCullingScreenPercentage) +
+        (distance(clipMinY, clipMaxY) >= _DetailCullingScreenPercentage));
+}
+
+// Hi-Z Culling
+inline uint IsVisibleAfterOcclusionCulling(float clipMinX, float clipMaxX, float clipMinY, float clipMaxY, float clipMinZ)
+{
+    // Change it to 0 - 1 range 
+    float2 uvLeftBottom = float2(clipMinX, clipMinY) * 0.5 + 0.5;
+    float2 uvRightTop = float2(clipMaxX, clipMaxY) * 0.5 + 0.5;
+
+    // Calculate hi-Z buffer mip
+    int2 size = (uvRightTop - uvLeftBottom) * _DepthMapResolution.xy;
+    float mip = ceil(log2(max(size.x, size.y)));
+    mip = clamp(mip, 0, 10);
+    
+    // Texel footprint for the lower (finer-grained) level
+    float  lowerLevel = max(mip - 1, 0);
+    float2 scale = exp2(-lowerLevel);
+    float2 a = floor(uvLeftBottom * scale);
+    float2 b = ceil(uvRightTop * scale);
+    float2 dimensions = b - a;
+    
+    // Use the lower level if we only touch <= 2 texels in both dimensions
+    if (dimensions.x <= 2 && dimensions.y <= 2)
+    {
+        mip = lowerLevel;
+    }
+    
+    // find the max depth
+    // Hi-Z approach that allows for more samples.
+    // https://www.gamedev.net/blogs/entry/2249535-hierarchical-z-buffer-occlusion-culling-updated-07152011/
+    // const   int numSamples = 24;
+    const int   xSamples = 8; // numSamples + 1;
+    const int   ySamples = 25; // numSamples + 1;
+    
+    const float widthSS = (uvRightTop.x - uvLeftBottom.x);
+    const float heightSS = (uvRightTop.y - uvLeftBottom.y);    
+    // const float maxSizeSS = max(widthSS * _DepthMapResolution.x, heightSS * _DepthMapResolution.y);    
+    const float stepX = widthSS / xSamples;    
+    const float stepY = heightSS / ySamples;    
+    
+    float hiZDepth = 1;    
+    float yPosition = uvLeftBottom.y;
+    for(int y = 0; y < ySamples; ++y)
+    {
+        float xPosition = uvLeftBottom.x;
+        for(int x = 0; x < xSamples; ++x)
+        {
+            const float2 nCoords0 = float2(xPosition, yPosition);
+            hiZDepth = min(hiZDepth, _DepthMap.SampleLevel(sampler_DepthMap, nCoords0, mip).r);
+            xPosition += stepX;
+        }
+        
+        yPosition += stepY;
+    }
+
+    return (1.0 - clipMinZ) >= hiZDepth + 0.00015; // last is an epsilon
+}
+
+inline uint IsVisibleAfterFrustumCulling(float4 clipPos)
+{
+    return (clipPos.z > clipPos.w 
+         || clipPos.x < -clipPos.w 
+         || clipPos.x > clipPos.w 
+         || clipPos.y < -clipPos.w 
+         || clipPos.y > clipPos.w) 
+         ? 0 : 1;
+}
+
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z)]
+inline void CSMain (
+        in uint3 _dispatchThreadId : SV_DispatchThreadID, // DispatchThreadID = dot(GroupID, numthreads) + GroupThreadId;
+        in uint  _groupIndex       : SV_GroupIndex,       // GroupIndex = unique index of a thread inside a group
+        in uint3 _groupId          : SV_GroupID,          // GroupID = index for each dimension inside a ThreadGroupCount 
+        in uint3 _groupThreadId    : SV_GroupThreadID)    // GroupThreadId = indices for each dimension inside a group of the current thread
+{
+    // Calculate the instance index
+    uint threadId = _dispatchThreadId.x;
+    SortingData sortingData = _SortingData[threadId];
+    uint drawCall = (sortingData.DrawCallInstanceIndex >> 16);
+    uint index = (sortingData.DrawCallInstanceIndex) & 0xFFFF;
+
+    // Reset the is visible state
+    _Visibilities[threadId] = 0;
+
+    // Get the instance data
+    BoundsData instance = _BoundsData[index];
+
+    // Check if the instance is visible
+    float3 minPosition = instance.BoundsCenter - instance.BoundsExtents;
+    float3 maxPosition = instance.BoundsCenter + instance.BoundsExtents;
+
+    float4 boxCorners[8];
+    boxCorners[0] = float4(minPosition.x, minPosition.y, minPosition.z, 1.0);
+    boxCorners[1] = float4(minPosition.x, minPosition.y, maxPosition.z, 1.0);
+    boxCorners[2] = float4(minPosition.x, maxPosition.y, minPosition.z, 1.0);
+    boxCorners[3] = float4(minPosition.x, maxPosition.y, maxPosition.z, 1.0);
+    boxCorners[4] = float4(maxPosition.x, minPosition.y, minPosition.z, 1.0);
+    boxCorners[5] = float4(maxPosition.x, minPosition.y, maxPosition.z, 1.0);
+    boxCorners[6] = float4(maxPosition.x, maxPosition.y, minPosition.z, 1.0);
+    boxCorners[7] = float4(maxPosition.x, maxPosition.y, maxPosition.z, 1.0);
+
+    float4 clipPosition = mul(_MvpMatrix, boxCorners[0]);
+    uint isInFrustum = IsVisibleAfterFrustumCulling(clipPosition);
+
+    clipPosition.xyz = clipPosition.xyz / clipPosition.w;
+    float clipMinX = clipPosition.x;
+    float clipMaxX = clipPosition.x;
+    float clipMinY = clipPosition.y;
+    float clipMaxY = clipPosition.y;
+    float clipMinZ = clipPosition.z;
+
+    float minDistanceToCamera = distance(instance.BoundsCenter.xyz, _CameraPosition.xyz);
+    [unroll]
+    for (int i = 1; i < 8; i++)
+    {
+        clipPosition = mul(_MvpMatrix, boxCorners[i]);
+
+        // For Frustum
+        isInFrustum = saturate(isInFrustum + IsVisibleAfterFrustumCulling(clipPosition));
+
+        // For HiZ
+        clipPosition.xyz = clipPosition.xyz / clipPosition.w;
+        clipMinX = min(clipPosition.x, clipMinX);
+        clipMaxX = max(clipPosition.x, clipMaxX);
+        clipMinY = min(clipPosition.y, clipMinY);
+        clipMaxY = max(clipPosition.y, clipMaxY);
+        clipMinZ = min(clipPosition.z, clipMinZ);
+
+        // For LODing
+        minDistanceToCamera = min(distance(boxCorners[i].xyz, _CameraPosition.xyz), minDistanceToCamera);
+    }
+
+    // We only cull instances where the camera doesn't intersect the instance 
+    // bounds. If the camera is inside the bounds we want to render the object
+    uint isVisible = 1;
+    if (IsCameraOutsideObjBounds(_CameraPosition, minPosition, maxPosition))
+    {
+        // Do we pass the frustum culling...?
+        isVisible *= _EnableFrustumCulling ? isInFrustum : 1;
+
+        // Do we pass the occlusion culling...?
+        isVisible *= (_EnableOcclusionCulling * isVisible > 0) ? IsVisibleAfterOcclusionCulling(clipMinX, clipMaxX, clipMinY, clipMaxY, clipMinZ) : 1;
+        
+        // Do we pass the detail (screen size) culling...?
+        isVisible *= (_EnableDetailCulling * isVisible > 0) ? IsVisibleAfterDetailCulling(clipMinX, clipMaxX, clipMinY, clipMaxY) : 1;
+    }
+
+    // See if survives distance culling
+    uint argsIndex = drawCall + 1;
+    if (minDistanceToCamera <= _LodsRanges[_LodsCount - 1])
+    {
+        // Calculate the correct index to the arguments buffers
+        uint rangeIndex = drawCall / (MESH_ARGUMENTS_COUNT * _LodsCount);
+        if (_EnableLods)
+        {
+            for (uint k = 0; k < _LodsCount - 1; k++)
+            {
+                float range = _LodsRanges[k + (rangeIndex * _LodsCount)];
+                if (minDistanceToCamera > range)
+                {
+                    argsIndex += MESH_ARGUMENTS_COUNT;
+                }
+            }
+        }
+        else
+        {
+            argsIndex += MESH_ARGUMENTS_COUNT * _DefaultLods[rangeIndex];
+        }
+    }
+    else
+    {
+        isVisible = 0;
+    }
+    
+    // Output
+    _Visibilities[threadId] = isVisible;
+    InterlockedAdd(_Arguments[argsIndex], isVisible);
+
+    sortingData.DistanceToCamera = minDistanceToCamera;
+    _SortingData[threadId] = sortingData;
+}

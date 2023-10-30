@@ -1,0 +1,105 @@
+#include "../IndirectData.hlsl"
+
+#pragma kernel CSMain
+
+#define THREAD_GROUP_SIZE_X 128
+#define THREAD_GROUP_SIZE_Y 1
+#define THREAD_GROUP_SIZE_Z 1
+
+StructuredBuffer<float3> _Positions;
+StructuredBuffer<float3> _Scales;
+StructuredBuffer<float3> _Rotations;
+
+RWStructuredBuffer<Matrix2x2> _MatrixRows01s;
+RWStructuredBuffer<Matrix2x2> _MatrixRows23s;
+RWStructuredBuffer<Matrix2x2> _MatrixRows45s;
+
+float4x4 RotationMatrix(float3 axis, float angle)
+{
+    axis = normalize(axis);
+    float s = sin(angle);
+    float c = cos(angle);
+    float oc = 1.0 - c;
+
+    return float4x4(
+        oc * axis.x * axis.x + c, oc * axis.x * axis.y - axis.z * s, oc * axis.z * axis.x + axis.y * s, 0.0,
+        oc * axis.x * axis.y + axis.z * s, oc * axis.y * axis.y + c, oc * axis.y * axis.z - axis.x * s, 0.0,
+        oc * axis.z * axis.x - axis.y * s, oc * axis.y * axis.z + axis.x * s, oc * axis.z * axis.z + c, 0.0,
+        0, 0, 0, 1.0);
+}
+
+// https://forum.unity.com/threads/incorrect-normals-on-after-rotating-instances-graphics-drawmeshinstancedindirect.503232/#post-3277479
+float4x4 Inverse(float4x4 input)
+{
+    #define Minor(a,b,c) determinant(float3x3(input.a, input.b, input.c))
+	
+    float4x4 cofactors = float4x4(
+         Minor(_22_23_24, _32_33_34, _42_43_44),
+        -Minor(_21_23_24, _31_33_34, _41_43_44),
+         Minor(_21_22_24, _31_32_34, _41_42_44),
+        -Minor(_21_22_23, _31_32_33, _41_42_43),
+	
+        -Minor(_12_13_14, _32_33_34, _42_43_44),
+         Minor(_11_13_14, _31_33_34, _41_43_44),
+        -Minor(_11_12_14, _31_32_34, _41_42_44),
+         Minor(_11_12_13, _31_32_33, _41_42_43),
+	
+         Minor(_12_13_14, _22_23_24, _42_43_44),
+        -Minor(_11_13_14, _21_23_24, _41_43_44),
+         Minor(_11_12_14, _21_22_24, _41_42_44),
+        -Minor(_11_12_13, _21_22_23, _41_42_43),
+	
+        -Minor(_12_13_14, _22_23_24, _32_33_34),
+         Minor(_11_13_14, _21_23_24, _31_33_34),
+        -Minor(_11_12_14, _21_22_24, _31_32_34),
+         Minor(_11_12_13, _21_22_23, _31_32_33)
+    );
+    #undef Minor
+    return transpose(cofactors) / determinant(input);
+}
+
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z)]
+inline void CSMain (
+        in uint3 _dispatchThreadId : SV_DispatchThreadID, // DispatchThreadID = dot(GroupID, numthreads) + GroupThreadId;
+        in uint  _groupIndex       : SV_GroupIndex,       // GroupIndex = unique index of a thread inside a group
+        in uint3 _groupId          : SV_GroupID,          // GroupID = index for each dimension inside a ThreadGroupCount 
+        in uint3 _groupThreadId    : SV_GroupThreadID)    // GroupThreadId = indices for each dimension inside a group of the current thread
+{
+    uint threadID = _dispatchThreadId.x;
+
+    float3 position = _Positions[threadID];
+    float3 scale    = _Scales[threadID];
+    float3 rotation = _Rotations[threadID];
+    
+    float4x4 xRotationMatrix = RotationMatrix(float3(1, 0, 0), radians(rotation.x));
+    float4x4 yRotationMatrix = RotationMatrix(float3(0, 1, 0), radians(rotation.y));
+    float4x4 zRotationMatrix = RotationMatrix(float3(0, 0, 1), radians(rotation.z));
+    float4x4 rotationMatrix  = mul(yRotationMatrix, mul(zRotationMatrix, xRotationMatrix));
+
+    float4x4 translation =
+    {
+        scale.x, 0, 0, position.x,
+        0, scale.y, 0, position.y,
+        0, 0, scale.z, position.z,
+        0, 0, 0, 1
+    };
+	
+    float4x4 localToWorld = mul(translation, rotationMatrix);
+    float4x4 worldToLocal = Inverse(localToWorld);
+    
+    Matrix2x2 rows01;
+    Matrix2x2 rows23;
+    Matrix2x2 rows45;
+    
+    rows01.Row0 = localToWorld[0];
+    rows01.Row1 = localToWorld[1];
+    rows23.Row0 = localToWorld[2];
+    
+    rows23.Row1 = worldToLocal[0];
+    rows45.Row0 = worldToLocal[1];
+    rows45.Row1 = worldToLocal[2];
+    
+    _MatrixRows01s[threadID] = rows01;
+    _MatrixRows23s[threadID] = rows23;
+    _MatrixRows45s[threadID] = rows45;
+}

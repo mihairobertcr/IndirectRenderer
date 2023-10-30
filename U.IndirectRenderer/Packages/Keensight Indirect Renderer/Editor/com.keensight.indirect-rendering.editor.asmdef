@@ -1,0 +1,16 @@
+{
+    "name": "com.keensight.indirect-rendering.editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:1192ca8ba079c4a07a7a3772e56c0fc6"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
