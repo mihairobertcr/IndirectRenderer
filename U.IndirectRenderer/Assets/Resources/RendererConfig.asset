@@ -27,10 +27,10 @@ MonoBehaviour:
   EnableOcclusionCulling: 1
   EnableDetailCulling: 1
   Debugger:
-    DrawBounds: 0
+    DrawBounds: 1
     LogMatrices: 0
     LogArgumentsAfterReset: 0
-    LogArgumentsAfterOcclusion: 0
+    LogArgumentsAfterCulling: 0
     LogVisibilityBuffer: 0
     LogGroupSums: 0
     LogScannedPredicates: 0

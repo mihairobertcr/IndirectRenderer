@@ -1,0 +1,20 @@
+{
+  "name": "com.keensight.indirect-rendering",
+  "version": "0.0.1",
+  "displayName": "Keensight Indirect Rendering",
+  "description": "Indirect rendering system based on GPU instancing with frustum and hi-z occlusion culling:\nSee repository here:  <Link>",
+  "unity": "2022.3",
+  "documentationUrl": "https://example.com/",
+  "changelogUrl": "https://github.com/mihairobertcr/IndirectRenderingSystem/blob/main/CHANGELOG.md",
+  "licensesUrl": "https://github.com/mihairobertcr/IndirectRenderingSystem/blob/main/LICENSE.md",
+  "keywords": [],
+  "author": {
+    "name": "Robert-Mihai Cr\u0103ciun",
+    "email": "mihai.robertcr@gmail.com",
+    "url": "https://www.linkedin.com/in/robert-mihai-craciun-5a0486165/"
+  },
+  "dependencies": {
+    "com.unity.render-pipelines.core": "14.0.9",
+    "com.unity.render-pipelines.universal": "14.0.9"
+  }
+}
