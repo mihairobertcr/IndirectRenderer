@@ -35,7 +35,8 @@ https://github.com/ellioman/Indirect-Rendering-With-Compute-Shaders
 
 Install via UPM package available in [Indirect Rendering System](https://github.com/mihairobertcr/IndirectRenderingSystem.git) page.
 
-![image](https://user-images.githubusercontent.com/46207/79450714-3aadd100-8020-11ea-8aae-b8d87fc4d7be.png)
+![package-manager](https://github.com/mihairobertcr/IndirectRenderer/assets/77929450/95d925a6-5674-49f9-9c90-136bd41b2df8)
+
 
 ![image](https://user-images.githubusercontent.com/46207/83702872-e0f17c80-a648-11ea-8183-7469dcd4f810.png)
 
