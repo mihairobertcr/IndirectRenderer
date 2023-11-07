@@ -37,8 +37,7 @@ Install via UPM package available in [Indirect Rendering System](https://github.
 
 ![package-manager](https://github.com/mihairobertcr/IndirectRenderer/assets/77929450/95d925a6-5674-49f9-9c90-136bd41b2df8)
 
-
-![image](https://user-images.githubusercontent.com/46207/83702872-e0f17c80-a648-11ea-8183-7469dcd4f810.png)
+![package-url](https://github.com/mihairobertcr/IndirectRenderer/assets/77929450/9291b0c9-15ec-490a-8661-eb6cb00103b0)
 
 Or add `"com.keensight.indirect-rendering": "https://github.com/mihairobertcr/IndirectRenderingSystem.git"` to `Packages/manifest.json`.
 
