@@ -33,13 +33,13 @@ https://github.com/ellioman/Indirect-Rendering-With-Compute-Shaders
 
 ### Installation
 
-Install via UPM package available in [Indirect Rendering System](https://github.com/mihairobertcr/IndirectRenderingSystem.git) page.
+Install via UPM package available in [Indirect Rendering System](https://github.com/mihairobertcr/KeenRenderer/tree/main/U.IndirectRendering/Assets/Plugins/KeenRenderer) page.
 
 ![package-manager](https://github.com/mihairobertcr/IndirectRenderer/assets/77929450/95d925a6-5674-49f9-9c90-136bd41b2df8)
 
 ![package-url](https://github.com/mihairobertcr/IndirectRenderer/assets/77929450/9291b0c9-15ec-490a-8661-eb6cb00103b0)
 
-Or add `"com.keensight.indirect-rendering": "https://github.com/mihairobertcr/IndirectRenderingSystem.git"` to `Packages/manifest.json`.
+Or add `"com.keensight.indirect-rendering": "https://github.com/mihairobertcr/KeenRenderer/tree/main/U.IndirectRendering/Assets/Plugins/KeenRenderer"` to `Packages/manifest.json`.
 
 
 ### Getting Started

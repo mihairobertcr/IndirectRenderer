@@ -7,7 +7,7 @@ using Keensight.Rendering.Configs;
 namespace Keensight.Rendering.Editor
 {
     [CustomEditor(typeof(MeshCollection))]
-    public class InstancesCollectionEditor : UnityEditor.Editor
+    public class MeshesCollectionEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {
