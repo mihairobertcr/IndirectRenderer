@@ -28,6 +28,7 @@ namespace Keensight.Rendering.Dispatchers
         private readonly int _kernel;
         private readonly int _threadGroupX;
 
+        private readonly DepthTexture _depthTexture;
         private readonly GraphicsBuffer _argumentsBuffer;
         private readonly ComputeBuffer _visibilityBuffer;
         private readonly ComputeBuffer _defaultLodsBuffer;
@@ -39,11 +40,12 @@ namespace Keensight.Rendering.Dispatchers
         private List<float> _lodsRanges;
         private List<BoundsData> _boundsData;
 
-        public VisibilityCullingDispatcher(RendererContext context)
+        public VisibilityCullingDispatcher(RendererContext context, DepthTexture depthTexture)
             : base(context.Config.VisibilityCulling, context)
         {
             _kernel = GetKernel("CSMain");
             _threadGroupX = Mathf.Max(1, context.MeshesCount / 64);
+            _depthTexture = depthTexture;
 
             InitializeCullingBuffers(
                 out _argumentsBuffer,
@@ -139,8 +141,8 @@ namespace Keensight.Rendering.Dispatchers
 
         private void SetDepthMap()
         {
-            ComputeShader.SetVector(DepthMapResolutionId, HierarchicalDepthMap.Resolution);
-            ComputeShader.SetTexture(_kernel, DepthMapId, HierarchicalDepthMap.Texture);
+            ComputeShader.SetVector(DepthMapResolutionId, new Vector2(_depthTexture.Size, _depthTexture.Size));
+            ComputeShader.SetTexture(_kernel, DepthMapId, _depthTexture.Component.Texture);
         }
 
         private void SubmitCullingData()

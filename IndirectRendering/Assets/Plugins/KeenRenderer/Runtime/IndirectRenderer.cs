@@ -17,6 +17,7 @@ namespace Keensight.Rendering
         private readonly RendererConfig _config;
         private readonly RendererContext _context;
         private readonly List<MeshProperties> _instances;
+        private readonly DepthTexture _depthTexture;
 
         private readonly MatricesInitDispatcher _matricesInitDispatcher;
         private readonly LodsSortingDispatcher _lodsSortingDispatcher;
@@ -27,7 +28,7 @@ namespace Keensight.Rendering
 
         private Bounds _worldBounds;
         
-        public IndirectRenderer(Camera camera, RendererConfig config, List<MeshProperties> instances)
+        public IndirectRenderer(Camera camera, RendererConfig config, List<MeshProperties> instances, DepthMapComponent depthMapComponent)
         {
             _camera = camera;
             _instances = instances;
@@ -37,10 +38,11 @@ namespace Keensight.Rendering
             _worldBounds.extents = Vector3.one * 10000; // ???
             
             _context = new RendererContext(config, _instances, _camera);
+            _depthTexture = new DepthTexture(depthMapComponent, _camera);
 
             _matricesInitDispatcher = new MatricesInitDispatcher(_context);
             _lodsSortingDispatcher = new LodsSortingDispatcher(_context);
-            _visibilityCullingDispatcher = new VisibilityCullingDispatcher(_context);
+            _visibilityCullingDispatcher = new VisibilityCullingDispatcher(_context, _depthTexture);
             _predicatesScanningDispatcher = new PredicatesScanningDispatcher(_context);
             _groupSumsScanningDispatcher = new GroupSumsScanningDispatcher(_context);
             _dataCopyingDispatcher = new DataCopyingDispatcher(_context);
@@ -75,6 +77,7 @@ namespace Keensight.Rendering
 
         private void BeginFrameRendering(ScriptableRenderContext context, Camera[] camera)
         {
+            _depthTexture.UpdateTexture();
             CalculateVisibleMeshes();
             RenderMeshes();
         }

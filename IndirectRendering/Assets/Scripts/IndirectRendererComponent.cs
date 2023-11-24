@@ -8,13 +8,14 @@ public class IndirectRendererComponent : MonoBehaviour
 {
     [SerializeField] private Camera _renderCamera;
     [SerializeField] private RendererConfig _config;
-    [FormerlySerializedAs("_meshes")] [SerializeField] private MeshCollection mesh;
+    [SerializeField] private MeshCollection _meshes;
+    [FormerlySerializedAs("_depthTexture")] [SerializeField] private DepthMapComponent depthMap;
 
     private IndirectRenderer _renderer;
 
     private void Start()
     {
-        foreach (var instance in mesh.Data)
+        foreach (var instance in _meshes.Data)
         {
             instance.Transforms.Clear();
             for (var i = 0; i < 128; i++)
@@ -55,7 +56,7 @@ public class IndirectRendererComponent : MonoBehaviour
             }
         }
 
-        _renderer = new IndirectRenderer(_renderCamera, _config, mesh.Data);
+        _renderer = new IndirectRenderer(_renderCamera, _config, _meshes.Data, depthMap);
     }
 
     private void OnDestroy()

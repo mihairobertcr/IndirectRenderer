@@ -24,7 +24,7 @@ MonoBehaviour:
   DataCopying: {fileID: 7200000, guid: 266562bdb8f774ae2872176ce62aca32, type: 3}
   EnableLod: 1
   EnableFrustumCulling: 1
-  EnableOcclusionCulling: 1
+  EnableOcclusionCulling: 0
   EnableDetailCulling: 1
   Debugger:
     DrawBounds: 1

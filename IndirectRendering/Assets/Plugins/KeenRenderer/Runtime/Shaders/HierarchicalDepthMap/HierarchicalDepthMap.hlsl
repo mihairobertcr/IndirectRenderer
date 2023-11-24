@@ -21,15 +21,31 @@ struct Varyings
 Texture2D _MainTex;
 SamplerState sampler_MainTex;
 
-Texture2D _CameraDepthTexture;
-SamplerState sampler_CameraDepthTexture;
-
-Texture2D _LightTexture;
-SamplerState sampler_LightTexture;
+// Texture2D _CameraDepthTexture;
+// SamplerState sampler_CameraDepthTexture;
+//
+// Texture2D _LightTexture;
+// SamplerState sampler_LightTexture;
 
 float4 _MainTex_TexelSize;
 
-half _DepthMapPrecision;
+// half _DepthMapPrecision;
+
+inline float CalculatorMipmapDepth(float2 uv)
+{
+    float4 depth;
+    float offset = _MainTex_TexelSize.x / 2;
+    depth.x = _MainTex.Sample(sampler_MainTex, uv);
+    depth.y = _MainTex.Sample(sampler_MainTex, uv + float2(0, offset));
+    depth.z = _MainTex.Sample(sampler_MainTex, uv + float2(offset, 0));
+    depth.w = _MainTex.Sample(sampler_MainTex, uv + float2(offset, offset));
+    
+    #if defined(UNITY_REVERSED_Z)
+    return min(min(depth.x, depth.y), min(depth.z, depth.w));
+    #else
+    return max(max(depth.x, depth.y), max(depth.z, depth.w));
+    #endif
+}
 
 Varyings Vertex(in Input i)
 {
@@ -42,21 +58,27 @@ Varyings Vertex(in Input i)
     return output;
 }
 
-float4 Blit(in Varyings input) : SV_Target
+float4 Fragment(in Varyings input) : Color
 {
-    float lightDepth = _LightTexture.Sample(sampler_LightTexture, input.uv).r;
-    float cameraDepth = _CameraDepthTexture.Sample(sampler_CameraDepthTexture, input.uv).r * _DepthMapPrecision;
-    return float4(cameraDepth, lightDepth, 0 ,0);
+    float depth = CalculatorMipmapDepth(input.uv);
+    return float4(depth, 0, 0, 1.0f);
 }
 
-float4 Reduce(in Varyings input) : SV_Target
-{
-    float4 r = _MainTex.GatherRed(sampler_MainTex, input.uv);
-    float4 g = _MainTex.GatherGreen(sampler_MainTex, input.uv);
-
-    float minimum = min(min(min(r.x, r.y), r.z), r.w);
-    float maximum = max(max(max(g.x, g.y), g.z), g.w);
-    return float4(minimum, maximum, 1.0, 1.0);
-}
+// float4 Blit(in Varyings input) : SV_Target
+// {
+//     float lightDepth = _LightTexture.Sample(sampler_LightTexture, input.uv).r;
+//     float cameraDepth = _CameraDepthTexture.Sample(sampler_CameraDepthTexture, input.uv).r * _DepthMapPrecision;
+//     return float4(cameraDepth, lightDepth, 0 ,0);
+// }
+//
+// float4 Reduce(in Varyings input) : SV_Target
+// {
+//     float4 r = _MainTex.GatherRed(sampler_MainTex, input.uv);
+//     float4 g = _MainTex.GatherGreen(sampler_MainTex, input.uv);
+//
+//     float minimum = min(min(min(r.x, r.y), r.z), r.w);
+//     float maximum = max(max(max(g.x, g.y), g.z), g.w);
+//     return float4(minimum, maximum, 1.0, 1.0);
+// }
 
 #endif

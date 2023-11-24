@@ -15,20 +15,21 @@ Shader "IndirectRendering/HiZ/Buffer"
             HLSLPROGRAM
             #pragma target 4.5
             #pragma vertex Vertex
-            #pragma fragment Blit
+            #pragma fragment Fragment
+            // #pragma fragment Blit
             #include "HierarchicalDepthMap.hlsl"
             ENDHLSL
         }
 
-        Pass
-        {
-            HLSLPROGRAM
-            #pragma target 4.5
-            #pragma vertex Vertex
-            #pragma fragment Reduce
-            #include "HierarchicalDepthMap.hlsl"
-            ENDHLSL
-        }
+//        Pass
+//        {
+//            HLSLPROGRAM
+//            #pragma target 4.5
+//            #pragma vertex Vertex
+//            #pragma fragment Reduce
+//            #include "HierarchicalDepthMap.hlsl"
+//            ENDHLSL
+//        }
     }
 
     SubShader
@@ -40,19 +41,20 @@ Shader "IndirectRendering/HiZ/Buffer"
             HLSLPROGRAM
             #pragma target 4.6
             #pragma vertex Vertex
-            #pragma fragment Blit
+            #pragma fragment Fragment
+            // #pragma fragment Blit
             #include "HierarchicalDepthMap.hlsl"
             ENDHLSL
         }
 
-        Pass
-        {
-            HLSLPROGRAM
-            #pragma target 4.6
-            #pragma vertex Vertex
-            #pragma fragment Reduce
-            #include "HierarchicalDepthMap.hlsl"
-            ENDHLSL
-        }
+//        Pass
+//        {
+//            HLSLPROGRAM
+//            #pragma target 4.6
+//            #pragma vertex Vertex
+//            #pragma fragment Reduce
+//            #include "HierarchicalDepthMap.hlsl"
+//            ENDHLSL
+//        }
     }
 }
